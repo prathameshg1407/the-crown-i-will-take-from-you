@@ -314,6 +314,9 @@ export default function Home() {
             </div>
           </div>
 
+
+
+
           {/* CTA Buttons */}
           <div className="mt-24 mb-40 flex flex-col sm:flex-row gap-5 justify-center reveal">
             <Link 
