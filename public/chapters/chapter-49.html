@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Venus of Valdina - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fog': 'fog 20s linear infinite alternate',
+                        'drip': 'drip 3s ease-in-out infinite',
+                        'shatter': 'shatter 0.6s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        fog: {
+                            '0%': { transform: 'translateX(-10%)' },
+                            '100%': { transform: 'translateX(10%)' }
+                        },
+                        drip: {
+                            '0%, 100%': { transform: 'translateY(0) scaleY(1)' },
+                            '50%': { transform: 'translateY(10px) scaleY(1.1)' }
+                        },
+                        shatter: {
+                            '0%': { opacity: '1', transform: 'scale(1) rotate(0deg)' },
+                            '100%': { opacity: '0', transform: 'scale(0.3) rotate(45deg)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .thought {
+            color: #cbd5e1;
+            font-style: italic;
+            font-size: 1.15rem;
+            opacity: 0.9;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #9f1239;
+            text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #fbbf24 0%, #b45309 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .rage-text {
+            color: #dc2626;
+            font-weight: 700;
+            text-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
+        }
+
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-amber-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-amber-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-amber-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Tension</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/10 via-black to-black -z-10"></div>
+
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-amber-800/50 rounded-full bg-amber-950/20 backdrop-blur-sm">
+                    <span class="text-amber-100 text-[10px] font-ui tracking-[0.4em] uppercase">The Confrontation</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    The Venus <br />
+                    <span class="gradient-text italic">of Valdina</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">
+                    "She's not prey. She's the blade."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- Section: The Private Room -->
+            <div class="mb-16 reveal">
+                <div class="flex items-center justify-center py-8 opacity-30">
+                    <div class="h-px bg-amber-800 w-24"></div>
+                    <div class="w-2 h-2 bg-amber-800 rotate-45 mx-4"></div>
+                    <div class="h-px bg-amber-800 w-24"></div>
+                </div>
+                <p class="text-center font-heading text-amber-400 tracking-[0.3em] text-sm uppercase">The Private Room</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue">"You are working too hard, Princess," <span class="text-neutral-400">Etienne laughed, though his eyes were flat and cold.</span> "Someone has been filling your head with nonsense."</p>
+                <p>He leaned in, breath heavy with wine.</p>
+                <p class="dialogue">"Young people love inventing problems. Read books. Draw pictures. Leave numbers to the adults."</p>
+                <p>Medea didn't move.</p>
+                <p class="dialogue">"Is that your answer?"</p>
+                <p class="dialogue">"It is." <span class="text-neutral-400">He smiled thinly.</span> "Everything followed procedure."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue">"Then bring me the ledgers by tomorrow morning. If you followed procedure, you have nothing to hide."</p>
+                <p>The smile vanished.</p>
+                <p class="dialogue rage-text">"Why do you want them? It's just tedious accounting."</p>
+                <p class="dialogue">"Because neither Prime Minister Siseo nor I approved this banquet. I'm curious how such an expense passed unnoticed."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Etienne's eyes flicked to the door.</p>
+                <p class="thought italic text-orange-300">Too many ears.</p>
+                <p class="dialogue">"Your Highness, this is hardly a place for such discussions. Why don't we speak privately?"</p>
+                <p class="dialogue">"Lead the way."</p>
+            </div>
+
+            <!-- Section: The Parlor -->
+            <div class="my-16 reveal">
+                <div class="flex items-center justify-center py-8 opacity-30">
+                    <div class="h-px bg-red-800 w-24"></div>
+                    <div class="w-2 h-2 bg-red-800 rotate-45 mx-4"></div>
+                    <div class="h-px bg-red-800 w-24"></div>
+                </div>
+                <p class="text-center font-heading text-red-400 tracking-[0.3em] text-sm uppercase">The Parlor</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The door closed.</p>
+                <p>Umberto placed a fresh bottle of wine on the table and withdrew.</p>
+                <p>Etienne loosened his cravat, his face flushed. The civility dropped like a discarded mask.</p>
+                <p class="dialogue">"Well? Will you answer now—or should I involve the Queen Mother?"</p>
+            </div>
+
+            <div class="mt-16 bg-red-950/20 border border-red-900/40 p-8 rounded-lg reveal">
+                <p class="text-neutral-300 mb-4">Etienne laughed, stepping closer. His shadow swallowed her.</p>
+                <p class="dialogue mb-4 rage-text">"Do you really think you have leverage?"</p>
+                <p class="text-neutral-300 mb-4">He leaned down, eyes bulging and wet.</p>
+                <p class="dialogue mb-6 rage-text">
+                    "Who is on your side here? The Queen Mother? If I lift a finger, do you think she can protect you?"
+                </p>
+                <p class="text-neutral-400">His voice turned oily.</p>
+                <p class="dialogue">
+                    "The nobles despise your lineage. The servants fear losing their positions. If an accident happened to you…" <span class="text-neutral-400">He smiled.</span> "Who would mourn?"
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue">"Is that a threat?" <span class="text-neutral-400">Medea asked mildly.</span></p>
+                <p class="dialogue">"It's advice. Even animals know when they're walking into a trap."</p>
+                <p>Medea leaned casually against the railing.</p>
+                <p class="thought italic text-cyan-300">
+                    Your threats are useless to someone who has already died.
+                </p>
+            </div>
+
+            <!-- The Trap Closes -->
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue">"That remains to be seen. Madame Quiggin said something similar."</p>
+                <p>Etienne stiffened.</p>
+                <p class="dialogue">"Power is fragile, Minister. It flips faster than you expect. Just like it did for Quiggin."</p>
+                <p>His face darkened.</p>
+                <p class="dialogue rage-text">"Are you comparing me to a maid? Do you think I'm that easy to crush?"</p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-purple-950/20 to-transparent border-l-4 border-purple-700/50 p-8 rounded-r-lg reveal">
+                <p class="dialogue mb-4">"Am I wrong? She told me something before she died."</p>
+                <p class="text-neutral-300 mb-4">Etienne's breathing hitched.</p>
+                <p class="dialogue mb-4">"What?"</p>
+                <p class="dialogue">"She said the palace is full of maggots. Creatures uglier than her. So revolting they can't even find a mate. Even nature rejects them."</p>
+            </div>
+
+            <div class="h-[40vh] flex items-center justify-center my-20 reveal">
+                <div class="text-center space-y-6">
+                    <p class="text-neutral-600 font-body text-xl italic">Silence.</p>
+                    <p class="text-neutral-400 font-body text-2xl">Etienne froze.</p>
+                    <p class="font-heading text-3xl text-red-400 tracking-wide">The words struck deep—into the place he guarded most fiercely.</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>His hands trembled.</p>
+                <p class="dialogue rage-text">"You—"</p>
+                <p class="dialogue">"Is it hot in here? Your face is very red."</p>
+                <p>Etienne grabbed the wine bottle and drank straight from it, spilling liquid down his chin.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue">"I will remember this. Managing the palace is sacred work. I trust you'll do better."</p>
+                <p>She left.</p>
+                <p class="text-center text-red-300 font-semibold text-xl my-8">Etienne stood shaking.</p>
+            </div>
+
+            <!-- Section: The Service Corridor -->
+            <div class="my-16 reveal">
+                <div class="flex items-center justify-center py-8 opacity-30">
+                    <div class="h-px bg-red-800 w-24"></div>
+                    <div class="w-2 h-2 bg-red-800 rotate-45 mx-4"></div>
+                    <div class="h-px bg-red-800 w-24"></div>
+                </div>
+                <p class="text-center font-heading text-red-400 tracking-[0.3em] text-sm uppercase">The Service Corridor</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue rage-text font-bold text-2xl">"Damn her!"</p>
+                <p>Etienne roared, kicking over a statue.</p>
+            </div>
+
+            <div class="h-[30vh] flex items-center justify-center my-16 reveal">
+                <div class="relative">
+                    <p class="font-heading text-6xl text-red-500 tracking-wider animate-shake">CRASH!</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>He snatched another bottle from Umberto.</p>
+                <p class="dialogue rage-text">"It's lukewarm! You idiot!"</p>
+                <p>The bottle shattered against the wall.</p>
+                <p class="dialogue">"I'm sorry, Master," <span class="text-neutral-400">Umberto said calmly.</span></p>
+                <p>Etienne drank again, wheezing.</p>
+            </div>
+
+            <div class="mt-16 bg-emerald-950/20 border border-emerald-900/40 p-8 rounded-lg reveal">
+                <p class="text-neutral-300 mb-4">Umberto watched silently, fingers brushing the vial in his pocket.</p>
+                <p class="thought italic text-emerald-300 mb-6">
+                    Instructions: Mix with alcohol. Release the toad into the market.
+                </p>
+                <p class="text-neutral-400 mb-4">
+                    The drug was already working—reacting with the residue from weeks of scented candles. Inhibitions dissolving. Rage leaking through the cracks.
+                </p>
+                <p class="thought italic text-emerald-300">
+                    "He's losing control. Faster than expected."
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue rage-text">"More wine! Get more!"</p>
+                <p class="dialogue">"Yes, Master."</p>
+                <p>Umberto left the door slightly ajar.</p>
+                <p class="thought italic text-purple-300 text-center my-6">
+                    Go on, he thought.<br>
+                    Show them what you are.
+                </p>
+            </div>
+
+            <!-- Section: The Garden -->
+            <div class="my-16 reveal">
+                <div class="flex items-center justify-center py-8 opacity-30">
+                    <div class="h-px bg-green-800 w-24"></div>
+                    <div class="w-2 h-2 bg-green-800 rotate-45 mx-4"></div>
+                    <div class="h-px bg-green-800 w-24"></div>
+                </div>
+                <p class="text-center font-heading text-green-400 tracking-[0.3em] text-sm uppercase">The Garden — Oak Tree</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Cesare lowered his binoculars.</p>
+                <p class="dialogue">"…She really did that? She didn't flinch. Not even once."</p>
+                <p>Gallo whispered.</p>
+                <p>Cesare didn't answer.</p>
+                <p>
+                    Through the window, Medea stood composed, serene—sipping wine as if she hadn't just dismantled a minister.
+                </p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-cyan-950/20 to-transparent border-l-4 border-cyan-700/50 p-8 rounded-r-lg reveal">
+                <p class="dialogue mb-4">"She's not prey," <span class="text-neutral-400">Cesare murmured.</span></p>
+                <div class="my-6 space-y-2">
+                    <p class="thought italic text-cyan-300 m-0">She's bait.</p>
+                    <p class="thought italic text-cyan-200 m-0 text-xl">She's the blade.</p>
+                </div>
+            </div>
+
+            <div class="h-[50vh] flex items-center justify-center my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-amber-600 blur-3xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative text-center space-y-8">
+                        <p class="dialogue text-4xl md:text-5xl font-heading text-amber-300 tracking-wide">
+                            "The Venus of Valdina,"
+                        </p>
+                        <p class="text-neutral-400 font-body text-lg">he said quietly.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Gallo swallowed.</p>
+                <p class="dialogue">"…Boss?"</p>
+                <p>Cesare smiled faintly.</p>
+                <p class="dialogue">"This is getting interesting."</p>
+            </div>
+
+            <!-- Ending -->
+            <div class="mt-32 mb-40 reveal relative">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-amber-900 via-red-900 to-black rounded-lg blur opacity-50 animate-pulse-slow"></div>
+                
+                <div class="relative bg-black border border-amber-900/50 p-8 md:p-12 rounded-lg text-center shadow-2xl">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-amber-900/50 rounded text-xs tracking-widest text-amber-400 font-ui uppercase">
+                        Eyes in the Shadows
+                    </div>
+
+                    <h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-amber-300 to-amber-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">
+                        The Hunt Begins
+                    </h2>
+                    
+                    <div class="w-full h-px bg-gradient-to-r from-transparent via-amber-800 to-transparent my-8"></div>
+
+                    <p class="text-neutral-400 font-body text-lg italic leading-relaxed">
+                        Etienne unravels, thread by thread.<br>
+                        Umberto pulls the strings.<br>
+                        And Cesare watches the goddess rise.
+                    </p>
+                    
+                    <p class="mt-8 text-neutral-600 text-sm font-ui tracking-widest uppercase">
+                        [ To Be Continued ]
+                    </p>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Garden Trap - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        },
+                        shadow: {
+                            900: '#0a0a0f',
+                            800: '#12121a',
+                            700: '#1a1a25',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        poison: {
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            900: '#14532d',
+                        },
+                        iron: {
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                        },
+                        violet: {
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            900: '#4c1d95',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flicker': 'flicker 3s ease-in-out infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        flicker: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.8' },
+                            '75%': { opacity: '0.95' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050508;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .dialogue-medea {
+            border-left-color: rgba(16, 185, 129, 0.5);
+            color: #a7f3d0;
+        }
+
+        .dialogue-catherine {
+            border-left-color: rgba(139, 92, 246, 0.5);
+            color: #ddd6fe;
+        }
+
+        .dialogue-birna {
+            border-left-color: rgba(244, 114, 182, 0.4);
+            color: #fbcfe8;
+        }
+
+        .dialogue-servant {
+            border-left-color: rgba(148, 163, 184, 0.4);
+            color: #cbd5e1;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #8b5cf6;
+            text-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #10b981 0%, #064e3b 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-violet {
+            background: linear-gradient(180deg, #8b5cf6 0%, #4c1d95 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-poison {
+            background: linear-gradient(180deg, #22c55e 0%, #14532d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-blood {
+            background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-gold {
+            background: linear-gradient(180deg, #fbbf24 0%, #92400e 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .scene-break {
+            position: relative;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scene-break::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
+        }
+
+        .jewel-glow {
+            box-shadow: 0 0 40px rgba(251, 191, 36, 0.5), 0 0 80px rgba(239, 68, 68, 0.3), 0 0 120px rgba(34, 197, 94, 0.2);
+        }
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-violet-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-violet-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-violet-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-violet-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: The Trap Springs</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-950/20 via-black to-black -z-10"></div>
+
+        <!-- HEADER -->
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-violet-800/50 rounded-full bg-violet-950/20 backdrop-blur-sm">
+                    <span class="text-violet-200 text-[10px] font-ui tracking-[0.4em] uppercase">Continuation</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    <span class="gradient-text-violet">The Garden</span>
+                    <br/>
+                    <span class="gradient-text-poison italic">Trap</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">
+                    "Auntie will protect you."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- THE SUMMONS -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-medea">
+                    "Now? Where is she?"
+                </p>
+                <p class="dialogue dialogue-servant">
+                    "In the private garden, Your Highness."
+                </p>
+                <p class="dialogue dialogue-medea">
+                    "The garden?"
+                </p>
+                <p class="text-neutral-400">
+                    Medea stopped.
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-poison-950/40 to-black p-12 rounded-2xl border border-poison-800/30 shadow-2xl">
+                    <p class="text-poison-200 text-xl leading-relaxed mb-6">
+                        The Royal Garden lay sealed within the palace walls, accessible only through the Princess's chambers.
+                    </p>
+                    <p class="text-poison-300 text-2xl text-center font-semibold">
+                        Entering it without invitation was not a breach of etiquette—
+                    </p>
+                    <p class="text-3xl font-heading text-center text-poison-400 mt-6">
+                        it was a declaration.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-medea text-xl">
+                    "I never invited her," Medea said evenly.
+                </p>
+                <p class="dialogue dialogue-servant">
+                    "I—I'm sorry, Your Highness," the new maid stammered, tears trembling at her lashes. "I assumed… the Duchess simply walked in."
+                </p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-violet-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-violet-200 text-2xl text-center italic">
+                        Of course she did.
+                    </p>
+                    <p class="text-neutral-400 text-center mt-6">
+                        For years, House Claudio had treated Medea's residence as an extension of their own estate.
+                    </p>
+                    <p class="text-violet-300 text-xl text-center mt-4">
+                        No permission. No restraint.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE GARDEN -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-xl opacity-25 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg shadow-2xl">
+                        <p class="dialogue dialogue-medea text-2xl text-center mb-8">
+                            "Leave her," Medea said calmly.
+                        </p>
+                        <p class="text-3xl font-heading text-center gradient-text">
+                            "Let them run until they stumble."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-blood-950/40 to-transparent p-10 rounded-2xl border border-blood-800/30">
+                    <p class="text-neutral-400 text-center mb-6">
+                        She stepped into the garden.
+                    </p>
+                    <p class="text-3xl font-heading text-center text-blood-400">
+                        The damage was deliberate.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Catherine sat on a bench, sipping tea she had not been offered. Birna darted through the flowerbeds, her skirts shredding blossoms beneath careless feet.
+                </p>
+            </div>
+
+            <!-- BIRNA'S OFFERING -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-pink-950/40 to-black p-12 rounded-2xl border border-pink-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-birna text-2xl text-center mb-8">
+                        "Sister!"
+                    </p>
+                    <p class="text-neutral-400 mb-6">
+                        Birna rushed forward, crushing lilies as she ran. She thrust out a fistful of flowers—ripped out by the roots, stems broken and bleeding sap.
+                    </p>
+                    <p class="dialogue dialogue-birna text-xl text-center">
+                        "Look! I picked these for you!"
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-emerald-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-neutral-400 text-center mb-4">
+                        Medea took in the ruined beds. Then Birna's smile.
+                    </p>
+                    <p class="dialogue dialogue-medea text-xl text-center">
+                        "Birna. You're here as well."
+                    </p>
+                </div>
+            </div>
+
+            <!-- CATHERINE'S PERFORMANCE -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Catherine rose smoothly, brushing imaginary dust from her sleeves.
+                </p>
+                <p class="dialogue dialogue-catherine text-xl">
+                    "Forgive us for waiting," she said with practiced regret. "The day was too lovely to stay indoors."
+                </p>
+                <p class="text-neutral-400">
+                    She approached, sorrow painted perfectly onto her face.
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-violet-950/40 to-black p-12 rounded-2xl border border-violet-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-catherine text-xl mb-6">
+                        "My heart aches for you," Catherine sighed. "To think you were forced to sell your belongings… it's a stain on our family's honor."
+                    </p>
+                    <p class="text-neutral-400 mb-6">
+                        She gestured.
+                    </p>
+                    <p class="dialogue dialogue-catherine text-2xl text-center">
+                        "I couldn't bear it. So I fixed it."
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE JEWEL BOX -->
+            <div class="my-32 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-gold-500 via-blood-500 to-poison-500 blur-3xl opacity-50 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-gold-600/60 p-12 rounded-lg text-center shadow-2xl jewel-glow">
+                        <p class="text-neutral-400 mb-8">
+                            A maid stepped forward with a velvet chest.
+                        </p>
+                        <p class="text-neutral-400 mb-8">
+                            When it opened, sunlight exploded.
+                        </p>
+                        <div class="text-7xl my-8">💎</div>
+                        <p class="text-gold-400 text-3xl font-heading mb-4">Rubies.</p>
+                        <p class="text-poison-400 text-3xl font-heading mb-4">Emeralds.</p>
+                        <p class="text-blue-300 text-3xl font-heading mb-8">Diamonds.</p>
+                        <p class="text-neutral-400 text-xl italic mt-8">
+                            Every single gaudy piece Medea had distributed—nestled together like reclaimed property.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MEDEA'S REALIZATION -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-emerald-950/40 to-black p-12 rounded-2xl border border-emerald-800/30 shadow-2xl">
+                    <p class="text-emerald-200 text-2xl text-center mb-6">
+                        Medea understood instantly.
+                    </p>
+                    <p class="text-neutral-400 text-xl text-center italic mb-6">
+                        The rumors had spread. <em>The Duke is starving his niece.</em>
+                    </p>
+                    <p class="text-emerald-300 text-xl text-center">
+                        And Catherine had been forced to bleed gold to silence them.
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-poison-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-poison-400 text-3xl font-heading text-center italic">
+                        Good, Medea thought.
+                    </p>
+                    <p class="text-poison-300 text-2xl text-center mt-4">
+                        That's less money for treason.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-catherine text-xl">
+                    "Do not worry," Catherine said warmly. "As long as your Aunt lives, you will never lack."
+                </p>
+                <p class="text-neutral-400">
+                    Medea looked at the box.
+                </p>
+                <p class="text-neutral-400">
+                    Then at Catherine.
+                </p>
+            </div>
+
+            <!-- THE COLD RESPONSE -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="dialogue dialogue-medea text-3xl font-heading mb-8">
+                            "Thank you, Auntie."
+                        </p>
+                        <p class="text-neutral-400 mb-8">
+                            Her voice was flat.
+                        </p>
+                        <p class="text-neutral-400 mb-6">
+                            Catherine blinked.
+                        </p>
+                        <p class="text-violet-300 text-xl text-center italic">
+                            No tears. No gratitude. No collapse into her arms.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-catherine">
+                    "…Your Highness?"
+                </p>
+                <p class="dialogue dialogue-medea text-xl">
+                    "It is your heart, Auntie. I will treasure it."
+                </p>
+                <p class="text-neutral-400">
+                    She motioned for the box to be taken away.
+                </p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-pink-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-pink-300 text-xl text-center italic">
+                        Birna scowled. <em>Ungrateful brat.</em>
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE WARNING -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-violet-950/40 to-black p-12 rounded-2xl border border-violet-800/30 shadow-2xl">
+                    <p class="text-neutral-400 mb-6">
+                        Catherine stepped closer, unease creeping into her smile.
+                    </p>
+                    <p class="dialogue dialogue-catherine text-xl mb-6">
+                        "Please trust me. House Claudio stands with you."
+                    </p>
+                    <p class="dialogue dialogue-medea text-xl mb-8">
+                        "I believe you."
+                    </p>
+                    <p class="dialogue dialogue-medea text-3xl font-heading text-center gradient-text">
+                        "So you will not betray that trust."
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-violet-950/40 to-transparent p-10 rounded-2xl border border-violet-800/30">
+                    <p class="text-violet-200 text-2xl text-center">
+                        For a single heartbeat, Catherine felt cold.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE SERVANT ARRIVES -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-blue-800/30 rounded-full z-10">
+                    <span class="text-blue-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Summons —
+                    </span>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Then—
+                </p>
+                <p class="text-neutral-400">
+                    Footsteps.
+                </p>
+                <p class="text-neutral-400">
+                    A servant in blue livery entered, ignoring Catherine entirely.
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-blue-950/40 to-black p-12 rounded-2xl border border-blue-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-servant text-xl text-center mb-8">
+                        "I greet Her Highness."
+                    </p>
+                    <p class="text-neutral-400 mb-8 text-center">
+                        He bowed to Medea alone.
+                    </p>
+                    <p class="dialogue dialogue-servant text-2xl font-heading text-center">
+                        "I bring a summons from Her Majesty, the Queen Mother."
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-violet-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-violet-200 text-xl text-center">
+                        The garden stilled.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-servant text-2xl">
+                    "Princess Medea is commanded to appear immediately."
+                </p>
+                <p class="dialogue dialogue-catherine">
+                    "Why?"
+                </p>
+                <p class="dialogue dialogue-servant text-xl">
+                    "The Duchess and Lady Birna are also summoned."
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-violet-950/40 to-black p-12 rounded-2xl border border-violet-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-catherine text-2xl text-center mb-6">
+                        "Us?"
+                    </p>
+                    <p class="text-violet-300 text-xl text-center italic">
+                        Catherine's smile cracked.
+                    </p>
+                    <p class="dialogue dialogue-servant text-xl text-center mt-8">
+                        "Please prepare."
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Medea inclined her head and turned away.
+                </p>
+                <p class="text-neutral-400">
+                    Catherine intercepted the servant, slipping gold into his palm.
+                </p>
+                <p class="dialogue dialogue-catherine">
+                    "Why?" she whispered.
+                </p>
+            </div>
+
+            <!-- THE REVELATION -->
+            <div class="my-32 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blood-600 to-red-600 blur-3xl opacity-40 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-blood-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-neutral-400 mb-8">
+                            The servant hesitated—then spoke.
+                        </p>
+                        <p class="dialogue dialogue-servant text-2xl mb-8 leading-relaxed">
+                            "Madame Quiggin is with Her Majesty. She has accused the Princess of grave misconduct."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-violet-950/40 to-black p-12 rounded-2xl border border-violet-800/30 shadow-2xl">
+                    <p class="text-violet-200 text-2xl text-center mb-8">
+                        Catherine went pale.
+                    </p>
+                    <p class="text-violet-300 text-3xl font-heading text-center italic gradient-text-blood">
+                        That idiot woman.
+                    </p>
+                    <p class="text-neutral-400 text-center mt-8">
+                        If the Queen investigated, she wouldn't stop at Medea.
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-pink-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-pink-300 text-xl text-center">
+                        Birna, however, smiled.
+                    </p>
+                    <p class="text-pink-400 text-2xl text-center italic mt-4">
+                        Grandmother is going to scold her again.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE TRAP CLOSES -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-violet-950/40 to-black p-12 rounded-2xl border border-violet-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-catherine text-xl mb-6">
+                        "I'll come with you," Catherine said quickly as Medea returned. "I won't let you face this alone."
+                    </p>
+                    <p class="text-neutral-400 mb-6">
+                        She reached for Medea's hand.
+                    </p>
+                    <p class="dialogue dialogue-catherine text-2xl text-center">
+                        "Don't worry. Auntie will protect you."
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-32 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-3xl opacity-40 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-neutral-400 mb-8">
+                            Medea looked at her.
+                        </p>
+                        <p class="text-6xl md:text-7xl font-heading gradient-text">
+                            "I'm counting on it."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- End of Chapter Notice -->
+            <div class="my-40 text-center reveal">
+                <div class="inline-block px-8 py-3 border border-violet-700 rounded-full bg-violet-900/20 backdrop-blur">
+                    <span class="text-violet-400 font-ui text-xs tracking-[0.3em] uppercase">To Be Continued</span>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

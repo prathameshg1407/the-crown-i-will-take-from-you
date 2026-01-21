@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asilum Street - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fog': 'fog 20s linear infinite alternate',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        fog: {
+                            '0%': { transform: 'translateX(-10%)' },
+                            '100%': { transform: 'translateX(10%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #9f1239;
+            text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .section-divider {
+            font-family: 'Cinzel', serif;
+            text-align: center;
+            color: #525252;
+            font-size: 0.875rem;
+            letter-spacing: 0.3em;
+            margin: 4rem 0;
+            text-transform: uppercase;
+        }
+
+        .time-marker {
+            background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
+            border-top: 1px solid rgba(159, 18, 57, 0.3);
+            border-bottom: 1px solid rgba(159, 18, 57, 0.3);
+            padding: 1.5rem 0;
+            margin: 3rem 0;
+        }
+
+        .inner-thought {
+            font-style: italic;
+            color: #a3a3a3;
+            background: rgba(38, 38, 38, 0.4);
+            padding: 0.5rem 1.5rem;
+            border-left: 3px solid rgba(115, 115, 115, 0.5);
+            margin: 1.5rem 0;
+        }
+
+        .prophecy-text {
+            font-style: italic;
+            color: #c4b5fd;
+            background: rgba(88, 28, 135, 0.2);
+            padding: 1rem 1.5rem;
+            border-left: 3px solid rgba(168, 85, 247, 0.5);
+            margin: 1.5rem 0;
+        }
+
+        .sound-effect {
+            font-family: 'Cinzel', serif;
+            text-align: center;
+            color: #a855f7;
+            font-size: 1.2rem;
+            letter-spacing: 0.5em;
+            margin: 2rem 0;
+        }
+
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-slate-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-slate-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-slate-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Slums</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10"></div>
+
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-slate-800/50 rounded-full bg-slate-950/20 backdrop-blur-sm">
+                    <span class="text-slate-100 text-[10px] font-ui tracking-[0.4em] uppercase">Where Revolutions Begin</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    Asilum <br />
+                    <span class="gradient-text italic pr-2">Street</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-2xl text-center">
+                    "When people have nothing, they stop fearing consequences."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- Opening -->
+            <div class="time-marker reveal">
+                <p class="section-divider">The Princess's Palace</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Gilliforth located them. Last sighting—Asilum Street. Slums on the eastern outskirts."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Neril said, handing over the report.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Asilum Street…"</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Medea repeated softly.</p>
+                </div>
+
+                <p>Neril hesitated.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Shall I fetch Theo?"</p>
+                    <p class="dialogue text-purple-200">"No."</p>
+                </div>
+
+                <p>Medea folded the parchment.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"In my last life, Theo hated Valdina. If he sees Royal Guard armor, he will vanish—or draw blood."</p>
+                </div>
+            </div>
+
+            <!-- Character Assessment -->
+            <div class="my-24 bg-red-950/20 border-l-4 border-red-800 p-8 rounded-r-lg reveal">
+                <p class="text-neutral-300 m-0">Theo was not merely a rebel.</p>
+                <p class="text-red-300 m-0 mt-6 font-semibold text-lg">He was the spine of the rebellion.</p>
+                <p class="text-neutral-400 m-0 mt-6 leading-relaxed">
+                    A strategist forged by grief. A man whose rage had once turned starving mobs into an army that breached the capital gates.
+                </p>
+                <div class="space-y-3 mt-6">
+                    <p class="text-neutral-500 m-0">If he lived, the future could burn.</p>
+                    <p class="text-neutral-500 m-0">If he died, it could still rot.</p>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p class="m-0 text-purple-200">I won't decide his fate through reports.</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"I will go myself."</p>
+                </div>
+            </div>
+
+            <!-- Asilum Street -->
+            <div class="time-marker reveal">
+                <p class="section-divider">Asilum Street</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="drop-cap text-neutral-300">
+                    The smell struck first.
+                </p>
+                <p>Rotting refuse. Open sewage. Human despair left too long in the sun.</p>
+                <p>Neril's hand slid instinctively toward her sword.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"This place is…"</p>
+                    <p class="text-neutral-500 text-base italic pl-4">She trailed off.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Miserable."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Medea finished.</p>
+                </div>
+
+                <p>Her gaze lingered on hollow-eyed children and gaunt figures huddled in doorways.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"When people have nothing, they stop fearing consequences. That's where revolutions are born."</p>
+                </div>
+
+                <p>They moved through the alleyways in plain cloaks, but the lie was obvious. Their skin was too clean. Their posture too straight. Hunger watched them from every shadow.</p>
+            </div>
+
+            <!-- The Fortune Teller -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-400">"Miss. Care for a fortune?"</p>
+                    <p class="text-neutral-500 text-base italic pl-4">A rasp croaked.</p>
+                </div>
+
+                <p>Neril half-drew her blade.</p>
+                <p>An old woman sat cross-legged on a frayed mat, hood low, hands twisted like dead roots.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Go."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Neril warned.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Wait."</p>
+                </div>
+
+                <p>Medea tossed a copper coin onto the mat.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"I don't need my future told. I already know it."</p>
+                </div>
+
+                <p>The old woman chuckled—a dry, cracking sound.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-400">"Do you?"</p>
+                </div>
+
+                <p>A pause.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-400">"If you're living again, child… surely things will be different."</p>
+                </div>
+
+                <p class="text-purple-300 font-semibold">Medea froze.</p>
+                <p>Slowly, she turned.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"What did you say?"</p>
+                </div>
+            </div>
+
+            <!-- The Reading -->
+            <div class="my-20 reveal">
+                <p class="sound-effect">Click. Click.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Cracked crystal beads rolled between the woman's fingers.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-400">"Sit."</p>
+                </div>
+
+                <p>Against her better judgment, Medea sat.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-400">"This life won't be kinder. Chaos blocks your road. They wish to bury the Saint and steal her light."</p>
+                </div>
+
+                <p>The beads fell into an uneven pattern.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-400">"But fear not. A great star falls with you. A Black Star. He will cleave your path."</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"I don't need him. I don't need a savior."</p>
+                </div>
+
+                <p>She had trusted once.</p>
+                <p class="text-red-300">That trust had killed her.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"I'll carve my fate myself."</p>
+                </div>
+
+                <p>The old woman smacked her tongue.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-400">"Stubborn child. The squishy things will try to eat you again. They crave your light."</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"If I'm devoured twice, then I deserve it."</p>
+                </div>
+
+                <p>The woman smiled.</p>
+                <p>Blood leaked from the corner of her mouth.</p>
+            </div>
+
+            <!-- The Prophecy -->
+            <div class="my-24 bg-violet-950/30 border-l-4 border-violet-800 p-10 rounded-r-lg reveal">
+                <div class="space-y-6">
+                    <p class="dialogue text-slate-400 m-0">"Have you heard of the Dawn's Droplet?"</p>
+                    <p class="dialogue text-purple-200 m-0">"No."</p>
+                    <div class="prophecy-text mt-6">
+                        <p class="m-0">"A divine medicine. It erases all things—sickness, memory… even destiny. When the tower falls, it will save the Black Star."</p>
+                    </div>
+                    <p class="text-neutral-300 m-0 mt-6">She coughed, swaying.</p>
+                    <p class="dialogue text-slate-400 m-0">"Heaven turned back the stars for you. Don't waste it."</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"You're bleeding. Neril—"</p>
+                    <p class="dialogue text-slate-400">"No."</p>
+                </div>
+
+                <p>The woman pushed her hand away, grip unexpectedly strong.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-400">"My story ends here."</p>
+                </div>
+
+                <p>She squeezed Medea's fingers.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-400">"You carry the blood of Sages. The will of the Goddess. Only you can choose the end."</p>
+                </div>
+
+                <p>Medea pulled back, shaken.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Neril. Bring her to me. I need answers."</p>
+                </div>
+
+                <p>Neril rushed back.</p>
+                <p>Moments later, she returned pale.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"She's gone."</p>
+                    <p class="dialogue text-purple-200">"What?"</p>
+                    <p class="dialogue">"No mat. No beads. No footprints. Even the dust is undisturbed."</p>
+                </div>
+
+                <p class="text-violet-300 italic text-center mt-8">As if she had never been.</p>
+            </div>
+
+            <!-- Saya's Scene -->
+            <div class="time-marker reveal">
+                <p class="section-divider">A Shabby Hut</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-amber-200">"Saya! You're back!"</p>
+                </div>
+
+                <p>Angela leaned over the broken fence.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"Yes. I found work."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Saya said, clutching a loaf of black bread.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-amber-200">"Alone? Child, it's dangerous. Traffickers prowl these streets."</p>
+                </div>
+
+                <p>Saya nodded stiffly.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-amber-200">"You should go to the Casey Aid Center. Near the castle wall. Safe. Your father was a veteran, wasn't he?"</p>
+                    <p class="dialogue text-slate-300">"I'll… think about it."</p>
+                </div>
+
+                <p>Saya slipped inside and locked the door.</p>
+            </div>
+
+            <!-- Internal Conflict -->
+            <div class="my-24 bg-slate-950/30 border-l-4 border-slate-700 p-8 rounded-r-lg reveal">
+                <p class="text-neutral-300 m-0 italic">Military village.</p>
+                <p class="text-neutral-300 m-0 italic mt-2">Clean water. Food. Safety.</p>
+                <p class="text-neutral-300 m-0 mt-6">She slid down the door, shaking.</p>
+                <div class="my-6 space-y-4">
+                    <p class="dialogue text-slate-300 m-0">"How can I go? Theo is wanted."</p>
+                </div>
+                <p class="text-neutral-400 m-0 mt-6 leading-relaxed">
+                    Her brother had beaten a corrupt guard for stealing their food. He fled to avoid execution, leaving her behind.
+                </p>
+                <p class="text-neutral-400 m-0 mt-6">
+                    If she registered at the Aid Center, they would check records.
+                </p>
+                <p class="text-red-300 m-0 mt-4">
+                    Theo would be caught the moment he returned.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Her mother died giving birth to her.</p>
+                <p>Her father bled out years after the war.</p>
+                <p>And now Theo was gone.</p>
+                <p class="text-neutral-200 font-semibold">She was alone.</p>
+            </div>
+
+            <!-- The Knock -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <p>A knock sounded.</p>
+                <p>Saya froze.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"Who is it?"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"We're looking for Theo."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">A calm female voice answered.</p>
+                </div>
+            </div>
+
+            <!-- Final Beat -->
+            <div class="mt-32 mb-40 reveal relative">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-slate-900 via-violet-900 to-purple-900 rounded-lg blur opacity-60 animate-pulse-slow"></div>
+                
+                <div class="relative bg-black border border-slate-700/50 p-12 md:p-16 rounded-lg text-center shadow-2xl">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-slate-700/50 rounded text-xs tracking-widest text-slate-400 font-ui uppercase">
+                        Prophecy & Fear
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
+
+                        <div class="space-y-6">
+                            <p class="text-violet-300 text-xl font-body italic">A Black Star falls.</p>
+                            <p class="text-purple-300 text-xl font-body italic">A seer vanishes.</p>
+                            <p class="text-slate-300 text-xl font-body italic">And at the door—</p>
+                            
+                            <h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-slate-300 via-purple-500 to-red-700 uppercase tracking-[0.15em] drop-shadow-lg leading-tight mt-8">
+                                Fate<br />
+                                <span class="text-3xl">Arrives</span>
+                            </h2>
+                        </div>
+                        
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
+
+                        <p class="text-slate-600/60 text-sm font-ui tracking-widest uppercase">
+                            [ The Meeting ]
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

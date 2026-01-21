@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Killer's Gaze - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        },
+                        shadow: {
+                            900: '#0a0a0f',
+                            800: '#12121a',
+                            700: '#1a1a25',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fog': 'fog 20s linear infinite alternate',
+                        'flicker': 'flicker 3s ease-in-out infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        fog: {
+                            '0%': { transform: 'translateX(-10%)' },
+                            '100%': { transform: 'translateX(10%)' }
+                        },
+                        flicker: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.8' },
+                            '75%': { opacity: '0.95' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050508;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .dialogue-maria {
+            border-left-color: rgba(244, 63, 94, 0.4);
+        }
+
+        .dialogue-medea {
+            border-left-color: rgba(16, 185, 129, 0.4);
+            color: #a7f3d0;
+        }
+
+        .dialogue-neril {
+            border-left-color: rgba(99, 102, 241, 0.4);
+            color: #c7d2fe;
+        }
+
+        .dialogue-quiggin {
+            border-left-color: rgba(107, 114, 128, 0.4);
+            color: #9ca3af;
+        }
+
+        .dialogue-maid {
+            border-left-color: rgba(251, 191, 36, 0.4);
+            color: #fde68a;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #9f1239;
+            text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-steel {
+            background: linear-gradient(180deg, #a5b4fc 0%, #312e81 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .scene-break {
+            position: relative;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scene-break::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.3), transparent);
+        }
+
+        .character-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            font-family: 'Lato', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .hair-float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-rose-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-rose-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-rose-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Tension</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-rose-950/20 via-black to-black -z-10"></div>
+
+        <!-- HEADER -->
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-rose-800/50 rounded-full bg-rose-950/20 backdrop-blur-sm">
+                    <span class="text-rose-200 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    The Killer's <br />
+                    <span class="gradient-text-steel italic pr-2">Gaze</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">
+                    "Next time, it will be your head."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- SCENE 1: MARIA LUNGES -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="drop-cap text-neutral-300">
+                    <span class="dialogue dialogue-maria">"Wait! Your Highness!"</span>
+                </p>
+                <p class="text-neutral-300">
+                    Maria lunged.
+                </p>
+                <p>
+                    Her fingers curled like claws, reaching for silver hair—she would grab it, shake sense into that stupid, blank face—
+                </p>
+            </div>
+
+            <!-- THE SNIP -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-rose-600 to-red-600 blur-3xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-rose-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-6xl md:text-7xl font-heading text-rose-400 mb-6 italic">
+                            Snip.
+                        </p>
+                        <p class="text-neutral-400 text-lg italic">
+                            A soft, intimate sound.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HAIR FALLING -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-rose-950/30 to-transparent p-10 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-0 left-1/4 w-1 h-20 bg-gradient-to-b from-rose-400 to-transparent opacity-60 hair-float"></div>
+                    <div class="absolute top-4 left-1/3 w-0.5 h-16 bg-gradient-to-b from-rose-500 to-transparent opacity-40 hair-float" style="animation-delay: 0.5s"></div>
+                    <div class="absolute top-2 right-1/3 w-1 h-24 bg-gradient-to-b from-rose-400 to-transparent opacity-50 hair-float" style="animation-delay: 1s"></div>
+                    
+                    <p class="text-rose-200 text-xl text-center mb-6 relative z-10">
+                        Red strands drifted down like autumn leaves.
+                    </p>
+                    <p class="dialogue dialogue-maria text-center text-lg">"Neril?"</p>
+                    <p class="text-neutral-300 text-center mt-4">Maria froze.</p>
+                    <p class="text-neutral-400 text-center mt-4">She looked at the floor.</p>
+                    <p class="text-rose-100 text-xl text-center mt-6 font-semibold">
+                        Those weren't threads.
+                    </p>
+                    <p class="text-rose-200 text-xl text-center mt-2">
+                        They were locks of her own hair.
+                    </p>
+                </div>
+            </div>
+
+            <!-- MARIA'S SCREAM -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-maria text-2xl animate-shake" style="animation-iteration-count: 1">
+                    "Ah—AHHH! My hair! You insane bit—"
+                </p>
+            </div>
+
+            <!-- THE SWORD -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-indigo-950/40 to-slate-950/40 p-10 rounded-2xl border border-indigo-800/30 shadow-2xl">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-black px-6 py-1 border border-indigo-700 rounded-full">
+                        <span class="text-xs tracking-widest text-indigo-400 font-ui uppercase">Clang</span>
+                    </div>
+                    <p class="text-neutral-300 text-lg text-center mb-6">
+                        The flat of a sword slammed into her throat.
+                    </p>
+                    <p class="text-indigo-200 text-xl text-center font-semibold">
+                        The scream died mid-breath.
+                    </p>
+                </div>
+            </div>
+
+            <!-- NERIL'S WARNING -->
+            <div class="my-16 reveal">
+                <div class="relative bg-gradient-to-br from-slate-900/60 to-black p-10 rounded-2xl border border-slate-700/40 shadow-2xl">
+                    <div class="character-tag bg-indigo-950 text-indigo-300 border border-indigo-700/50">Neril</div>
+                    <p class="dialogue dialogue-neril text-xl mb-6">
+                        "Next time, it will be your head."
+                    </p>
+                    <p class="text-neutral-400 text-lg">
+                        Maria couldn't breathe. Cold steel pressed into her windpipe. She stared into Neril's eyes and saw no fury there—no hatred, no hesitation.
+                    </p>
+                    <p class="text-indigo-100 text-xl text-center mt-8 font-heading">
+                        Only the calm, empty gaze of a soldier choosing a burial site.
+                    </p>
+                </div>
+            </div>
+
+            <!-- NERIL'S WHISPER -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-violet-600 blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-indigo-700/50 p-12 rounded-lg shadow-2xl">
+                        <p class="text-neutral-400 text-center mb-6 italic">
+                            Neril leaned closer, her lips brushing Maria's ear.
+                        </p>
+                        <div class="border-l-4 border-indigo-600 pl-6 py-4 bg-indigo-950/30 rounded-r">
+                            <p class="dialogue dialogue-neril text-xl leading-relaxed">
+                                "If you touch Her Highness again, I won't stop at your hair. I'll break every finger on your hands. Slowly."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MARIA FLEES -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-maria text-rose-200/70">"You… you…"</p>
+                <p>
+                    Maria stumbled back, biting her lip until it bled.
+                </p>
+                <p class="text-neutral-400">
+                    The loyal dog was gone.
+                </p>
+                <p class="text-indigo-200 text-xl font-semibold">
+                    In her place stood a killer.
+                </p>
+                <p>
+                    Terror washed over her—pure, absolute. Maria turned and ran.
+                </p>
+            </div>
+
+            <!-- SCENE BREAK -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-emerald-800/30 rounded-full z-10">
+                    <span class="text-emerald-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        ❧
+                    </span>
+                </div>
+            </div>
+
+            <!-- MEDEA AND NERIL -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-medea">"Neril, perhaps you should rest."</p>
+                <p class="dialogue dialogue-neril">"It is nothing, Your Highness."</p>
+                <p>
+                    Neril sheathed her sword with her left hand. Her right arm was bound tight against her chest, swollen beneath layers of cloth—yet her movements were fluid, precise.
+                </p>
+            </div>
+
+            <!-- MEDEA'S ASSESSMENT -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-r from-transparent via-emerald-950/20 to-transparent p-8 rounded-lg border-y border-emerald-800/30">
+                    <div class="character-tag bg-emerald-950 text-emerald-300 border border-emerald-700/50">Medea's Thoughts</div>
+                    <p class="text-emerald-100 text-xl italic mb-4">
+                        Medea studied her.
+                    </p>
+                    <p class="text-emerald-200 text-lg font-semibold text-center">
+                        She is strong.
+                    </p>
+                    <p class="text-neutral-400 mt-4">
+                        In her former life, Medea had watched the empire's finest warriors bleed and fall. She knew what strength looked like. Even crippled, Neril moved like a panther.
+                    </p>
+                    <p class="text-emerald-100 text-xl text-center mt-6">
+                        At full strength, she could rival a Seven-Star Knight of Kazen.
+                    </p>
+                    <p class="text-neutral-500 text-center mt-4 italic">
+                        No wonder Peleus had chosen her.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE QUESTION -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-medea">"What did you say to Maria? She looked like spoiled milk."</p>
+                <p class="dialogue dialogue-neril">"I merely advised caution."</p>
+                <p class="dialogue dialogue-medea">"Is that so?"</p>
+                <p class="text-neutral-400 italic">Medea smiled faintly.</p>
+            </div>
+
+            <!-- THE MAIDS' OPPORTUNITY -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-amber-950/20 to-transparent p-8 rounded-lg">
+                    <p class="text-neutral-300 mb-4">
+                        Behind them, the remaining maids watched with sharp, calculating eyes.
+                    </p>
+                    <p class="text-amber-200 text-xl text-center font-semibold">
+                        Maria was gone.
+                    </p>
+                    <p class="text-amber-100 text-xl text-center mt-2">
+                        That meant opportunity.
+                    </p>
+                </div>
+            </div>
+
+            <!-- MEDEA'S ORDERS -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-medea text-xl">
+                    "From today, you will divide Maria's duties among yourselves."
+                </p>
+                <p class="dialogue dialogue-maid">"Are you serious?!"</p>
+                <p class="dialogue dialogue-maid">"Oh—thank you, Your Highness!"</p>
+                <p>
+                    They bowed deeply, greedy smiles hidden behind lowered heads. Serving the Princess meant lighter work, better food, access—status.
+                </p>
+            </div>
+
+            <!-- THE REPORTS -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-r from-transparent via-slate-800/30 to-transparent p-8 rounded-lg border-l-4 border-slate-600/50">
+                    <p class="text-neutral-300 mb-4">
+                        One maid ventured forward.
+                    </p>
+                    <p class="dialogue dialogue-maid mb-4">
+                        "Your Highness… something strange is happening. The depot sent us damp firewood. They said we must carry it ourselves."
+                    </p>
+                    <p class="dialogue dialogue-maid">
+                        "And the cleaners were barred from our wing. We're expected to scrub everything."
+                    </p>
+                </div>
+            </div>
+
+            <!-- MEDEA'S REALIZATION -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-emerald-950/30 to-black p-12 rounded-2xl border border-emerald-800/30 shadow-2xl">
+                    <p class="text-neutral-300 mb-4">Medea nodded slowly.</p>
+                    <p class="dialogue dialogue-medea text-2xl font-heading text-center">
+                        "The Head Maid is retaliating."
+                    </p>
+                    <p class="text-neutral-400 text-center mt-6">The maids stiffened.</p>
+                    <p class="text-neutral-500 text-center mt-4 italic">
+                        So it was true. The Princess had beaten Madame Quiggin.
+                    </p>
+                    <p class="text-neutral-500 text-center mt-2 italic">
+                        Madness, they thought. All this—for one broken soldier?
+                    </p>
+                </div>
+            </div>
+
+            <!-- MEDEA'S PROMISE -->
+            <div class="my-16 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg shadow-2xl">
+                        <div class="character-tag bg-emerald-950 text-emerald-300 border border-emerald-700/50">Princess Medea</div>
+                        <p class="dialogue dialogue-medea text-xl leading-relaxed mb-6">
+                            "This is my palace. And you are my people. If any of you were in Neril's place, I would have done the same."
+                        </p>
+                        <p class="text-neutral-400 text-center italic">
+                            They blinked.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THE COMPENSATION -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-medea">
+                    "I cannot oppose the Head Maid openly. Because of me, you will suffer. I am sorry."
+                </p>
+                <p class="text-neutral-300">
+                    She drew out glittering jewels.
+                </p>
+            </div>
+
+            <!-- THE GIFTS -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-amber-950/30 to-transparent p-10 rounded-2xl">
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        <div class="text-center p-4 bg-rose-950/30 rounded-lg border border-rose-800/30">
+                            <p class="text-rose-300 text-lg">Ruby earrings</p>
+                        </div>
+                        <div class="text-center p-4 bg-amber-950/30 rounded-lg border border-amber-800/30">
+                            <p class="text-amber-300 text-lg">Gold bracelet</p>
+                        </div>
+                        <div class="text-center p-4 bg-blue-950/30 rounded-lg border border-blue-800/30">
+                            <p class="text-blue-300 text-lg">Sapphire necklace</p>
+                        </div>
+                    </div>
+                    <p class="dialogue dialogue-maid text-center">"Y-Your Highness…?"</p>
+                    <p class="text-neutral-400 text-center mt-2 italic">Their breath hitched.</p>
+                </div>
+            </div>
+
+            <!-- MEDEA'S PLEA -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-emerald-950/40 to-slate-950/40 p-10 rounded-2xl border border-emerald-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-medea text-xl leading-relaxed mb-6">
+                        "If we do not stand together, she will believe she can crush us."
+                    </p>
+                    <p class="text-neutral-300 italic text-center">
+                        Medea said gently, closing her fingers over theirs.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE MAIDS' VOW -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-300">
+                    Tears welled—part greed, part astonishment.
+                </p>
+                <p class="dialogue dialogue-maid text-xl">
+                    "We'll serve you faithfully! We won't let her win!"
+                </p>
+            </div>
+
+            <!-- SCENE BREAK -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-slate-700/30 rounded-full z-10">
+                    <span class="text-slate-400 font-heading text-sm tracking-[0.3em] uppercase">
+                        Later
+                    </span>
+                </div>
+            </div>
+
+            <!-- NERIL'S SUSPICION -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400 italic">When the room was empty—</p>
+                <p class="dialogue dialogue-neril">"They're vipers. You gave them too much."</p>
+                <p class="dialogue dialogue-medea">"Kindness?"</p>
+                <p class="text-neutral-300">
+                    Medea looked at the empty chest and smiled—a sharp, distant curve of lips.
+                </p>
+                <p class="dialogue dialogue-medea text-xl font-semibold">"Look again."</p>
+            </div>
+
+            <!-- THE TRUE NATURE OF THE GIFTS -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-r from-transparent via-slate-800/30 to-transparent p-8 rounded-lg border-l-4 border-slate-600/50">
+                    <p class="dialogue dialogue-neril mb-4">"They were gifts from the Duke and Duchess."</p>
+                    <p class="dialogue dialogue-medea text-2xl font-heading">"Exactly."</p>
+                    <div class="mt-6 text-center">
+                        <p class="text-neutral-500 italic">Gaudy. Tasteless. Oversized stones set crudely.</p>
+                        <p class="text-rose-200 text-lg mt-4 font-semibold">Not royal jewelry—mockery.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MEDEA'S PLAN -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-slate-600 blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg shadow-2xl">
+                        <div class="character-tag bg-emerald-950 text-emerald-300 border border-emerald-700/50">Princess Medea</div>
+                        <p class="dialogue dialogue-medea text-xl leading-relaxed mb-6">
+                            "They will sell them. And when they do, the capital will whisper."
+                        </p>
+                        <p class="text-neutral-300 text-center mt-4">She turned to the window.</p>
+                        <div class="mt-8 space-y-2 text-center">
+                            <p class="text-slate-400 italic">'Why is the Princess selling her dowry?'</p>
+                            <p class="text-slate-400 italic">'Is she destitute?'</p>
+                            <p class="text-slate-300 italic font-semibold">'Is the Duke starving her?'</p>
+                        </div>
+                        <p class="dialogue dialogue-medea text-lg text-center mt-8 italic">
+                            "It's a small price to force my uncle's hand."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCENE BREAK: HEAD MAID'S OFFICE -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-gray-700/30 rounded-full z-10">
+                    <span class="text-gray-400 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Head Maid's Office —
+                    </span>
+                </div>
+            </div>
+
+            <!-- QUIGGIN'S REVENGE -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-gray-900/50 to-transparent p-10 rounded-2xl border border-gray-700/30">
+                    <div class="character-tag bg-gray-950 text-gray-400 border border-gray-700/50">Madame Quiggin</div>
+                    <p class="dialogue dialogue-quiggin text-xl mb-6">
+                        "She will regret the day she was born."
+                    </p>
+                    <p class="text-neutral-400 mb-4">
+                        Madame Quiggin was methodical.
+                    </p>
+                    <div class="grid grid-cols-2 gap-3 mt-6">
+                        <div class="p-3 bg-gray-900/50 rounded text-center text-gray-400 text-sm">Sand in the flour</div>
+                        <div class="p-3 bg-gray-900/50 rounded text-center text-gray-400 text-sm">Insects in the linens</div>
+                        <div class="p-3 bg-gray-900/50 rounded text-center text-gray-400 text-sm">Visitors barred</div>
+                        <div class="p-3 bg-gray-900/50 rounded text-center text-gray-400 text-sm">Isolation perfected</div>
+                    </div>
+                    <p class="dialogue dialogue-quiggin text-center mt-8 italic">
+                        "Let her rot."
+                    </p>
+                </div>
+            </div>
+
+            <!-- SCENE BREAK: PRINCESS'S PALACE -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-emerald-800/30 rounded-full z-10">
+                    <span class="text-emerald-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Princess's Palace —
+                    </span>
+                </div>
+            </div>
+
+            <!-- THE MAIDS' SOLUTION -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-amber-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="dialogue dialogue-maid mb-4">"What is this garbage?"</p>
+                    <p class="dialogue dialogue-maid mb-4">"Sand in the flour. Throw it out."</p>
+                    <p class="dialogue dialogue-maid">"These sheets stink. Burn them."</p>
+                    <p class="text-neutral-300 mt-6 text-center">
+                        Flush with cash, the maids bought their own food, wine, and laundry. Palace supplies went straight to the incinerator.
+                    </p>
+                </div>
+            </div>
+
+            <!-- FINAL IMAGE -->
+            <div class="my-32 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-amber-600 blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-neutral-400 text-lg mb-6 italic">
+                            Inside a warm, fragrant room, Medea sipped tea.
+                        </p>
+                        <p class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-amber-400">
+                            Perfectly comfortable.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- End of Chapter Notice -->
+            <div class="my-40 text-center reveal">
+                <div class="inline-block px-8 py-3 border border-slate-700 rounded-full bg-slate-900/50 backdrop-blur">
+                    <span class="text-neutral-500 font-ui text-xs tracking-[0.3em] uppercase">End of Chapter</span>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

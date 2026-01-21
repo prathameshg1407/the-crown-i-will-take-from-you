@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Spider's Web - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'web': 'web 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        web: {
+                            '0%, 100%': { opacity: '0.3', transform: 'scale(1)' },
+                            '50%': { opacity: '0.6', transform: 'scale(1.05)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .thought {
+            color: #cbd5e1;
+            font-style: italic;
+            font-size: 1.15rem;
+            opacity: 0.9;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #dc2626;
+            text-shadow: 0 0 20px rgba(220, 38, 38, 0.6);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #a855f7 0%, #4c1d95 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .blood-drip { color: #dc2626; text-shadow: 0 0 20px rgba(220, 38, 38, 0.8); }
+        .emerald-glow { color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+        .silver-gleam { color: #cbd5e1; text-shadow: 0 0 20px rgba(203, 213, 225, 0.6); }
+        .purple-glow { color: #a855f7; text-shadow: 0 0 20px rgba(168, 85, 247, 0.7); }
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-purple-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-purple-500 h-3 animate-pulse"></div>
+            <div class="w-1 bg-purple-500 h-2 animate-pulse delay-75"></div>
+            <div class="w-1 bg-purple-500 h-3 animate-pulse delay-150"></div>
+            <div class="w-1 bg-purple-500 h-1 animate-pulse"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 uppercase tracking-widest">Ambient: The Web Closes</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-950/30 via-black to-black -z-10"></div>
+
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-purple-900/50 rounded-full bg-purple-950/20 backdrop-blur-sm">
+                    <span class="text-purple-100 text-[10px] font-ui tracking-[0.4em] uppercase">The Revelation</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    The Spider's <br />
+                    <span class="gradient-text italic">Web</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">
+                    "The Fox had been caught by a spider."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- The Duke's Estate -->
+            <div class="my-20 reveal">
+                <div class="flex items-center justify-center py-8 opacity-30">
+                    <div class="h-px bg-slate-800 w-32"></div>
+                    <div class="w-3 h-3 bg-slate-800 rotate-45 mx-6"></div>
+                    <div class="h-px bg-slate-800 w-32"></div>
+                </div>
+                <p class="text-center font-heading text-slate-400 tracking-[0.4em] text-lg uppercase">The Duke's Estate</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="drop-cap">Samon stared at the empty scroll.</p>
+                <p>The Royal Seal was gone.</p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-cyan-950/40 to-transparent border-l-4 border-cyan-700/70 p-8 rounded-r-lg reveal">
+                <p class="dialogue text-cyan-300 text-xl">"She asked for a bribe?" he said slowly. "Medea? The girl who thought money grew on trees?"</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue">"Thirty chests of gold," Claudio muttered, pouring himself another drink. "She called it a fair price for a Minister's head."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Samon scoffed.</p>
+                <p class="dialogue">"Is she insane?"</p>
+            </div>
+
+            <div class="mt-16 bg-neutral-950/50 border border-neutral-800/70 p-8 rounded-lg reveal">
+                <p class="dialogue text-neutral-300">"She's changed," Claudio said, rubbing his temples. "Quiggin drained her dry. Poverty does that—it teaches hunger. Now she wants to fill her own coffers."</p>
+            </div>
+
+            <!-- Samon's Doubt -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <p>Samon frowned.</p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-indigo-950/40 to-transparent border-l-4 border-indigo-700/70 p-8 rounded-r-lg reveal">
+                <p class="thought text-indigo-300 italic">Greed?</p>
+                <p class="thought text-indigo-400 italic mt-4">Medea had been naïve. Soft. Foolish.</p>
+                <p class="thought text-indigo-300 italic mt-4">But greedy?</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="text-neutral-400 text-center text-xl my-6">It didn't sit right.</p>
+            </div>
+
+            <div class="mt-16 bg-slate-950/50 border border-slate-800/70 p-8 rounded-lg reveal">
+                <p class="dialogue text-slate-300">"Still," Claudio continued, waving a dismissive hand, "this is not entirely bad. If she moves for money, she can be bought. A greedy Princess is far easier to manage than a righteous one."</p>
+            </div>
+
+            <!-- The Problem -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <p class="dialogue">"The problem is the price," Samon said quietly. "We don't have thirty chests."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue blood-drip text-xl animate-shake">"I know!" Claudio snapped. "I can scrape together five. Maybe ten if I liquidate assets."</p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-red-950/40 to-transparent border-l-4 border-red-700/70 p-8 rounded-r-lg reveal">
+                <p>Samon's eyes sharpened.</p>
+                <p class="dialogue text-red-200 text-xl">"Then don't pay alone. Etienne didn't steal in isolation. His vassals, his merchants, his financiers—everyone profited. Make them bleed."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Claudio exhaled slowly.</p>
+                <p class="dialogue">"…Yes. I'll squeeze them."</p>
+                <p>He stormed out to send orders.</p>
+            </div>
+
+            <!-- The Realization -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <p>Samon remained behind, staring at the desk.</p>
+            </div>
+
+            <div class="h-[70vh] flex items-center justify-center my-20 reveal">
+                <div class="relative max-w-3xl">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-700 via-indigo-800 to-purple-700 blur-3xl opacity-50 animate-web"></div>
+                    <div class="relative bg-black/90 border-2 border-purple-800/70 p-12 rounded-lg shadow-2xl">
+                        <p class="thought text-3xl md:text-4xl font-heading tracking-wide text-purple-300 text-center italic">
+                            Thirty chests,
+                        </p>
+                        
+                        <p class="text-neutral-400 font-body text-lg italic my-4 text-center">
+                            he thought.
+                        </p>
+                        
+                        <p class="text-2xl text-center text-purple-400 my-6">
+                            Almost exactly the amount Etienne embezzled last year.
+                        </p>
+                        
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-purple-800 to-transparent my-8"></div>
+                        
+                        <div class="space-y-4 text-center">
+                            <p class="thought text-2xl text-indigo-300 italic">Coincidence?</p>
+                            <p class="thought text-2xl text-purple-300 italic">Or a receipt?</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Princess's Palace -->
+            <div class="my-32 reveal">
+                <div class="flex items-center justify-center py-8 opacity-30">
+                    <div class="h-px bg-emerald-800 w-32"></div>
+                    <div class="w-3 h-3 bg-emerald-800 rotate-45 mx-6"></div>
+                    <div class="h-px bg-emerald-800 w-32"></div>
+                </div>
+                <p class="text-center font-heading text-emerald-400 tracking-[0.4em] text-lg uppercase">The Princess's Palace</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue">"Your Highness," Saya asked hesitantly, "are you really going to save that pig, Etienne?"</p>
+            </div>
+
+            <div class="mt-16 bg-emerald-950/40 border-l-4 border-emerald-700/70 p-8 rounded-r-lg reveal">
+                <p class="dialogue emerald-glow text-xl">"If the Duke brings the gold?" Medea replied lightly. "No."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Saya blinked.</p>
+                <p class="dialogue">"Then why ask for it?"</p>
+                <p class="dialogue emerald-glow text-xl">"To buy time."</p>
+            </div>
+
+            <!-- The Strategy -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <p>Medea turned toward the window, the Royal Prison visible in the distance.</p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-cyan-950/40 to-transparent border-l-4 border-cyan-700/70 p-8 rounded-r-lg reveal">
+                <p class="dialogue text-cyan-300">"Thirty chests is not pocket change. My uncle must call in favors, liquidate holdings, threaten allies. He'll be busy for days."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>She smiled faintly.</p>
+                <p class="dialogue">"And while he runs around begging… who visits Etienne?"</p>
+            </div>
+
+            <div class="mt-16 bg-neutral-950/50 border border-neutral-800/70 p-8 rounded-lg reveal">
+                <p>Saya's eyes widened.</p>
+                <p class="dialogue text-neutral-300">"No one."</p>
+                <p class="dialogue text-neutral-400">"Exactly."</p>
+            </div>
+
+            <div class="h-[60vh] flex items-center justify-center my-20 reveal">
+                <div class="relative max-w-3xl">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-600 via-indigo-700 to-purple-600 blur-3xl opacity-50 animate-pulse-slow"></div>
+                    <div class="relative bg-black/90 border-2 border-purple-800/70 p-12 rounded-lg shadow-2xl">
+                        <p class="dialogue text-3xl md:text-4xl font-heading tracking-wide text-purple-300 text-center leading-relaxed">
+                            "He already believes the Regent betrayed him once."
+                        </p>
+                        
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-purple-800 to-transparent my-8"></div>
+                        
+                        <p class="dialogue text-3xl md:text-4xl font-heading tracking-wide purple-glow text-center italic">
+                            "Now he'll believe he's being abandoned."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-indigo-950/40 to-transparent border-l-4 border-indigo-700/70 p-8 rounded-r-lg reveal">
+                <p class="dialogue text-indigo-300">"If it's out of sight," Saya murmured, "it's out of mind."</p>
+                <p class="dialogue purple-glow text-xl mt-4">"And silence," Medea finished calmly, "breeds doubt."</p>
+            </div>
+
+            <!-- The Orders -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <p>She turned to Neril.</p>
+                <p class="dialogue">"Have Prime Minister Siseo visit the prison. Not to interrogate. Just to talk."</p>
+                <p class="dialogue">"Yes, Your Highness."</p>
+            </div>
+
+            <div class="mt-16 bg-emerald-950/40 border-l-4 border-emerald-700/70 p-8 rounded-r-lg reveal">
+                <p>Medea exhaled softly.</p>
+                <p class="dialogue emerald-glow text-xl">"Now," she said, "bring in our guest. Umberto has been waiting."</p>
+            </div>
+
+            <!-- The Interrogation Room -->
+            <div class="my-32 reveal">
+                <div class="flex items-center justify-center py-8 opacity-30">
+                    <div class="h-px bg-slate-700 w-32"></div>
+                    <div class="w-3 h-3 bg-slate-700 rotate-45 mx-6"></div>
+                    <div class="h-px bg-slate-700 w-32"></div>
+                </div>
+                <p class="text-center font-heading text-slate-400 tracking-[0.4em] text-lg uppercase">The Interrogation Room</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Umberto woke with a splitting headache.</p>
+                <p>Cold stone beneath his boots. Rope biting into his wrists. A hood over his head.</p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-neutral-950/60 to-transparent border-l-4 border-neutral-700/70 p-8 rounded-r-lg reveal">
+                <p class="thought text-neutral-400 italic">Damn it.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>He listened carefully.</p>
+                <p class="text-neutral-400">Heavy footsteps. Armored. Knights.</p>
+                <p>Then—</p>
+                <p class="text-purple-300 italic">Silk.</p>
+            </div>
+
+            <div class="mt-16 bg-purple-950/40 border-l-4 border-purple-700/70 p-8 rounded-r-lg reveal">
+                <p class="text-purple-300 text-xl">A faint rustle, soft and deliberate.</p>
+                <p class="text-purple-200 mt-4">Someone sat across from him.</p>
+            </div>
+
+            <!-- The Reveal -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <p>The hood was ripped away.</p>
+                <p>Light stabbed into his eyes. He hissed, blinking rapidly.</p>
+                <p>Then he froze.</p>
+            </div>
+
+            <div class="h-[70vh] flex items-center justify-center my-20 reveal">
+                <div class="relative max-w-3xl">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 via-cyan-700 to-emerald-600 blur-3xl opacity-60 animate-pulse-slow"></div>
+                    <div class="relative bg-black/90 border-2 border-emerald-900/70 p-12 rounded-lg shadow-2xl">
+                        <div class="space-y-6 text-center">
+                            <p class="text-3xl silver-gleam">Silver hair.</p>
+                            <p class="text-3xl emerald-glow">Green eyes.</p>
+                            <p class="text-3xl text-neutral-300">A porcelain face devoid of mercy.</p>
+                        </div>
+                        
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-emerald-800 to-transparent my-8"></div>
+                        
+                        <p class="text-5xl md:text-6xl font-heading tracking-wide emerald-glow text-center">
+                            The Princess.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Assessment -->
+            <div class="mt-16 bg-gradient-to-r from-red-950/40 to-transparent border-l-4 border-red-700/70 p-8 rounded-r-lg reveal">
+                <p class="thought text-red-300 italic text-xl text-center">Impossible.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>The Red Foxes' assessment had been clear:</p>
+            </div>
+
+            <div class="mt-16 bg-neutral-950/50 border border-neutral-800/70 p-8 rounded-lg reveal">
+                <div class="space-y-3 text-neutral-400">
+                    <p class="text-lg"><span class="text-neutral-500">Queen Mother:</span> irrelevant</p>
+                    <p class="text-lg"><span class="text-red-400">Regent:</span> dangerous</p>
+                    <p class="text-lg"><span class="text-neutral-600">Princess Medea:</span> dull, decorative, inconsequential</p>
+                </div>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-slate-950/60 to-transparent border-l-4 border-slate-700/70 p-8 rounded-r-lg reveal">
+                <p class="text-slate-400 text-xl text-center italic">Not worth monitoring.</p>
+            </div>
+
+            <div class="h-[60vh] flex items-center justify-center my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-emerald-600 blur-3xl opacity-50 animate-pulse-slow"></div>
+                    <div class="relative text-center space-y-8">
+                        <p class="text-neutral-400 font-body text-xl italic">
+                            Yet here she was.
+                        </p>
+                        <div class="space-y-4">
+                            <p class="text-3xl text-emerald-300">Calm.</p>
+                            <p class="text-3xl purple-glow">Smiling.</p>
+                            <p class="text-3xl text-cyan-300">Waiting.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Confrontation -->
+            <div class="mt-16 bg-emerald-950/40 border-l-4 border-emerald-700/70 p-8 rounded-r-lg reveal">
+                <p class="dialogue emerald-glow text-xl">"It's been a while, Umberto," Medea said, snapping her fan open.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>His throat went dry.</p>
+                <p class="dialogue">"Y-Your Highness…?"</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue">"Do you know who I am?" she asked gently.</p>
+                <p class="dialogue">"I—I am a humble servant. Everyone knows the Moon of Valdina."</p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-purple-950/40 to-transparent border-l-4 border-purple-700/70 p-8 rounded-r-lg reveal">
+                <p class="dialogue purple-glow text-2xl">"Stop."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Her voice dropped—soft, lethal.</p>
+            </div>
+
+            <div class="h-[70vh] flex items-center justify-center my-20 reveal">
+                <div class="relative max-w-3xl">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-800 via-red-800 to-purple-800 blur-3xl opacity-60 animate-pulse-slow"></div>
+                    <div class="relative bg-black/90 border-2 border-purple-900/70 p-12 rounded-lg shadow-2xl">
+                        <p class="dialogue text-3xl md:text-4xl font-heading tracking-wide text-purple-300 text-center leading-relaxed">
+                            "You are not a servant."
+                        </p>
+                        
+                        <p class="dialogue text-2xl text-purple-400 text-center my-6 italic">
+                            "And you are not humble."
+                        </p>
+                        
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-purple-800 to-transparent my-8"></div>
+                        
+                        <p class="text-neutral-400 font-body text-lg italic mb-6 text-center">
+                            She leaned forward, emerald eyes piercing.
+                        </p>
+                        
+                        <p class="dialogue text-4xl md:text-5xl font-heading tracking-wide blood-drip text-center">
+                            "You are a Red Fox operative embedded in Etienne's household."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Umberto swallowed.</p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-red-950/40 to-transparent border-l-4 border-red-700/70 p-8 rounded-r-lg reveal">
+                <p class="dialogue text-red-300 text-xl">"And," Medea continued, "you burned a letter that would have saved your master."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Silence.</p>
+                <p class="text-neutral-400 text-center text-xl my-6">The room felt suddenly very small.</p>
+            </div>
+
+            <!-- The Offer -->
+            <div class="mt-16 bg-emerald-950/40 border-l-4 border-emerald-700/70 p-8 rounded-r-lg reveal">
+                <p class="dialogue emerald-glow text-xl">"I like competent people," Medea said pleasantly. "Especially ones who know when to disappear."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>She closed her fan.</p>
+            </div>
+
+            <div class="h-[70vh] flex items-center justify-center my-20 reveal">
+                <div class="relative max-w-3xl">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-700 via-emerald-700 to-purple-700 blur-3xl opacity-60 animate-web"></div>
+                    <div class="relative bg-black/90 border-2 border-purple-800/70 p-12 rounded-lg shadow-2xl">
+                        <p class="dialogue text-5xl md:text-6xl font-heading tracking-wide purple-glow text-center leading-relaxed">
+                            "I have a job for you."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Ending -->
+            <div class="mt-16 bg-gradient-to-r from-neutral-950/60 to-transparent border-l-4 border-neutral-700/70 p-8 rounded-r-lg reveal">
+                <p>Umberto stared at her, heart pounding.</p>
+            </div>
+
+            <div class="h-[70vh] flex items-center justify-center my-20 reveal">
+                <div class="relative max-w-3xl">
+                    <div class="absolute inset-0 bg-gradient-to-r from-red-700 via-purple-800 to-red-700 blur-3xl opacity-60 animate-pulse-slow"></div>
+                    <div class="relative bg-black/90 border-2 border-red-900/70 p-12 rounded-lg shadow-2xl">
+                        <p class="text-3xl md:text-4xl font-heading tracking-wide text-red-300 text-center leading-relaxed">
+                            The Fox had been caught by a spider.
+                        </p>
+                        
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-purple-800 to-transparent my-8"></div>
+                        
+                        <p class="text-3xl md:text-4xl font-heading tracking-wide purple-glow text-center italic">
+                            And the web was already closed.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Card -->
+            <div class="mt-32 mb-40 reveal relative">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-purple-900 via-emerald-900 to-purple-900 rounded-lg blur opacity-60 animate-web"></div>
+                
+                <div class="relative bg-black border border-purple-900/60 p-8 md:p-12 rounded-lg text-center shadow-2xl">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-purple-900/70 rounded text-xs tracking-widest text-purple-400 font-ui uppercase">
+                        The Spider Weaves
+                    </div>
+
+                    <h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-purple-300 to-purple-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">
+                        Every Piece in Place
+                    </h2>
+                    
+                    <div class="w-full h-px bg-gradient-to-r from-transparent via-purple-800 to-transparent my-8"></div>
+
+                    <p class="text-neutral-400 font-body text-lg italic leading-relaxed">
+                        A duke scrambles for gold he'll never pay.<br>
+                        A minister sits alone, abandoned.<br>
+                        And a fox realizes he's been hunting the wrong prey.
+                    </p>
+                    
+                    <p class="mt-10 text-neutral-600 text-sm font-ui tracking-widest uppercase">
+                        [ To Be Continued ]
+                    </p>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

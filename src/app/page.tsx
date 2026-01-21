@@ -1,65 +1,357 @@
+// app/page.tsx
+"use client";
+
 import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import PricingPlans from "@/components/PricingPlans";
+import ChaptersList from "@/components/ChaptersList";
 
 export default function Home() {
+  useEffect(() => {
+    const elements = document.querySelectorAll<HTMLElement>(".reveal");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("reveal-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  // State for image swapping
+  const [images, setImages] = useState([
+    { src: "/img1.jpg", alt: "The Crown I Will Take From You - Main Cover" },
+    { src: "/img2.png", alt: "The Crown I Will Take From You - Art 2" },
+    { src: "/img3.png", alt: "The Crown I Will Take From You - Art 3" },
+  ]);
+
+  const handleSwap = (index: number) => {
+    if (index === 0) return; // main image clicked, nothing to do
+    setImages((prev) => {
+      const next = [...prev];
+      // swap main (0) with clicked (index)
+      [next[0], next[index]] = [next[index], next[0]];
+      return next;
+    });
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <>
+      <div className="fog-container" />
+
+      <main className="relative min-h-screen pb-24 bg-[#050505] text-[#a3a3a3] antialiased overflow-x-hidden selection:bg-[#881337] selection:text-white">
+        {/* Background */}
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10" />
+
+        {/* Hero Header */}
+        <header className="min-h-[90vh] lg:min-h-screen flex flex-col items-center justify-center relative px-6 py-16 lg:py-20">
+          <div className="flex flex-col items-center reveal max-w-6xl mx-auto">
+            {/* Badge */}
+            <div className="mb-8 px-5 py-2 border border-[#881337]/40 rounded-full bg-[#4c0519]/20 backdrop-blur-sm">
+              <span className="text-[#ffe4e6] text-[9px] font-ui tracking-[0.45em] uppercase font-light subpixel-antialiased">
+                Korean Web Novel • 2024
+              </span>
+            </div>
+
+            {/* Main Title */}
+            <h1 className="text-[clamp(3rem,12vw,10rem)] font-heading text-center leading-[0.9] tracking-[-0.02em] mb-10 text-neutral-100 subpixel-antialiased">
+              The Crown <br />
+              <span className="gradient-text italic font-bold">I Will Take</span>
+              <br />
+              <span className="gradient-text italic font-bold">From You</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="font-body text-[clamp(1.125rem,2.5vw,1.5rem)] text-neutral-400 italic max-w-3xl text-center mb-6 leading-relaxed px-4 subpixel-antialiased">
+              &quot;I&apos;m back... and this time, the crown you desired will be
+              torn from your grasp.&quot;
+            </p>
+
+            {/* Korean Title */}
+            <div className="text-[#9f1239] text-base md:text-lg font-body tracking-[0.3em] font-light subpixel-antialiased">
+              너에게 빼앗을 왕관
+            </div>
+          </div>
+
+          {/* Scroll Indicator */}
+          <div className="absolute bottom-12 animate-bounce text-neutral-600">
+            <svg
+              width="20"
+              height="20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="1.5"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
+            </svg>
+          </div>
+        </header>
+
+        {/* Cover Images Section */}
+        <section className="max-w-7xl mx-auto px-6 md:px-8 mb-20 lg:mb-40 reveal">
+          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6 md:gap-8">
+            {/* Main Cover */}
+            <div className="lg:col-span-2">
+              <button
+                type="button"
+                onClick={() => handleSwap(0)}
+                className="w-full cursor-pointer"
+              >
+                <div className="relative aspect-[3/4] w-full max-h-[80vh] rounded-xl overflow-hidden image-glow border border-[#881337]/30 hover:border-[#881337]/50 transition-all duration-500">
+                  <Image
+                    src={images[0].src}
+                    alt={images[0].alt}
+                    fill
+                    className="object-contain"
+                    priority
+                    sizes="(min-width: 1024px) 66vw, 100vw"
+                  />
+                </div>
+              </button>
+            </div>
+
+            {/* Side Images - Grid with 2 columns on mobile, stacked on desktop */}
+            <div className="grid grid-cols-2 lg:grid-cols-1 lg:grid-rows-2 gap-6 md:gap-8">
+              {/* Side Image 1 */}
+              <button
+                type="button"
+                onClick={() => handleSwap(1)}
+                className="w-full cursor-pointer"
+              >
+                <div className="relative aspect-[3/4] lg:max-h-[38vh] rounded-xl overflow-hidden border border-[#881337]/20 hover:border-[#881337]/50 transition-all duration-500 image-glow">
+                  <Image
+                    src={images[1].src}
+                    alt={images[1].alt}
+                    fill
+                    className="object-contain hover:scale-105 transition-transform duration-700"
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                  />
+                </div>
+              </button>
+
+              {/* Side Image 2 */}
+              <button
+                type="button"
+                onClick={() => handleSwap(2)}
+                className="w-full cursor-pointer"
+              >
+                <div className="relative aspect-[3/4] lg:max-h-[38vh] rounded-xl overflow-hidden border border-[#881337]/20 hover:border-[#881337]/50 transition-all duration-500 image-glow">
+                  <Image
+                    src={images[2].src}
+                    alt={images[2].alt}
+                    fill
+                    className="object-contain hover:scale-105 transition-transform duration-700"
+                    sizes="(min-width: 1024px) 33vw, 50vw"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Novel Information */}
+        <article className="max-w-4xl mx-auto px-6 md:px-8 relative z-10">
+          {/* Credits Bar */}
+          <div className="mb-20 reveal">
+            <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-xl p-8 md:p-10 shadow-2xl">
+              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 text-center md:text-left">
+                <div>
+                  <div className="text-[9px] font-ui tracking-[0.35em] uppercase text-neutral-500 mb-3 font-light subpixel-antialiased">
+                    Author
+                  </div>
+                  <div className="font-heading text-lg text-neutral-100 mb-1 subpixel-antialiased">Wilbright</div>
+                  <div className="text-sm text-neutral-500 font-body subpixel-antialiased">윌브라이트</div>
+                </div>
+                <div>
+                  <div className="text-[9px] font-ui tracking-[0.35em] uppercase text-neutral-500 mb-3 font-light subpixel-antialiased">
+                    Artist
+                  </div>
+                  <div className="font-heading text-lg text-neutral-100 mb-1 subpixel-antialiased">Pilyeon</div>
+                  <div className="text-sm text-neutral-500 font-body subpixel-antialiased">필연</div>
+                </div>
+                <div>
+                  <div className="text-[9px] font-ui tracking-[0.35em] uppercase text-neutral-500 mb-3 font-light subpixel-antialiased">
+                    Language
+                  </div>
+                  <div className="font-heading text-lg text-neutral-100 mb-1 subpixel-antialiased">Korean</div>
+                  <div className="text-sm text-neutral-500 font-body subpixel-antialiased">English TL</div>
+                </div>
+                <div>
+                  <div className="text-[9px] font-ui tracking-[0.35em] uppercase text-neutral-500 mb-3 font-light subpixel-antialiased">
+                    Year
+                  </div>
+                  <div className="font-heading text-lg text-neutral-100 mb-1 subpixel-antialiased">2024</div>
+                  <div className="text-sm text-neutral-500 font-body subpixel-antialiased">Ongoing</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Genre Tags */}
+          <div className="mb-20 reveal flex flex-wrap justify-center gap-3">
+            {["Fantasy", "Regression", "Revenge", "Romance", "Drama"].map(
+              (tag) => (
+                <span
+                  key={tag}
+                  className="px-5 py-2.5 border border-[#9f1239]/30 rounded-full text-[10px] font-ui tracking-[0.25em] uppercase text-[#9f1239] bg-[#4c0519]/10 hover:bg-[#4c0519]/20 hover:border-[#9f1239]/50 transition-all duration-300 font-light subpixel-antialiased"
+                >
+                  {tag}
+                </span>
+              )
+            )}
+          </div>
+
+          {/* Synopsis */}
+          <div className="prose prose-invert prose-lg md:prose-xl max-w-none reveal">
+            {/* Synopsis Badge */}
+            <div className="mb-10 px-5 py-2 border border-amber-900/30 rounded-full bg-amber-950/10 inline-block">
+              <span className="text-amber-200/60 text-[9px] font-ui tracking-[0.45em] uppercase font-light subpixel-antialiased">
+                Synopsis
+              </span>
+            </div>
+
+            {/* Opening Paragraph with Drop Cap */}
+            <p className="drop-cap text-neutral-300 text-xl md:text-2xl leading-relaxed mb-10 font-body font-light subpixel-antialiased">
+              I held my swollen belly with my second child and heard the news of
+              my husband&apos;s marriage. It was a painful betrayal by my
+              husband I loved with all my life.
+            </p>
+
+            {/* Quote Block */}
+            <div className="my-14 border-l-2 border-[#881337]/40 pl-8 py-2">
+              <p className="text-[#e2e8f0] text-xl md:text-2xl italic leading-relaxed font-body subpixel-antialiased">
+                &quot;Ahaha! You&apos;re a Princess and you act so proud, but
+                look at you. Valdina was destroyed, and your brother was torn
+                into pieces by demonic beasts. Because a s*upid like you!&quot;
+              </p>
+            </div>
+
+            <p className="text-neutral-400 text-lg md:text-xl leading-relaxed mb-10 font-body font-light subpixel-antialiased">
+              My brother died, and my country was destroyed. Even the children
+              born from the embryo died at the hands of their father.
+            </p>
+
+            <p className="text-neutral-400 text-lg md:text-xl leading-relaxed mb-10 font-body font-light subpixel-antialiased">
+              The moment I took the poison, realizing that all of this was a
+              plan by my uncle&apos;s family and my husband.
+            </p>
+
+            {/* Dramatic Center Quote */}
+            <div className="my-20 text-center">
+              <p className="font-heading text-4xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 italic leading-tight subpixel-antialiased">
+                &quot;I&apos;m back...<br />Again...&quot;
+              </p>
+            </div>
+
+            <p className="text-neutral-400 text-lg md:text-xl leading-relaxed mb-10 font-body font-light subpixel-antialiased">
+              I returned to the past 13 years ago. With my experience as a
+              Kingmaker who established my husband as an Emperor in a fierce
+              battle for the throne, and with memories of everything that will
+              happen in the future, I was shocked and realized.
+            </p>
+
+            <p className="text-neutral-200 text-xl md:text-2xl leading-relaxed mb-10 font-body font-normal subpixel-antialiased">
+              God has granted my last request.
+            </p>
+
+            {/* Revenge Declarations */}
+            <div className="my-20 bg-gradient-to-r from-transparent via-neutral-900/40 to-transparent border-y border-neutral-800/60 py-14 space-y-8 -mx-6 px-6 md:-mx-8 md:px-8">
+              <div className="border-l-4 border-purple-900/60 pl-8 py-2">
+                <p className="text-purple-400 font-heading text-2xl md:text-3xl mb-3 tracking-wide subpixel-antialiased">
+                  &quot;Claudio.&quot;
+                </p>
+                <p className="text-neutral-400 text-lg md:text-xl font-body font-light leading-relaxed subpixel-antialiased">
+                  All the glory given to my uncle will lose its luster.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-rose-900/60 pl-8 py-2">
+                <p className="text-rose-400 font-heading text-2xl md:text-3xl mb-3 tracking-wide subpixel-antialiased">
+                  &quot;Jason.&quot;
+                </p>
+                <p className="text-neutral-400 text-lg md:text-xl font-body font-light leading-relaxed subpixel-antialiased">
+                  The glorious crown my husband desired would be taken away.
+                </p>
+              </div>
+
+              <div className="border-l-4 border-red-900/60 pl-8 py-2">
+                <p className="text-red-400 font-heading text-2xl md:text-3xl mb-3 tracking-wide subpixel-antialiased">
+                  &quot;I&apos;m back.&quot;
+                </p>
+                <p className="text-neutral-400 text-lg md:text-xl font-body font-light leading-relaxed subpixel-antialiased">
+                  The prophecy that returned once in a lifetime shined in a
+                  gloomy light.
+                </p>
+              </div>
+            </div>
+
+            {/* Final Declaration */}
+            <div className="mt-20 mb-24 relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-red-900/50 to-purple-900/50 rounded-xl blur-xl opacity-60" />
+              <div className="relative bg-black/80 border border-slate-700/50 p-10 md:p-14 rounded-xl text-center">
+                <h2 className="text-3xl md:text-4xl font-heading text-neutral-200 mb-8 tracking-wide leading-tight subpixel-antialiased">
+                  To get my revenge,
+                </h2>
+                <p className="text-5xl md:text-7xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 uppercase tracking-[0.15em] leading-tight mb-3 subpixel-antialiased">
+                  I, Medea,
+                </p>
+                <p className="text-4xl md:text-6xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 uppercase tracking-[0.15em] leading-tight subpixel-antialiased">
+                  Would Stop at Nothing
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="mt-24 mb-40 flex flex-col sm:flex-row gap-5 justify-center reveal">
+            <Link 
+              href="/chapters"
+              className="group relative px-14 py-4 font-heading tracking-[0.25em] uppercase text-sm overflow-hidden rounded-lg border border-[#9f1239] bg-[#9f1239]/10 text-[#9f1239] hover:text-white transition-all duration-300 shadow-lg hover:shadow-[#9f1239]/20 text-center subpixel-antialiased"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <span className="relative z-10">Begin Reading</span>
+              <div className="absolute inset-0 bg-[#9f1239] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
+            </Link>
+
+            <button className="group relative px-14 py-4 font-heading tracking-[0.25em] uppercase text-sm overflow-hidden rounded-lg border border-neutral-700 bg-transparent text-neutral-400 hover:text-white hover:border-neutral-500 transition-all duration-300 subpixel-antialiased">
+              <span className="relative z-10">Add to Library</span>
+            </button>
+          </div>
+        </article>
+
+        {/* Pricing Plans */}
+        <div id="pricing">
+          <PricingPlans />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Chapters List */}
+        <div id="chapters">
+          <ChaptersList />
         </div>
       </main>
-    </div>
+
+      {/* Ambient Indicator */}
+      <div className="fixed bottom-8 right-8 z-50 flex items-center gap-3 bg-neutral-900/90 backdrop-blur-md px-5 py-3 rounded-full border border-white/10 shadow-2xl">
+        <div className="flex gap-1 h-3 items-end">
+          <div className="w-1 bg-red-500 h-2 animate-pulse rounded-full" />
+          <div className="w-1 bg-red-500 h-3 animate-pulse [animation-delay:75ms] rounded-full" />
+          <div className="w-1 bg-red-500 h-1 animate-pulse [animation-delay:150ms] rounded-full" />
+        </div>
+        <span className="text-[10px] font-ui text-neutral-400 uppercase tracking-[0.3em] font-light subpixel-antialiased">
+          Fantasy • Regression
+        </span>
+      </div>
+    </>
   );
 }

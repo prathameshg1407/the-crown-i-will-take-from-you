@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Puppeteer Revealed - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fog': 'fog 20s linear infinite alternate',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        fog: {
+                            '0%': { transform: 'translateX(-10%)' },
+                            '100%': { transform: 'translateX(10%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #9f1239;
+            text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .section-divider {
+            font-family: 'Cinzel', serif;
+            text-align: center;
+            color: #525252;
+            font-size: 0.875rem;
+            letter-spacing: 0.3em;
+            margin: 4rem 0;
+            text-transform: uppercase;
+        }
+
+        .time-marker {
+            background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
+            border-top: 1px solid rgba(159, 18, 57, 0.3);
+            border-bottom: 1px solid rgba(159, 18, 57, 0.3);
+            padding: 1.5rem 0;
+            margin: 3rem 0;
+        }
+
+        .inner-thought {
+            font-style: italic;
+            color: #a3a3a3;
+            background: rgba(38, 38, 38, 0.4);
+            padding: 0.5rem 1.5rem;
+            border-left: 3px solid rgba(115, 115, 115, 0.5);
+            margin: 1.5rem 0;
+        }
+
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-indigo-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-indigo-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-indigo-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Revelation</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/10 via-black to-black -z-10"></div>
+
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-indigo-800/50 rounded-full bg-indigo-950/20 backdrop-blur-sm">
+                    <span class="text-indigo-100 text-[10px] font-ui tracking-[0.4em] uppercase">The Mask Falls</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    The <span class="gradient-text italic pr-2">Puppeteer</span><br />
+                    Revealed
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-2xl text-center">
+                    "It wasn't chaos. It was surgery."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- Opening -->
+            <div class="time-marker reveal">
+                <p class="section-divider">The Administrative Palace</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Lord Siseo. Duchess Claudio entered the palace again yesterday."</p>
+                </div>
+
+                <p>Siseo pinched the bridge of his nose.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"The crocodile smells blood."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">He muttered.</p>
+                </div>
+
+                <p>The Queen Mother had evicted the Claudios from the Cottage House, yet Catherine kept circling—lingering in corridors, visiting distant relatives, hovering near the Princess's wing like a vulture waiting for rot.</p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p class="m-0 text-slate-300">How long must I keep cutting away their claws?</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"Prepare the carriage. I'll go to the Princess's palace."</p>
+                </div>
+
+                <p>The aide hesitated.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Sir… that won't be necessary."</p>
+                </div>
+
+                <p>Siseo paused.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"Why?"</p>
+                    <p class="dialogue">"…She's already here."</p>
+                </div>
+
+                <p class="text-neutral-200">That stopped him.</p>
+            </div>
+
+            <!-- The Shift -->
+            <div class="my-24 bg-indigo-950/20 border-l-4 border-indigo-800 p-8 rounded-r-lg reveal">
+                <p class="text-neutral-300 m-0 leading-relaxed">
+                    Princess Medea never came uninvited. She summoned. Complained. Signed whatever was placed in front of her without reading.
+                </p>
+            </div>
+
+            <!-- The Encounter -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p>He turned toward his office.</p>
+                <p>And froze.</p>
+                <p class="text-purple-200 font-semibold text-xl">Medea sat behind his desk.</p>
+                <p>Not perched. Not fidgeting.</p>
+                <p class="text-neutral-200">Seated—perfectly still, bathed in morning light, as though the room had been arranged around her.</p>
+            </div>
+
+            <!-- The Description -->
+            <div class="my-24 bg-gradient-to-r from-transparent via-purple-950/30 to-transparent p-10 border-y border-purple-900/40 reveal">
+                <div class="space-y-4 text-center">
+                    <p class="text-slate-300 m-0">Silver hair like fractured moonlight.</p>
+                    <p class="text-slate-300 m-0">Eyes sharp and alert.</p>
+                    <p class="text-slate-300 m-0">Chin lifted.</p>
+                    <p class="text-neutral-400 m-0 mt-6 italic">She didn't look like a child occupying a chair too large for her.</p>
+                    <p class="text-purple-200 m-0 mt-4 font-semibold text-lg">She looked like someone waiting.</p>
+                </div>
+            </div>
+
+            <!-- Opening Exchange -->
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"Your Royal Highness."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Siseo said carefully.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Lord Siseo."</p>
+                </div>
+
+                <p>Her voice was even. Controlled.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"To what do I owe this… surprise? If you are here to plead on behalf of Duke Claudio, let me spare us both the trouble. The answer is no."</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Are you not going to offer me tea?"</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Medea asked calmly.</p>
+                </div>
+
+                <p>Siseo frowned, then waved a hand.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"Tea."</p>
+                </div>
+
+                <p>He studied her while the maid poured.</p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p class="m-0 text-slate-300">She has changed, he thought.</p>
+                    <p class="m-0 mt-3 text-indigo-200">Or she was never what we thought she was.</p>
+                </div>
+            </div>
+
+            <!-- The Tea -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Medea lifted the cup, inhaled once, then set it down untouched.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"The water is stale."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">She said lightly.</p>
+                </div>
+
+                <p>Siseo stiffened.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"If you came to insult my hospitality—"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"I came because you are trying to save Valdina."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Medea interrupted.</p>
+                </div>
+
+                <p>She met his gaze directly.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"And you are failing."</p>
+                </div>
+
+                <p class="text-neutral-200">The room went still.</p>
+            </div>
+
+            <!-- The Analysis -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"You are worried about the Regent. You know he is backed by the Kazen Empire. You fear that while my brother fights at the front, Joaquin Claudio will sell this country piece by piece."</p>
+                </div>
+
+                <p>Siseo's jaw tightened.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"And that is why you hired Fasade."</p>
+                </div>
+
+                <p>Silence.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"You want a wolf to snarl loudly enough that the lion hesitates. You hired Cesare to block Imperial interference."</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"How do you know this?"</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Siseo demanded.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"You didn't deny it."</p>
+                </div>
+
+                <p>She leaned forward slightly.</p>
+            </div>
+
+            <!-- The Question -->
+            <div class="my-24 text-center reveal">
+                <blockquote class="font-body text-3xl italic text-purple-100 leading-relaxed relative inline-block max-w-3xl">
+                    <span class="absolute -top-6 -left-4 text-6xl text-purple-900/20 font-serif">"</span>
+                    What happens when the lion retreats?<br />
+                    <span class="text-2xl text-neutral-400">Will the wolf leave on its own?<br />
+                    Or will it decide this pasture is worth keeping?</span>
+                    <span class="absolute -bottom-10 -right-4 text-6xl text-purple-900/20 font-serif">"</span>
+                </blockquote>
+            </div>
+
+            <!-- Counter -->
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"I know Cesare. He is dangerous, but he is not ambitious."</p>
+                </div>
+
+                <p>Medea smiled faintly.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"That is faith. Not strategy."</p>
+                </div>
+
+                <p>Siseo stared at her.</p>
+                <p>This was not the girl who stamped documents blindly.</p>
+                <p class="text-purple-300">This was someone dissecting his plan.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"If you have a better solution, I suggest you speak."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">He said coolly.</p>
+                </div>
+            </div>
+
+            <!-- The Solution -->
+            <div class="my-20 bg-purple-950/30 border-l-4 border-purple-800 p-10 rounded-r-lg reveal">
+                <div class="space-y-6">
+                    <p class="dialogue text-purple-200 m-0 text-xl">"We stop fighting the lion head-on. We starve it."</p>
+                    <p class="dialogue text-slate-300 m-0 mt-6">Explain.</p>
+                    <p class="dialogue text-purple-200 m-0 mt-6 text-2xl font-semibold">"We cut off the Regent's arms."</p>
+                </div>
+            </div>
+
+            <!-- The Fingers -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p>She raised one finger.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"His left arm was Madame Quiggin. Through her, he controlled the palace servants, the flow of information, the Queen Mother's ear."</p>
+                </div>
+
+                <p>Siseo's breath caught.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"She is gone. And the palace no longer dances to his tune."</p>
+                </div>
+
+                <p>She raised a second finger.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"His right arm is Minister Etienne. Through him, he controls the court. Appointments. Investigations. Silence."</p>
+                </div>
+
+                <p>A cold understanding settled in Siseo's chest.</p>
+            </div>
+
+            <!-- The Realization -->
+            <div class="my-24 bg-gradient-to-r from-transparent via-indigo-950/40 to-transparent p-10 border-y border-indigo-900/50 reveal">
+                <div class="space-y-6 text-center">
+                    <p class="dialogue text-slate-300 m-0 text-lg">"The purge. The Queen Mother's shift. The eviction…"</p>
+                    <p class="dialogue text-purple-200 m-0 mt-8 text-2xl font-semibold">"It wasn't chaos. It was surgery."</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Siseo looked at her as if seeing her for the first time.</p>
+                <p>The illness.</p>
+                <p>The chapel.</p>
+                <p>The humiliation.</p>
+                <p class="text-neutral-400 italic">It wasn't endurance.</p>
+                <p class="text-red-300 font-semibold text-xl">It was bait.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"You planned this."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">He said quietly.</p>
+                </div>
+
+                <p>Medea shrugged.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"People believe what hurts them most. I simply gave them something unforgettable."</p>
+                </div>
+            </div>
+
+            <!-- The Assessment -->
+            <div class="my-24 reveal">
+                <div class="bg-red-950/20 border-l-4 border-red-800 p-8 rounded-r-lg">
+                    <p class="text-neutral-200 m-0 leading-relaxed">
+                        A seventeen-year-old girl sat in his chair and spoke like a general who had already won.
+                    </p>
+                    <p class="text-neutral-400 m-0 mt-6 italic">A foolish puppet was manageable.</p>
+                    <p class="text-red-300 m-0 mt-4 font-semibold text-lg">A hidden puppeteer?</p>
+                    <p class="text-red-400 m-0 text-xl font-bold">That was lethal.</p>
+                </div>
+            </div>
+
+            <!-- The Question -->
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"Why tell me this now? Why show your hand?"</p>
+                </div>
+
+                <p>Medea stood.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Because I need you to stop protecting the wrong people."</p>
+                </div>
+
+                <p>She walked to the door, pausing with her hand on the latch.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Tonight, the Red Fox moves."</p>
+                </div>
+
+                <p>She glanced back, her eyes cold and brilliant.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Try not to stand in its path, Lord Siseo."</p>
+                </div>
+
+                <p>And then she was gone.</p>
+            </div>
+
+            <!-- Final Thought -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <p>Siseo remained motionless long after the door closed.</p>
+                <p>For the first time since the war began, he wondered—</p>
+            </div>
+
+            <div class="my-24 text-center reveal">
+                <p class="font-heading text-4xl text-purple-300 leading-relaxed tracking-wide">
+                    Had Valdina already chosen<br />
+                    <span class="text-5xl text-red-400">its next ruler?</span>
+                </p>
+            </div>
+
+            <!-- Final Beat -->
+            <div class="mt-32 mb-40 reveal relative">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-indigo-900 via-purple-900 to-red-900 rounded-lg blur opacity-60 animate-pulse-slow"></div>
+                
+                <div class="relative bg-black border border-indigo-700/50 p-12 md:p-16 rounded-lg text-center shadow-2xl">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-indigo-700/50 rounded text-xs tracking-widest text-indigo-400 font-ui uppercase">
+                        The Grand Design
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-indigo-700 to-transparent"></div>
+
+                        <div class="space-y-6">
+                            <p class="text-indigo-300 text-xl font-body italic">Not a victim.</p>
+                            <p class="text-purple-300 text-xl font-body italic">Not a puppet.</p>
+                            
+                            <h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-indigo-300 via-purple-500 to-red-700 uppercase tracking-[0.15em] drop-shadow-lg leading-tight mt-8">
+                                A Queen<br />
+                                <span class="text-3xl">In Waiting</span>
+                            </h2>
+                        </div>
+                        
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-indigo-700 to-transparent"></div>
+
+                        <p class="text-indigo-600/60 text-sm font-ui tracking-widest uppercase">
+                            [ Tonight, The Fox Strikes ]
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

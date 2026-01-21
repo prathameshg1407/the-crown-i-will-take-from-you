@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Storm - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fog': 'fog 20s linear infinite alternate',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        fog: {
+                            '0%': { transform: 'translateX(-10%)' },
+                            '100%': { transform: 'translateX(10%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #9f1239;
+            text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .section-divider {
+            font-family: 'Cinzel', serif;
+            text-align: center;
+            color: #525252;
+            font-size: 0.875rem;
+            letter-spacing: 0.3em;
+            margin: 4rem 0;
+            text-transform: uppercase;
+        }
+
+        .time-marker {
+            background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
+            border-top: 1px solid rgba(159, 18, 57, 0.3);
+            border-bottom: 1px solid rgba(159, 18, 57, 0.3);
+            padding: 1.5rem 0;
+            margin: 3rem 0;
+        }
+
+        .ledger-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: #737373;
+            background: rgba(23, 23, 23, 0.6);
+            padding: 0.5rem 1rem;
+            border-left: 3px solid #525252;
+        }
+
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-red-600 h-2 animate-pulse"></div>
+            <div class="w-1 bg-red-600 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-red-600 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Storm</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950/10 via-black to-black -z-10"></div>
+
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-red-800/50 rounded-full bg-red-950/20 backdrop-blur-sm">
+                    <span class="text-red-100 text-[10px] font-ui tracking-[0.4em] uppercase">The Purge Continues</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    The <br />
+                    <span class="gradient-text italic pr-2">Storm</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-2xl text-center">
+                    "The aftermath of Quiggin's death was not silence. It was a storm."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- Opening -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="drop-cap text-neutral-300">
+                    The aftermath of Quiggin's death was not silence.
+                </p>
+                <p class="text-neutral-200 font-semibold text-2xl">It was a storm.</p>
+            </div>
+
+            <!-- Investigation -->
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Royal investigators descended on her estates like carrion birds. Hidden vaults were cracked open. Ledgers surfaced—some burned, some half-submerged in oil, some meticulously coded.</p>
+                <p class="text-neutral-200">The theft had lasted years.</p>
+            </div>
+
+            <!-- Black Eyes Reveal -->
+            <div class="my-20 reveal">
+                <div class="bg-neutral-900/50 border border-neutral-700 p-8 rounded-lg">
+                    <p class="text-neutral-400 mb-4 text-center text-sm uppercase tracking-widest font-ui">Then one name appeared again and again.</p>
+                    <h2 class="text-4xl md:text-5xl font-heading text-center text-red-400 tracking-wide">
+                        Black Eyes.
+                    </h2>
+                    <p class="text-neutral-500 mt-4 text-center text-base italic">The Royal Family's "official supplier."</p>
+                </div>
+            </div>
+
+            <!-- Ledger Details -->
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-3">
+                    <p class="ledger-text m-0">→ Invoices inflated threefold.</p>
+                    <p class="ledger-text m-0">→ Emergency funds rerouted.</p>
+                    <p class="ledger-text m-0">→ Goods paid for but never delivered.</p>
+                </div>
+
+                <p class="mt-8">The excess vanished—split neatly between the Head Maid and a shadow network of intermediaries.</p>
+                <p>When the Royal Knights raided Black Eyes' warehouses, they found them abandoned.</p>
+                <p>The owners had fled.</p>
+                <p>The ledgers were gone.</p>
+                <p class="text-red-300 font-semibold">But the damage was already done.</p>
+            </div>
+
+            <!-- Regent's Office -->
+            <div class="time-marker reveal">
+                <p class="section-divider">The Regent's Office</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-orange-200 font-bold text-xl">"Damn it!"</p>
+                </div>
+
+                <p>Joaquin Claudio slammed his fist into the desk hard enough to rattle the inkstones.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-orange-200">"We lost everything? The ledgers, the routes—everything?"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"The Queen Mother authorized raids on twenty ministries. The orders carried the King's Seal. No one dared stall."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Catherine said, pacing.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-orange-200">"And Etienne? That useless toad is the Minister of the Court. Where is he?"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Hiding. Someone crippled him in the chapel courtyard. He believes it was an assassination attempt. He won't leave his estate."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Catherine admitted through clenched teeth.</p>
+                </div>
+
+                <p>Joaquin cursed viciously.</p>
+                <p>Without Etienne to obstruct proceedings, the Queen Mother had nationalized the supply contracts overnight.</p>
+                <p class="text-red-300">Black Eyes was finished.</p>
+                <p>And with it—</p>
+                <p class="text-red-200 font-semibold">—the Regent's private treasury.</p>
+            </div>
+
+            <!-- Financial Crisis -->
+            <div class="my-20 bg-blood-950/20 border-l-4 border-red-800 p-8 rounded-r-lg reveal">
+                <div class="space-y-4">
+                    <p class="dialogue text-orange-200 m-0">"I needed that gold. The rebels are already demanding payment. I used the last installment to buy back those cursed jewels to preserve your reputation."</p>
+                    <p class="dialogue text-purple-200 m-0 mt-4">"Do not pin this on me! How was I to know Quiggin would lose control? Or that your mother would suddenly wake up?"</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Silence fell.</p>
+                <p>Medea—the useless puppet—was still alive.</p>
+                <p class="text-red-300">And now, the Regent was bleeding.</p>
+            </div>
+
+            <!-- Queen Mother's Palace -->
+            <div class="time-marker reveal">
+                <p class="section-divider">The Queen Mother's Palace</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Joaquin straightened his coat.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-orange-200">"We must see my mother. Immediately. We need a new Head Maid—someone loyal."</p>
+                </div>
+
+                <p>The audience was granted.</p>
+                <p class="text-blue-200 font-semibold">The reception was ice-cold.</p>
+            </div>
+
+            <!-- Confrontation -->
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"A new Head Maid? The palace is still bleeding from the last one you endorsed."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">The Queen Mother asked without looking up from her tea.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-orange-200">"Mother, I admit my failure in trusting her. But these are large matters. You should have consulted me before raiding the ministries."</p>
+                </div>
+
+                <p>The Queen Mother looked up at last.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"How long should I have waited? Until she sold the roof over my head?"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Mother, please. We only wish to help. If disorder spreads, the Princess's honor—"</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Catherine cut in, voice trembling with manufactured sincerity.</p>
+                </div>
+            </div>
+
+            <!-- The Question -->
+            <div class="my-24 text-center reveal">
+                <blockquote class="font-body text-3xl italic text-blue-100 leading-relaxed relative inline-block">
+                    <span class="absolute -top-6 -left-4 text-6xl text-blue-900/20 font-serif">"</span>
+                    Honor?
+                    <span class="absolute -bottom-10 -right-4 text-6xl text-blue-900/20 font-serif">"</span>
+                </blockquote>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The Queen Mother set her teacup down.</p>
+                <p class="text-neutral-300 italic">It rang like a verdict.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"Catherine, you called Quiggin your childhood friend. Are you telling me you knew nothing of her character for ten years?"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"I was deceived! She hid her poison well! I am as shocked as you are!"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"Yes. You must have been very busy."</p>
+                </div>
+
+                <p>Catherine stiffened.</p>
+            </div>
+
+            <!-- The Accusations -->
+            <div class="my-20 bg-blue-950/20 border-l-4 border-blue-800 p-8 rounded-r-lg reveal">
+                <div class="space-y-6">
+                    <p class="dialogue text-blue-100 m-0">"Too busy to notice your friend was stealing from the Crown.</p>
+                    <p class="dialogue text-blue-100 m-0">Too busy to notice the Royal Physician refused to treat a dying Princess—because your daughter had a paper cut."</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Catherine's breath caught.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"And now, you will leave."</p>
+                </div>
+            </div>
+
+            <!-- The Eviction -->
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-orange-200">"Leave? Leave where?"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"The Cottage House. Pack your belongings. You will return to the Duke's estate."</p>
+                </div>
+
+                <p>The room went silent.</p>
+                <p>For years, the Cottage House—luxurious, central, coveted—had been their proof of power. A residence within the palace walls was not hospitality.</p>
+                <p class="text-amber-200 italic">It was status.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-orange-200">"Mother, are you evicting us?"</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Joaquin said slowly, a dangerous edge beneath the politeness.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"Collateral relatives should not reside in the Royal Palace. I allowed it because I was lonely. My leniency has invited contempt."</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"But Mother! We stay to protect you—"</p>
+                </div>
+            </div>
+
+            <!-- The Final Question -->
+            <div class="my-24 text-center reveal">
+                <blockquote class="font-heading text-4xl text-blue-100 leading-relaxed tracking-wide">
+                    "Is it protection,<br />
+                    <span class="text-2xl text-neutral-500">or proximity?"</span>
+                </blockquote>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>She looked at them.</p>
+                <p>Really looked.</p>
+                <p class="text-neutral-400 italic">Not as family.</p>
+                <p class="text-red-300">As predators measuring distance.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"Go. My head aches."</p>
+                </div>
+
+                <p class="text-neutral-200 font-semibold">They left with faces carved from fury.</p>
+            </div>
+
+            <!-- Aftermath -->
+            <div class="flex items-center justify-center py-12 opacity-30 reveal">
+                <div class="h-px bg-blue-800 w-24"></div>
+                <div class="w-2 h-2 bg-blue-800 rotate-45 mx-4"></div>
+                <div class="h-px bg-blue-800 w-24"></div>
+            </div>
+
+            <p class="section-divider reveal">Afterward</p>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Pinatelli poured fresh tea.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Are you well, Your Majesty?"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"Hyenas. They circle anything that weakens."</p>
+                </div>
+
+                <p>She closed her eyes.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"I have been in the fog too long."</p>
+                </div>
+
+                <p>Then—</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"Pinatelli."</p>
+                    <p class="dialogue">"Yes, Your Majesty."</p>
+                    <p class="dialogue text-blue-100">"There is no one else I trust. Take the position."</p>
+                </div>
+
+                <p>Pinatelli froze.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Your Majesty?"</p>
+                    <p class="dialogue text-blue-100">"Become Royal Head Maid. Manage this house. Protect what remains."</p>
+                    <p class="dialogue">"I swore to serve you personally—"</p>
+                </div>
+            </div>
+
+            <!-- The Oath -->
+            <div class="my-20 bg-gradient-to-r from-transparent via-blue-950/30 to-transparent p-8 border-y border-blue-900/40 reveal">
+                <div class="space-y-4">
+                    <p class="dialogue text-blue-100 m-0">"And I swore to protect this family. For Valdina's sake, God will forgive us both."</p>
+                    <p class="text-neutral-400 text-base italic text-center m-0 mt-6">The Queen Mother interrupted, gripping her hand.</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Pinatelli looked into her eyes.</p>
+                <p>She saw fear there.</p>
+                <p class="text-neutral-400 italic">Not of enemies.</p>
+                <p class="text-red-300">Of her own son.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"I accept."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">She said softly.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"Good. Clean house, Pinatelli."</p>
+                </div>
+
+                <p class="text-neutral-400 italic text-center mt-8">Before the wolves finish their meal.</p>
+            </div>
+
+            <!-- Final Beat -->
+            <div class="mt-32 mb-40 reveal relative">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-red-900 to-blue-900 rounded-lg blur opacity-50 animate-pulse-slow"></div>
+                
+                <div class="relative bg-black border border-red-700/50 p-12 md:p-16 rounded-lg text-center shadow-2xl">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-red-700/50 rounded text-xs tracking-widest text-red-400 font-ui uppercase">
+                        The Purge
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-red-700 to-transparent"></div>
+
+                        <h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-red-300 via-red-500 to-red-900 uppercase tracking-[0.15em] drop-shadow-lg leading-tight">
+                            The Palace<br />Will Bleed
+                        </h2>
+                        
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-red-700 to-transparent"></div>
+
+                        <p class="text-red-600/60 text-sm font-ui tracking-widest uppercase">
+                            [ Chapter Continues ]
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

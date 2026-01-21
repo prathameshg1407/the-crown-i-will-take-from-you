@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Invitation - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fog': 'fog 20s linear infinite alternate',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        fog: {
+                            '0%': { transform: 'translateX(-10%)' },
+                            '100%': { transform: 'translateX(10%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #9f1239;
+            text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .section-divider {
+            font-family: 'Cinzel', serif;
+            text-align: center;
+            color: #525252;
+            font-size: 0.875rem;
+            letter-spacing: 0.3em;
+            margin: 4rem 0;
+            text-transform: uppercase;
+        }
+
+        .time-marker {
+            background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
+            border-top: 1px solid rgba(159, 18, 57, 0.3);
+            border-bottom: 1px solid rgba(159, 18, 57, 0.3);
+            padding: 1.5rem 0;
+            margin: 3rem 0;
+        }
+
+        .inner-thought {
+            font-style: italic;
+            color: #a3a3a3;
+            background: rgba(38, 38, 38, 0.4);
+            padding: 0.5rem 1.5rem;
+            border-left: 3px solid rgba(115, 115, 115, 0.5);
+            margin: 1.5rem 0;
+        }
+
+        .invitation-card {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(217, 119, 6, 0.1));
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+            margin: 2rem auto;
+            max-width: 500px;
+        }
+
+        .sound-effect {
+            font-family: 'Cinzel', serif;
+            text-align: center;
+            color: #ef4444;
+            font-size: 1.5rem;
+            letter-spacing: 0.3em;
+            margin: 2rem 0;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-amber-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-amber-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-amber-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Schemes</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/10 via-black to-black -z-10"></div>
+
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-amber-800/50 rounded-full bg-amber-950/20 backdrop-blur-sm">
+                    <span class="text-amber-100 text-[10px] font-ui tracking-[0.4em] uppercase">The Stage Is Set</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    The <br />
+                    <span class="gradient-text italic pr-2">Invitation</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-2xl text-center">
+                    "I know exactly what it is... and exactly how to ruin it."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- Fasade Headquarters -->
+            <div class="time-marker reveal">
+                <p class="section-divider">Fasade Headquarters</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Boss. Look."</p>
+                </div>
+
+                <p>Gallo flicked a stiff card across the table.</p>
+                <p>It slid to a stop, catching the lamplight. Gold dust glittered across thick ivory paper, gaudy and wasteful.</p>
+            </div>
+
+            <!-- The Invitation -->
+            <div class="invitation-card reveal">
+                <p class="text-amber-200 text-sm tracking-widest uppercase m-0">The White Rose Mansion</p>
+                <p class="text-amber-300 text-xs m-0 mt-2">District Two</p>
+                <div class="my-6 h-px bg-amber-700/50"></div>
+                <p class="text-amber-100 text-lg font-heading m-0">An invitation from the Prince Regent.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Cesare didn't look up. He continued sharpening his dagger, the whetstone singing softly.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"The Royal Family claims the treasury is empty. Yet the Regent sprinkles gold like sand."</p>
+                </div>
+
+                <p>He snorted.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"He invited Acares. That's you."</p>
+                    <p class="dialogue text-red-200">"Ignore it."</p>
+                    <p class="dialogue">"We can't. If Fasade wants to stay in Valdina, we play noble games. You said you'd reveal yourself eventually."</p>
+                </div>
+
+                <p>He rolled a die across the table.</p>
+                <p>It landed on a skull.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"And besides, it's a banquet celebrating the Princess's recovery. Aren't you curious?"</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Gallo added, grinning.</p>
+                </div>
+
+                <p>The dagger paused.</p>
+            </div>
+
+            <!-- The Memory -->
+            <div class="my-24 bg-slate-950/30 border-l-4 border-slate-700 p-8 rounded-r-lg reveal">
+                <p class="text-slate-300 m-0 italic">Rain-soaked stone. Blue lips. A girl who knelt until her body nearly failed.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-red-200">"She dismantles his power, and he throws her a party."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Cesare murmured.</p>
+                </div>
+
+                <p>Gallo leaned in.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Oh, it gets better. Yesterday, she sent a boy to the market."</p>
+                    <p class="dialogue text-red-200">"So?"</p>
+                    <p class="dialogue">"Hemlock. Nightshade. And a very specific root."</p>
+                </div>
+
+                <p>Cesare's eyes lifted.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"The kind that causes permanent impotence."</p>
+                </div>
+
+                <p>Silence.</p>
+                <p>Gallo burst out laughing.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Who do you think she's planning to—"</p>
+                </div>
+
+                <p>The dagger left Cesare's hand.</p>
+                <p>It embedded itself in the wall, quivering, a finger's breadth from Gallo's ear.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-red-200">"Too much imagination."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Cesare said flatly.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Message received! Working now!"</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Gallo squeaked, scrambling away.</p>
+                </div>
+
+                <p>The door slammed.</p>
+            </div>
+
+            <!-- Terence's Entrance -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-red-200">"Come out, Terence."</p>
+                </div>
+
+                <p>A concealed panel slid aside. A tall man with thin features and bloodshot eyes stepped out, holding a glass of steaming green liquid.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-green-200">"Gallo is exhausting."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Terence muttered.</p>
+                </div>
+
+                <p>Cesare took the glass and drank it in one swallow. Bitter. Ashy.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-green-200">"The tremors?"</p>
+                    <p class="dialogue text-red-200">"Gone."</p>
+                </div>
+
+                <p>Terence checked his pulse anyway. His frown deepened.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-green-200">"You had another seizure."</p>
+                </div>
+
+                <p>Cesare said nothing.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-green-200">"It's accelerating. Three years in, and the curse is tightening. We should go to the Magic Tower. My master might slow it."</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-red-200">"And then what? Wait politely for my heart to turn to stone?"</p>
+                </div>
+
+                <p>He stood.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-red-200">"That isn't me."</p>
+                    <p class="dialogue text-green-200">"Is death preferable?"</p>
+                    <p class="dialogue text-red-200">"There's no need for a gentle end."</p>
+                </div>
+
+                <p>Cesare placed a hand over his chest. The beat beneath was heavy—dull.</p>
+            </div>
+
+            <!-- The Declaration -->
+            <div class="my-32 text-center reveal">
+                <blockquote class="font-body text-3xl italic text-red-100 leading-relaxed relative inline-block max-w-3xl">
+                    <span class="absolute -top-6 -left-4 text-6xl text-red-900/20 font-serif">"</span>
+                    I gamble.<br />
+                    <span class="text-2xl text-neutral-400">And I don't fold.</span>
+                    <span class="absolute -bottom-10 -right-4 text-6xl text-red-900/20 font-serif">"</span>
+                </blockquote>
+            </div>
+
+            <div class="my-24 bg-red-950/30 border-l-4 border-red-800 p-10 rounded-r-lg reveal">
+                <p class="text-neutral-300 m-0 text-center leading-relaxed">
+                    Golden eyes burned.
+                </p>
+                <p class="text-red-300 text-2xl font-heading m-0 text-center mt-6">
+                    "I conquer this curse, or I burn everything down trying."
+                </p>
+            </div>
+
+            <!-- Princess's Palace -->
+            <div class="time-marker reveal">
+                <p class="section-divider">The Princess's Palace</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Morning light spilled through silk curtains.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Your Highness, a message from the Marquis."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Neril said, entering.</p>
+                </div>
+
+                <p>Medea read.</p>
+            </div>
+
+            <div class="my-20 bg-blue-950/20 border border-blue-900/40 p-6 rounded reveal">
+                <p class="text-blue-200 font-body italic m-0 text-center">
+                    The Casey Aid Center is complete. Over half the retired soldiers have relocated.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-green-300 italic">Good.</p>
+                <p>The rebels had lost their backbone.</p>
+                <p>Her gaze moved on.</p>
+            </div>
+
+            <div class="my-20 bg-blue-950/20 border border-blue-900/40 p-6 rounded reveal">
+                <p class="text-blue-200 font-body italic m-0 text-center">
+                    Regarding 'Theo'—no such soldier exists. However, records show a deceased veteran with a twin brother named Theo.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Medea smiled.</p>
+                <p class="text-purple-300 italic">Found you.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Neril. Have the Marquis locate him. Offer him an administrative post at the Center."</p>
+                    <p class="dialogue">"Yes, Your Highness."</p>
+                </div>
+
+                <p>Medea's eyes drifted to the gold-dusted card on her desk.</p>
+            </div>
+
+            <div class="invitation-card reveal">
+                <p class="text-amber-100 text-2xl font-heading m-0 leading-relaxed">
+                    A Banquet Celebrating<br />the Recovery of<br />Princess Medea
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400 italic">A stage.</p>
+                <p class="text-neutral-400 italic">A snare.</p>
+                <p class="text-red-300 italic">A public execution of sympathy.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Prepare my dress."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">She said calmly.</p>
+                </div>
+
+                <p>Neril hesitated.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"The Regent's invitation—"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"I know exactly what it is. And exactly how to ruin it."</p>
+                </div>
+
+                <p>She stood.</p>
+                <p>Her eyes gleamed.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"We're going to a party."</p>
+                </div>
+            </div>
+
+            <!-- Final Beat -->
+            <div class="mt-32 mb-40 reveal relative">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-amber-900 via-red-900 to-purple-900 rounded-lg blur opacity-60 animate-pulse-slow"></div>
+                
+                <div class="relative bg-black border border-amber-700/50 p-12 md:p-16 rounded-lg text-center shadow-2xl">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-amber-700/50 rounded text-xs tracking-widest text-amber-400 font-ui uppercase">
+                        The Banquet
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-amber-700 to-transparent"></div>
+
+                        <div class="space-y-6">
+                            <p class="text-amber-300 text-xl font-body italic">A cursed mercenary.</p>
+                            <p class="text-red-300 text-xl font-body italic">A poisoning Princess.</p>
+                            <p class="text-purple-300 text-xl font-body italic">A desperate Regent.</p>
+                            
+                            <h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-amber-300 via-red-500 to-purple-700 uppercase tracking-[0.15em] drop-shadow-lg leading-tight mt-8">
+                                One Night<br />
+                                <span class="text-3xl">Many Daggers</span>
+                            </h2>
+                        </div>
+                        
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-amber-700 to-transparent"></div>
+
+                        <p class="text-amber-600/60 text-sm font-ui tracking-widest uppercase">
+                            [ The Stage Awaits ]
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

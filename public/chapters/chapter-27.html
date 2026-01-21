@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Collapse - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'heartbeat': 'heartbeat 1.5s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        heartbeat: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.05)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .thought {
+            color: #cbd5e1;
+            font-style: italic;
+            opacity: 0.9;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #9f1239;
+            text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #dc2626 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .chapter-marker {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .chapter-marker::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #dc2626, transparent);
+        }
+
+        .scene-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #475569, transparent);
+            margin: 4rem 0;
+        }
+
+        .paper-scatter {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fevered-text {
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        .cold-realization {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-left: 4px solid #3b82f6;
+            box-shadow: inset 0 0 30px rgba(59, 130, 246, 0.1);
+        }
+
+        .rage-container {
+            background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
+            border: 2px solid #991b1b;
+            box-shadow: 0 0 40px rgba(127, 29, 29, 0.3);
+        }
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-red-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-red-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-red-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Tension</span>
+    </div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950/20 via-black to-black -z-10"></div>
+
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-red-800/50 rounded-full bg-red-950/20 backdrop-blur-sm">
+                    <span class="text-red-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter</span>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tight mb-8">
+                    The <span class="gradient-text italic">Collapse</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-2xl text-center">
+                    "Father… don't go…"
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- Scene 1: The Papers -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="drop-cap text-neutral-300">
+                    Papers lay scattered across the marble floor like dead leaves.
+                </p>
+                <p>
+                    The Queen Mother stood rigid at the center of the room, breath coming in sharp, uneven pulls. Her fingers trembled where she had flung the report.
+                </p>
+            </div>
+
+            <div class="my-16 rage-container p-8 rounded-lg reveal">
+                <p class="dialogue text-red-100 text-2xl mb-0">
+                    "She stole from the palace? She dared to touch what belonged to Medea?"
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Yes, Your Majesty," Pinatelli replied, calm as still water. "Personal items were replaced with imitations. Funds for food and maintenance were siphoned away. Records were altered."</p>
+                </div>
+
+                <p>Then, softly—precisely—Pinatelli added the blade.</p>
+
+                <p class="dialogue">
+                    "The maids who accused the Princess were accomplices. They assisted Madame Quiggin in the embezzlement."
+                </p>
+
+                <p class="text-neutral-400 italic text-lg text-center my-12">
+                    The words settled like a tightening rope.
+                </p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-red-950/30 border-l-4 border-red-700 p-8 rounded-r">
+                    <p class="dialogue text-red-200 text-xl mb-0">
+                        "Her audacity knows no bounds! She used me to strike my own granddaughter? Is she mad?"
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Rage curdled into something colder.</p>
+            </div>
+
+            <div class="my-20 cold-realization p-10 rounded-lg reveal">
+                <p class="thought text-blue-200 text-xl text-center leading-relaxed mb-4">
+                    Did she act alone?
+                </p>
+                <p class="thought text-blue-100 text-2xl text-center leading-relaxed">
+                    …Or was she following orders?
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400 italic text-center">
+                    The thought slithered through her mind, chilling her blood.
+                </p>
+            </div>
+
+            <!-- Scene 2: The Collapse -->
+            <div class="scene-divider reveal"></div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The doors burst open.</p>
+                <p>A maid stumbled in, pale and gasping.</p>
+            </div>
+
+            <div class="h-[40vh] flex items-center justify-center reveal">
+                <div class="text-center animate-shake">
+                    <p class="dialogue text-yellow-400 text-3xl md:text-4xl font-bold">
+                        "Your Majesty! The Princess—the Princess has collapsed!"
+                    </p>
+                </div>
+            </div>
+
+            <!-- Scene 3: The Royal Chapel -->
+            <div class="chapter-marker my-20 reveal">
+                <h3 class="font-heading text-3xl text-slate-300 mb-4">The Royal Chapel</h3>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-2xl text-center mb-8 font-heading text-red-300">
+                    The Queen Mother ran.
+                </p>
+                <p>For a woman of her age, she moved with terrifying speed.</p>
+                <p>By the time she reached the chapel, Medea was already being carried out.</p>
+            </div>
+
+            <div class="my-16 bg-neutral-900/50 border-2 border-neutral-800 p-8 rounded-lg reveal">
+                <p class="text-neutral-300 text-xl leading-relaxed text-center">
+                    The girl lay limp in the guards' arms—skin bloodless, lips blue and cracked. She looked less like a living child than something already claimed by death.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Why was this discovered so late?!" the Queen Mother shrieked. "Were you blind?!"</p>
+                    <p class="dialogue">"Y-Your Majesty…" a guard stammered. "You ordered that no one approach—"</p>
+                    <p class="dialogue text-red-200">"But I did not order you to let her die!"</p>
+                </div>
+
+                <p>Panic snapped through her fury. She needed a target—anything to keep her thoughts from spiraling inward.</p>
+                <p>She stared at Medea's slack face.</p>
+            </div>
+
+            <div class="my-12 reveal">
+                <blockquote class="border-l-4 border-amber-700 pl-6 italic text-amber-200 text-xl">
+                    "Stubborn child," she whispered, voice breaking. "Trying to harass an old woman like this… just like your father."
+                </blockquote>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>She turned on the guards.</p>
+                <p class="dialogue text-xl">"What are you standing there for?! Carry her to the palace! Fetch the doctor—NOW!"</p>
+                <p class="dialogue">"Yes, Your Majesty!"</p>
+                <p>As the stretcher moved, Medea's hand slipped loose, dangling lifelessly over the edge.</p>
+                <p>The Queen Mother's breath hitched.</p>
+            </div>
+
+            <div class="my-20 text-center reveal">
+                <p class="text-neutral-500 text-lg mb-4">For an instant, she saw another hand—</p>
+                <p class="text-neutral-400 text-xl italic">cold, heavy—</p>
+                <p class="text-neutral-300 text-2xl font-body">the day her son died.</p>
+            </div>
+
+            <div class="h-[30vh] flex items-center justify-center reveal">
+                <p class="dialogue text-4xl md:text-5xl text-red-300 font-heading fevered-text">
+                    "Medea!"
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400 italic text-center">
+                    She rushed forward, following the stretcher, eyes locked on the faint rise and fall of the girl's chest.
+                </p>
+            </div>
+
+            <!-- Scene 4: The Palace -->
+            <div class="scene-divider reveal"></div>
+
+            <div class="chapter-marker my-20 reveal">
+                <h3 class="font-heading text-3xl text-slate-300 mb-4">The Princess's Palace – Late Night</h3>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Chaos ruled the wing.</p>
+                <p>
+                    Servants rushed with towels, basins, hot water. The arrival of the Queen Mother—who had not set foot here in years—sent them into near hysteria.
+                </p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Glory to the Light of Valdina—" a maid whispered.</p>
+                    <p class="dialogue">"Enough," the Queen Mother snapped. "Work."</p>
+                </div>
+
+                <p>She took in the surroundings.</p>
+                <p>Cold. Damp. Paint peeling at the corners. Furniture worn thin with age.</p>
+            </div>
+
+            <div class="my-16 bg-slate-900/30 border-l-4 border-slate-600 p-8 rounded-r reveal">
+                <p class="dialogue text-slate-300 text-xl mb-4">
+                    "This is the Princess's palace? It looks abandoned."
+                </p>
+                <p class="dialogue text-slate-400">
+                    "The former Head Maid dismissed the experienced staff. These girls are new. They don't know how to maintain proper conditions."
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The Queen Mother's jaw tightened.</p>
+                <p class="dialogue text-red-200">"Quiggin… That woman poisoned everything she touched."</p>
+                <p>A maid emerged from the bedroom with a basin. "Your Majesty."</p>
+                <p>The Queen Mother entered.</p>
+            </div>
+
+            <!-- Scene 5: The Bedroom -->
+            <div class="chapter-marker my-20 reveal">
+                <h3 class="font-heading text-3xl text-slate-300 mb-4">The Bedroom</h3>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The room was warm—but only because the body on the bed burned with fever.</p>
+                <p>
+                    Medea lay motionless beneath rough cotton sheets. No silk. No luxury. Her breaths were shallow, ragged.
+                </p>
+                <p>The Queen Mother approached slowly.</p>
+                <p>She hesitated… then reached out.</p>
+                <p class="fevered-text text-red-400 text-xl">Medea's skin was scalding.</p>
+            </div>
+
+            <div class="my-16 text-center reveal">
+                <p class="text-neutral-500 text-lg mb-4">"Ugh…"</p>
+                <p class="text-neutral-400 text-xl">The girl stirred. Her eyes fluttered open—glassy, unfocused.</p>
+                <p class="text-neutral-300 text-2xl mt-8">A trembling hand reached out and seized the Queen Mother's sleeve with surprising strength.</p>
+            </div>
+
+            <div class="h-[50vh] flex items-center justify-center reveal">
+                <div class="text-center">
+                    <p class="dialogue text-4xl md:text-5xl text-amber-200 font-body italic fevered-text mb-8">
+                        "Father…"
+                    </p>
+                    <p class="dialogue text-3xl text-amber-300 font-body italic fevered-text">
+                        "Don't go…"
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The Queen Mother froze.</p>
+            </div>
+
+            <div class="my-16 bg-amber-950/20 p-8 rounded-lg text-center reveal">
+                <p class="text-amber-200 text-2xl font-heading tracking-wide">
+                    Her son.
+                </p>
+                <p class="text-amber-300 text-3xl font-heading tracking-wider mt-4">
+                    King John.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400 italic text-center">Her knees nearly gave out.</p>
+                <p class="dialogue">"What nonsense…" she murmured, trying to pull free.</p>
+                <p>Medea tightened her grip, clinging as if to the last solid thing in a collapsing world.</p>
+                <p>The Queen Mother stopped resisting.</p>
+                <p>Her gaze drifted to the bedside table.</p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-yellow-900/20 to-amber-950/30 border-2 border-amber-700/50 p-10 rounded-lg shadow-2xl">
+                    <div class="text-center mb-6 text-6xl">🔗</div>
+                    <p class="text-neutral-300 text-xl text-center leading-relaxed mb-4">
+                        A silver pendant lay there—old, dulled smooth by constant touch.
+                    </p>
+                    <p class="text-neutral-400 text-lg text-center italic mb-4">
+                        She opened it.
+                    </p>
+                    <p class="text-amber-200 text-lg text-center">
+                        Inside was a tiny portrait of John. The paint was worn thin where a thumb had traced it over and over.
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 cold-realization p-10 rounded-lg reveal">
+                <p class="thought text-blue-200 text-xl text-center leading-relaxed mb-4">
+                    She kept this…
+                </p>
+                <p class="thought text-blue-100 text-xl text-center leading-relaxed mb-4">
+                    All these years.
+                </p>
+                <p class="thought text-slate-300 text-2xl text-center leading-relaxed font-bold">
+                    While I turned away.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400 italic text-center">Tears burned her eyes.</p>
+                <p>She gently freed Medea's hand and tucked it beneath the covers.</p>
+            </div>
+
+            <div class="my-12 reveal">
+                <blockquote class="border-l-4 border-slate-600 pl-6 italic text-slate-300 text-xl">
+                    "Stupid child," she whispered, voice unsteady.
+                </blockquote>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400 italic text-center">She turned and strode out.</p>
+            </div>
+
+            <!-- Scene 6: The Hallway -->
+            <div class="scene-divider reveal"></div>
+
+            <div class="chapter-marker my-20 reveal">
+                <h3 class="font-heading text-3xl text-slate-300 mb-4">The Hallway</h3>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Has the doctor arrived?" the Queen Mother demanded.</p>
+                    <p class="dialogue">"Well… Your Majesty…" a maid faltered.</p>
+                    <p class="dialogue">"Speak."</p>
+                    <p class="dialogue">"He said he cannot come immediately."</p>
+                </div>
+            </div>
+
+            <div class="my-16 bg-neutral-900/50 border-l-4 border-blue-500 p-8 rounded-r reveal">
+                <p class="dialogue text-blue-200 text-xl mb-0">
+                    "Cannot?" <span class="text-neutral-400 italic font-body text-lg block mt-2">Her voice dropped to ice.</span> "Did you tell him the Princess collapsed?"
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Yes! I said it was urgent, but—"</p>
+                    <p class="dialogue">"But what."</p>
+                    <p class="dialogue">"He said he must treat Lady Birna first."</p>
+                    <p class="dialogue">"Birna?" <span class="text-neutral-500 font-body text-lg italic block mt-1">The Queen Mother frowned.</span> "Is she injured?"</p>
+                </div>
+
+                <p>The maid stared at the floor.</p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-slate-900/50 p-8 rounded-lg text-center border border-slate-700">
+                    <p class="dialogue text-slate-300 text-2xl mb-0">
+                        "She… cut her hand."
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-center text-xl text-neutral-500 my-12">Silence.</p>
+                <p class="dialogue">"…How?"</p>
+            </div>
+
+            <div class="h-[40vh] flex items-center justify-center reveal">
+                <div class="text-center">
+                    <p class="text-slate-400 text-2xl mb-4 italic">The maid whispered:</p>
+                    <p class="dialogue text-3xl text-yellow-600 font-body">
+                        "A paper cut."
+                    </p>
+                    <p class="text-slate-500 text-lg mt-6 italic">
+                        Opening an invitation.
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-red-950/30 border-2 border-red-800 p-6 rounded-lg text-center">
+                        <p class="text-red-300 text-xl font-heading uppercase tracking-widest mb-2">A dying Princess</p>
+                        <p class="text-red-500 text-3xl font-bold">Ignored</p>
+                    </div>
+                    <div class="bg-yellow-950/30 border-2 border-yellow-800 p-6 rounded-lg text-center">
+                        <p class="text-yellow-300 text-xl font-heading uppercase tracking-widest mb-2">For a paper cut</p>
+                        <p class="text-yellow-500 text-3xl font-bold">Prioritized</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-center text-xl text-neutral-400 my-12 italic">
+                    The Queen Mother stared.
+                </p>
+                <p class="text-center text-2xl text-neutral-300 my-8">
+                    She laughed.
+                </p>
+                <p class="text-center text-lg text-neutral-500 italic">
+                    It was soft. Cold. Terrifying.
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-black/80 backdrop-blur border-2 border-blue-800 p-12 rounded-lg shadow-2xl">
+                    <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-900 to-slate-900 rounded-lg blur opacity-30"></div>
+                    <div class="relative">
+                        <p class="dialogue text-blue-200 text-2xl text-center mb-6">
+                            "I see."
+                        </p>
+                        <p class="dialogue text-blue-100 text-3xl text-center font-heading tracking-wide">
+                            "So this is how my household functions."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-20 text-center reveal">
+                <p class="text-neutral-400 text-lg italic mb-8">
+                    Her eyes burned with something far more dangerous than rage.
+                </p>
+                <p class="text-slate-200 text-4xl font-heading tracking-widest">
+                    Understanding.
+                </p>
+            </div>
+
+            <!-- Closing -->
+            <div class="scene-divider reveal"></div>
+
+            <div class="mt-32 mb-20 text-center reveal">
+                <div class="inline-block px-6 py-3 border border-red-800/50 rounded-full bg-red-950/20">
+                    <span class="text-red-200 text-sm font-ui tracking-[0.3em] uppercase">End of Chapter</span>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        // Reveal on Scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

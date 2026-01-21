@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chains of Fear - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fog': 'fog 20s linear infinite alternate',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        fog: {
+                            '0%': { transform: 'translateX(-10%)' },
+                            '100%': { transform: 'translateX(10%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #9f1239;
+            text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .section-divider {
+            font-family: 'Cinzel', serif;
+            text-align: center;
+            color: #525252;
+            font-size: 0.875rem;
+            letter-spacing: 0.3em;
+            margin: 4rem 0;
+            text-transform: uppercase;
+        }
+
+        .time-marker {
+            background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
+            border-top: 1px solid rgba(159, 18, 57, 0.3);
+            border-bottom: 1px solid rgba(159, 18, 57, 0.3);
+            padding: 1.5rem 0;
+            margin: 3rem 0;
+        }
+
+        .inner-thought {
+            font-style: italic;
+            color: #a3a3a3;
+            background: rgba(38, 38, 38, 0.4);
+            padding: 0.5rem 1.5rem;
+            border-left: 3px solid rgba(115, 115, 115, 0.5);
+            margin: 1.5rem 0;
+        }
+
+        .sound-effect {
+            font-family: 'Cinzel', serif;
+            text-align: center;
+            color: #737373;
+            font-size: 1rem;
+            letter-spacing: 0.5em;
+            margin: 2rem 0;
+            font-style: italic;
+        }
+
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-slate-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-slate-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-slate-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Prison</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10"></div>
+
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-slate-800/50 rounded-full bg-slate-950/20 backdrop-blur-sm">
+                    <span class="text-slate-100 text-[10px] font-ui tracking-[0.4em] uppercase">Control & Grace</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    Chains of <br />
+                    <span class="gradient-text italic pr-2">Fear</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-2xl text-center">
+                    "This was not mercy. This was ownership."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- Valdina Prison -->
+            <div class="time-marker reveal">
+                <p class="section-divider">Valdina Prison</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="drop-cap text-neutral-300">
+                    The air was thick with rot and iron.
+                </p>
+                <p>Maria lay curled on the stone floor, her ruined hands wrapped in filthy bandages. The tendons were gone. What remained were claws that burned with every pulse of her heart.</p>
+            </div>
+
+            <!-- Footsteps -->
+            <div class="my-16 reveal">
+                <p class="sound-effect">Step.</p>
+                <p class="sound-effect">Step.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The sound echoed down the corridor.</p>
+                <p>Maria flinched, dragging herself backward as a figure appeared beyond the bars.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"It has been a while, Maria."</p>
+                </div>
+
+                <p>Her breath caught.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"Y–Your Highness!"</p>
+                </div>
+
+                <p>She collapsed forward, pressing her forehead to the cold iron.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"Please… save me. I'll do anything. I'll be loyal. I swear it."</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"I cannot trust you anymore."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">Medea said calmly.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-slate-300">"I was wrong! I was stupid! I was greedy! I'll never betray you again!"</p>
+                </div>
+
+                <p class="text-neutral-400 italic">Medea regarded her the way one might observe a wounded animal.</p>
+            </div>
+
+            <!-- The Philosophy -->
+            <div class="my-24 text-center reveal">
+                <blockquote class="font-body text-3xl italic text-purple-100 leading-relaxed relative inline-block">
+                    <span class="absolute -top-6 -left-4 text-6xl text-purple-900/20 font-serif">"</span>
+                    Fear makes people sincere.<br />
+                    <span class="text-2xl text-neutral-500">But only while the fear lasts.</span>
+                    <span class="absolute -bottom-10 -right-4 text-6xl text-purple-900/20 font-serif">"</span>
+                </blockquote>
+            </div>
+
+            <!-- The Poison -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p>She reached through the bars and let a small vial drop to the floor.</p>
+                <p class="sound-effect text-red-400">Clink.</p>
+                <p>Maria stared at it.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Drink it."</p>
+                    <p class="dialogue text-slate-300">"What… what is it?"</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Grass pea extract. A slow poison. Without the antidote, your muscles will harden. Eventually, your lungs will stop."</p>
+                </div>
+
+                <p>Maria shook violently.</p>
+            </div>
+
+            <!-- The Contract -->
+            <div class="my-20 bg-purple-950/20 border-l-4 border-purple-800 p-8 rounded-r-lg reveal">
+                <div class="space-y-6">
+                    <p class="dialogue text-purple-200 m-0">"I need certainty. Drink it, and I will heal your hands. I will give you the antidote every week."</p>
+                    <p class="text-neutral-300 m-0 mt-6">Her eyes were serene.</p>
+                    <p class="dialogue text-purple-200 m-0">"As long as you belong to me."</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Maria understood then.</p>
+                <p class="text-neutral-400 italic">This was not mercy.</p>
+                <p class="text-red-300 font-semibold">This was ownership.</p>
+                <p class="mt-8">With shaking fingers, she uncorked the vial and swallowed.</p>
+                <p>Medea watched without emotion.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Good. Now I can trust you."</p>
+                </div>
+            </div>
+
+            <!-- Transition -->
+            <div class="flex items-center justify-center py-12 opacity-30 reveal">
+                <div class="h-px bg-blue-800 w-24"></div>
+                <div class="w-2 h-2 bg-blue-800 rotate-45 mx-4"></div>
+                <div class="h-px bg-blue-800 w-24"></div>
+            </div>
+
+            <!-- The Princess's Palace -->
+            <div class="time-marker reveal">
+                <p class="section-divider">The Princess's Palace</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>When the summons came, the maids rushed forward with jewels and silks.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"No."</p>
+                </div>
+
+                <p>She chose a pale blue dress. No embroidery. No gems.</p>
+                <p>Only a simple string of pearls.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"But Your Highness—"</p>
+                    <p class="dialogue text-purple-200">"Simplicity is a weapon."</p>
+                </div>
+            </div>
+
+            <!-- Walking -->
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Pinatelli waited outside.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"You look… restrained."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">She observed.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"That is the point."</p>
+                </div>
+
+                <p>As they walked, Pinatelli lowered her voice.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"The Queen Mother is not cruel by nature. She is lonely. Grief made her sharp."</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"I know. I do not confuse bitterness with malice."</p>
+                </div>
+
+                <p>Laughter drifted from ahead.</p>
+                <p class="text-pink-300 italic">Birna.</p>
+
+                <p>Pinatelli frowned.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"They are lingering."</p>
+                    <p class="dialogue text-purple-200">"They always do."</p>
+                </div>
+            </div>
+
+            <!-- The Queen Mother's Chamber -->
+            <div class="time-marker reveal">
+                <p class="section-divider">The Queen Mother's Chamber</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Medea entered first.</p>
+                <p>She moved with exact precision—neither rushed nor timid. She stopped at the proper distance and curtsied.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"I greet Your Majesty."</p>
+                </div>
+
+                <p>The Queen Mother watched closely.</p>
+                <p>There was no hesitation. No stiffness. No resentment.</p>
+                <p class="text-blue-200 font-semibold">Medea was flawless.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"Sit."</p>
+                </div>
+
+                <p>She did. Straight-backed, hands folded, eyes lowered just enough.</p>
+            </div>
+
+            <!-- Internal Conflict -->
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p class="m-0">The Queen Mother felt an unfamiliar irritation.</p>
+                    <p class="m-0 mt-3 text-blue-200">Why does she look… right?</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"You've improved."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">She said grudgingly.</p>
+                </div>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"It is thanks to my teachers."</p>
+                </div>
+
+                <p>Birna snorted.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-pink-200">"Improved? Yesterday the instructors were fleeing in tears. What changed—did you finally stop pretending to be stupid?"</p>
+                </div>
+
+                <p class="text-neutral-200">The room chilled.</p>
+            </div>
+
+            <!-- The Strike -->
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Medea set her cup down carefully.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"The teacher my Aunt chose was excellent. She taught noble etiquette very well."</p>
+                </div>
+
+                <p>She lifted her eyes.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-purple-200">"Royal etiquette is different."</p>
+                </div>
+
+                <p class="text-red-300 italic text-center mt-8">The strike landed cleanly.</p>
+            </div>
+
+            <!-- Birna's Reaction -->
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Birna blinked.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-pink-200">"That's ridiculous! I had the same teacher!"</p>
+                </div>
+
+                <p>The Queen Mother's gaze slid to Birna.</p>
+                <p>For the first time, she <span class="text-blue-200 font-semibold">looked</span>.</p>
+            </div>
+
+            <!-- The Comparison -->
+            <div class="my-20 bg-gradient-to-r from-transparent via-slate-900/50 to-transparent p-8 border-y border-slate-800 reveal">
+                <div class="space-y-3 text-neutral-400 text-center">
+                    <p class="m-0">The slouched posture.</p>
+                    <p class="m-0">The careless tone.</p>
+                    <p class="m-0">The unguarded familiarity.</p>
+                </div>
+                <p class="text-neutral-200 text-center mt-8 text-xl">
+                    Next to Medea's composed stillness, Birna looked loud. Unfinished.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue text-blue-100">"Birna. Sit up straight."</p>
+                    <p class="text-neutral-500 text-base italic pl-4">The Queen Mother snapped.</p>
+                </div>
+
+                <p>Birna stiffened, startled.</p>
+                <p>Medea lowered her eyes again.</p>
+            </div>
+
+            <!-- Reflection -->
+            <div class="my-24 reveal">
+                <div class="bg-purple-950/20 border-l-4 border-purple-800 p-8 rounded-r-lg">
+                    <p class="text-neutral-300 m-0 italic">
+                        In her past life, she had learned every rule to please a man who sold her to death.
+                    </p>
+                    <p class="text-purple-200 m-0 mt-6 font-semibold">
+                        Now, she followed them for herself.
+                    </p>
+                </div>
+            </div>
+
+            <!-- The Shift -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The silence pressed heavy.</p>
+                <p>And for the first time—</p>
+                <p class="text-blue-200">The Queen Mother felt doubt.</p>
+                <p class="text-neutral-400 italic">Not about Medea.</p>
+                <p class="text-red-300">But about everyone else in the room.</p>
+            </div>
+
+            <!-- Final Beat -->
+            <div class="mt-32 mb-40 reveal relative">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-900 to-purple-900 rounded-lg blur opacity-50 animate-pulse-slow"></div>
+                
+                <div class="relative bg-black border border-blue-700/50 p-12 md:p-16 rounded-lg text-center shadow-2xl">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-blue-700/50 rounded text-xs tracking-widest text-blue-400 font-ui uppercase">
+                        The Game
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-blue-700 to-transparent"></div>
+
+                        <h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-blue-300 via-purple-500 to-purple-900 uppercase tracking-[0.15em] drop-shadow-lg leading-tight">
+                            Poison & Poise<br />
+                            <span class="text-3xl">Control Everything</span>
+                        </h2>
+                        
+                        <div class="w-full h-px bg-gradient-to-r from-transparent via-blue-700 to-transparent"></div>
+
+                        <p class="text-blue-600/60 text-sm font-ui tracking-widest uppercase">
+                            [ Chapter Continues ]
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

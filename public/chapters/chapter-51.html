@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Façade Greets Her Royal Highness - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fog': 'fog 20s linear infinite alternate',
+                        'drip': 'drip 3s ease-in-out infinite',
+                        'gleam': 'gleam 2s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        fog: {
+                            '0%': { transform: 'translateX(-10%)' },
+                            '100%': { transform: 'translateX(10%)' }
+                        },
+                        drip: {
+                            '0%, 100%': { transform: 'translateY(0) scaleY(1)' },
+                            '50%': { transform: 'translateY(10px) scaleY(1.1)' }
+                        },
+                        gleam: {
+                            '0%, 100%': { opacity: '0.6' },
+                            '50%': { opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .thought {
+            color: #cbd5e1;
+            font-style: italic;
+            font-size: 1.15rem;
+            opacity: 0.9;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #d97706;
+            text-shadow: 0 0 20px rgba(217, 119, 6, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #fbbf24 0%, #78350f 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .gold-gleam {
+            color: #fbbf24;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+        }
+
+        .emerald-gleam {
+            color: #10b981;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+        }
+
+        .blood-drip {
+            color: #dc2626;
+            text-shadow: 0 0 20px rgba(220, 38, 38, 0.8);
+        }
+
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-red-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-red-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-red-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Chaos</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/10 via-black to-black -z-10"></div>
+
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-red-800/50 rounded-full bg-red-950/20 backdrop-blur-sm">
+                    <span class="text-red-100 text-[10px] font-ui tracking-[0.4em] uppercase">The Confrontation</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    The Façade <br />
+                    <span class="gradient-text italic">Greets Her Highness</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">
+                    "Charming hospitality."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- Section: The Introduction -->
+            <div class="mb-16 reveal">
+                <div class="flex items-center justify-center py-8 opacity-30">
+                    <div class="h-px bg-yellow-800 w-24"></div>
+                    <div class="w-2 h-2 bg-yellow-800 rotate-45 mx-4"></div>
+                    <div class="h-px bg-yellow-800 w-24"></div>
+                </div>
+                <p class="text-center font-heading text-yellow-400 tracking-[0.3em] text-sm uppercase">The Greeting</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="drop-cap">The blond bowed again with a grin.</p>
+                <p class="dialogue">"The Façade greets Her Royal Highness. I am Gallo—just Gallo. Trouble follows my name."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue">"Welcome to Valdina, Sir Gallo," <span class="text-neutral-400">Medea said, polite and small as a coin.</span></p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>The masked man behind him did not bow.</p>
+                <p>He regarded her with steady, golden eyes:</p>
+                <p class="text-center text-amber-400 font-semibold text-xl my-6">
+                    An animal that had learned not to blink.
+                </p>
+            </div>
+
+            <!-- Section: The Probe -->
+            <div class="my-16 reveal">
+                <div class="flex items-center justify-center py-8 opacity-30">
+                    <div class="h-px bg-purple-800 w-24"></div>
+                    <div class="w-2 h-2 bg-purple-800 rotate-45 mx-4"></div>
+                    <div class="h-px bg-purple-800 w-24"></div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue">"The Spear of Saint Esther was astonishing," <span class="text-neutral-400">Gallo prattled, hands rubbing together.</span> "Divine timing, wouldn't you say? A miracle at our hour of need."</p>
+            </div>
+
+            <div class="mt-16 bg-neutral-900/40 border-l-4 border-cyan-700/50 p-8 rounded-r-lg reveal">
+                <p class="dialogue text-cyan-200">Acares's voice cut low and dry. "Miracles come when rulers want them to. Convenient timing makes me suspicious."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Gallo made a vain show of correcting him, but his smile had thinned.</p>
+                <p>Cesare—Acares—didn't tease for sport.</p>
+                <p class="text-center text-amber-400 font-semibold text-xl my-6">
+                    He probed.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Medea met him without flinching.</p>
+                <p class="dialogue">"Faith is a private thing," <span class="text-neutral-400">she said coolly.</span> "Perhaps a mercenary who sells his sword for coin would not appreciate that."</p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-amber-950/20 to-transparent border-l-4 border-amber-700/50 p-8 rounded-r-lg reveal">
+                <p class="text-neutral-300 mb-4">The masked man's mouth twitched.</p>
+                <p class="text-amber-300 italic">Cesare suppressed a laugh the way a blade suppresses sound.</p>
+                <p class="text-amber-200 font-semibold mt-4">He liked an opponent who could bite back.</p>
+            </div>
+
+            <!-- The Scream -->
+            <div class="h-[50vh] flex items-center justify-center my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-red-600 blur-3xl opacity-30 animate-pulse-slow"></div>
+                    <div class="relative text-center space-y-8">
+                        <p class="font-heading text-6xl md:text-7xl text-red-400 tracking-wide animate-shake">
+                            A SCREAM
+                        </p>
+                        <p class="text-red-300 font-body text-2xl">split the hall.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-center text-neutral-300 text-2xl">Everyone turned.</p>
+            </div>
+
+            <!-- Section: Etienne's Collapse -->
+            <div class="my-16 reveal">
+                <div class="flex items-center justify-center py-8 opacity-30">
+                    <div class="h-px bg-red-800 w-24"></div>
+                    <div class="w-2 h-2 bg-red-800 rotate-45 mx-4"></div>
+                    <div class="h-px bg-red-800 w-24"></div>
+                </div>
+                <p class="text-center font-heading text-red-400 tracking-[0.3em] text-sm uppercase">The Unraveling</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Minister Etienne stumbled into the doorway, naked, his clothes a sodden mountain at his feet.</p>
+                <p>Red-faced, eyes wild, he looked less a minister than a ragged animal exposed to midday.</p>
+            </div>
+
+            <div class="mt-16 bg-red-950/30 border border-red-900/50 p-8 rounded-lg reveal">
+                <p class="dialogue text-red-200 text-2xl font-semibold">"Claudio! You treat me like a dog!" <span class="text-neutral-400 text-lg">he bellowed.</span> "You think because you know me, you own me!"</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Ladies gasped and folded gloved hands over their mouths; some fainted.</p>
+                <p>An elderly noble rushed forward with a cloak to shield the scandal.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>To Etienne—high and reeking of whatever he'd swallowed—the old man was a monster suffocating him.</p>
+                <p>Voices in his head snarled, and he reacted with the brute certainty of a frightened thing:</p>
+            </div>
+
+            <div class="h-[40vh] flex items-center justify-center my-20 reveal">
+                <div class="text-center space-y-6">
+                    <p class="font-heading text-5xl text-red-400 tracking-wide">He punched the noble full in the face.</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The man crumpled, blood and dignity spilling in equal measure.</p>
+            </div>
+
+            <div class="mt-16 bg-gradient-to-r from-red-950/30 to-transparent border-l-4 border-red-700/50 p-8 rounded-r-lg reveal">
+                <p class="dialogue text-red-300 text-2xl mb-4">"I am the Minister of the Court!" <span class="text-neutral-400">Etienne screamed, beating his chest.</span> "I am not a maggot!"</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Courtiers lunged for him; he shoved them aside like twigs.</p>
+            </div>
+
+            <!-- The Distortion -->
+            <div class="mt-20 bg-black/60 border border-purple-900/50 p-12 rounded-lg reveal">
+                <div class="space-y-4 text-center">
+                    <p class="text-purple-300 italic">Sound skewed.</p>
+                    <p class="text-purple-300 italic">The chandeliers became a snare of light;</p>
+                    <p class="text-purple-300 italic">the music a laughter only he could hear.</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Then his gaze locked on the figure in black.</p>
+                <p class="text-center text-2xl my-8">Medea.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue">"Madame—" <span class="text-neutral-400">he croaked, and whatever stayed of shame snapped.</span> "You—"</p>
+                <p class="text-center text-red-400 font-semibold text-2xl my-8">He charged.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p class="dialogue">"Neril!" <span class="text-neutral-400">someone shouted.</span></p>
+                <p>A sword flashed free, but Neril was still two steps away.</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Medea didn't flinch.</p>
+                <p class="thought italic text-emerald-300 text-center my-6">
+                    She watched him as if timing a clock.
+                </p>
+            </div>
+
+            <!-- The Intervention -->
+            <div class="h-[60vh] flex items-center justify-center my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-black via-neutral-800 to-black blur-3xl opacity-50 animate-pulse-slow"></div>
+                    <div class="relative text-center space-y-8">
+                        <p class="text-neutral-400 font-body text-lg">And right on cue,</p>
+                        <p class="font-heading text-5xl md:text-6xl text-neutral-200 tracking-wide">
+                            a shadow moved between them.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Cesare stepped forward with the casual menace of a man who never wasted motion.</p>
+                <p>He didn't draw a blade;</p>
+                <p class="text-center text-cyan-300 font-semibold text-xl my-6">
+                    instead he reached out and took Etienne by the throat.
+                </p>
+            </div>
+
+            <div class="mt-16 bg-black/80 border-l-4 border-cyan-700/50 p-8 rounded-r-lg reveal">
+                <p class="text-neutral-300 mb-4">There was no dramatics—no cinematic wrestling—</p>
+                <p class="text-cyan-200 font-semibold text-lg">only a single, terrifying motion:</p>
+            </div>
+
+            <div class="h-[50vh] flex items-center justify-center my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-cyan-600 blur-3xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative text-center space-y-6">
+                        <p class="font-heading text-5xl md:text-6xl text-cyan-300 tracking-wide">
+                            Etienne's feet left the floor.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>He dangled there, thrashing and choking, the light in his eyes flaring and dying.</p>
+                <p class="text-center text-neutral-300 font-semibold text-2xl my-8">
+                    The hall went utterly still.
+                </p>
+            </div>
+
+            <!-- The Verdict -->
+            <div class="mt-20 bg-gradient-to-b from-transparent via-neutral-900/50 to-transparent p-12 rounded-lg reveal">
+                <p class="text-center text-neutral-400 font-body text-lg mb-8 italic">
+                    Cesare's voice was low, cold as river-ice.
+                </p>
+                <p class="dialogue text-3xl md:text-4xl text-center font-heading tracking-wide text-cyan-200 mb-4">
+                    "So this is Valdina's hospitality,"
+                </p>
+                <p class="text-center text-neutral-400 font-body text-lg mb-6 italic">
+                    he said, and the words rolled through the room like a verdict.
+                </p>
+                <p class="dialogue text-3xl md:text-4xl text-center font-heading tracking-wide text-cyan-200">
+                    "Charming."
+                </p>
+            </div>
+
+            <!-- The Aftermath -->
+            <div class="prose prose-invert prose-xl mt-16 reveal">
+                <p class="dialogue">"Boss—what are you doing? My boss doesn't do charity!" <span class="text-neutral-400">Gallo hissed, half-hysteric.</span></p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Cesare's eyes found Medea's across the sea of stunned faces.</p>
+                <p>Behind the iron mask, his expression was unreadable, but something like respect—sharp, assessing—softened the steel.</p>
+            </div>
+
+            <div class="mt-16 bg-neutral-900/40 border-l-4 border-amber-700/50 p-8 rounded-r-lg reveal">
+                <p class="dialogue text-amber-200">"Hold him," <span class="text-neutral-400">Cesare said to no one in particular.</span> "Do not let him touch the floor."</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Guards obeyed as if they'd been waiting for orders.</p>
+                <p>They formed a human cage beneath Etienne's dangling body and hauled him down, chest heaving, face purple with rage and humiliation.</p>
+                <p class="text-center text-red-300 italic my-6">
+                    He was still naked, still exposed, still a spectacle.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>Cesare watched Etienne go slack, then folded his hands behind his back and drifted to the edge of the hall like a shark that had surfaced for a look.</p>
+            </div>
+
+            <!-- The Recognition -->
+            <div class="h-[60vh] flex items-center justify-center my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-yellow-600 to-green-600 blur-3xl opacity-30 animate-pulse-slow"></div>
+                    <div class="relative text-center space-y-8">
+                        <p class="text-neutral-400 font-body text-xl italic mb-4">
+                            "You played a dangerous game tonight,"
+                        </p>
+                        <p class="text-neutral-300 font-body text-xl italic mb-4">
+                            he told Medea—quiet, direct.
+                        </p>
+                        <p class="font-heading text-4xl md:text-5xl tracking-wide">
+                            <span class="gold-gleam animate-gleam">"And you played it</span>
+                            <span class="emerald-gleam animate-gleam ml-3">well."</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ending -->
+            <div class="mt-32 mb-40 reveal relative">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-cyan-900 via-amber-900 to-black rounded-lg blur opacity-50 animate-pulse-slow"></div>
+                
+                <div class="relative bg-black border border-cyan-900/50 p-8 md:p-12 rounded-lg text-center shadow-2xl">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-cyan-900/50 rounded text-xs tracking-widest text-cyan-400 font-ui uppercase">
+                        First Blood Drawn
+                    </div>
+
+                    <h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-cyan-300 to-cyan-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">
+                        The Wolf Recognizes The Fox
+                    </h2>
+                    
+                    <div class="w-full h-px bg-gradient-to-r from-transparent via-cyan-800 to-transparent my-8"></div>
+
+                    <p class="text-neutral-400 font-body text-lg italic leading-relaxed">
+                        The Black Devil has intervened.<br>
+                        The Venus of Valdina stands untouched.<br>
+                        And between them—a recognition sharper than steel.
+                    </p>
+                    
+                    <p class="mt-8 text-neutral-600 text-sm font-ui tracking-widest uppercase">
+                        [ To Be Continued ]
+                    </p>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Prime Minister's Office - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'rain': 'rain 1s linear infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        rain: {
+                            '0%': { transform: 'translateY(-100vh)', opacity: '0.6' },
+                            '100%': { transform: 'translateY(100vh)', opacity: '0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .thought {
+            color: #cbd5e1;
+            font-style: italic;
+            opacity: 0.9;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #9f1239;
+            text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+        }
+
+        .rain-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            height: 50px;
+            background: linear-gradient(transparent, rgba(100, 116, 139, 0.4));
+            animation: rain 1s linear infinite;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #60a5fa 0%, #1e40af 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .chapter-marker {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .chapter-marker::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #3b82f6, transparent);
+        }
+
+        .scene-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #475569, transparent);
+            margin: 4rem 0;
+        }
+
+        .window-frame {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #334155;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blue-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-blue-400 h-2 animate-pulse"></div>
+            <div class="w-1 bg-blue-400 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-blue-400 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Rain</span>
+    </div>
+
+    <div class="rain-container" id="rainContainer"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10"></div>
+
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-blue-800/50 rounded-full bg-blue-950/20 backdrop-blur-sm">
+                    <span class="text-blue-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter</span>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tight mb-8">
+                    The Prime Minister's<br />
+                    <span class="gradient-text italic">Office</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-2xl text-center">
+                    "You're not enduring. You're acting."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- Scene 1: Cesare's Observation -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="drop-cap text-neutral-300">
+                    Cesare watched from the window.
+                </p>
+                <p>
+                    The Princess was shaking.
+                </p>
+                <p>
+                    Her arms trembled violently as she forced herself to remain upright on the cold stone. Every breath looked like effort dragged through broken glass.
+                </p>
+                <p class="thought">
+                    Three days, Cesare thought.<br/>
+                    On a battlefield, she'd already be carrion.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl mt-12 reveal">
+                <p>
+                    Her body was failing—but her eyes were not.
+                </p>
+                <p>
+                    Even from this distance, he could see it: the fire buried beneath exhaustion. Not defiance. Calculation.
+                </p>
+            </div>
+
+            <!-- Scene 2: Etienne's Humiliation -->
+            <div class="scene-divider reveal"></div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Then movement.</p>
+                <p>
+                    A bulky figure waddled into the chapel courtyard, cloak fluttering uselessly in the wind. For a man his size, he moved with disturbing eagerness.
+                </p>
+                <p>Cesare narrowed his eyes.</p>
+                
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"You may not approach the Princess," a guard warned.</p>
+                    <p class="dialogue">"Oh, relax. It'll take a moment," came the oily reply.</p>
+                    <p class="dialogue">"Minister Etienne—this is inappropriate!"</p>
+                </div>
+
+                <p>Count Etienne brushed past them and stopped directly in front of Medea.</p>
+                <p>She didn't react. Didn't even lift her head.</p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="window-frame p-8 rounded-lg">
+                    <p class="dialogue text-amber-200 mb-0">"Pugh~ So this is the famous cursed Princess. Pitiful."</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Something cold flickered behind Cesare's eyes.</p>
+                <p>Without turning, he plucked three small pebbles from a flowerpot. His fingers moved lazily.</p>
+                <p class="text-center font-heading text-2xl text-neutral-400 my-8">Flick.</p>
+                <p class="text-center font-heading text-2xl text-neutral-400 my-8">Thwack.</p>
+            </div>
+
+            <div class="h-[40vh] flex items-center justify-center reveal">
+                <h2 class="font-heading text-5xl md:text-7xl text-yellow-500 tracking-wider animate-shake">
+                    "E—EVIL!"
+                </h2>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>
+                    Etienne shrieked as his leg buckled. He crashed face-first into the mud with a wet, humiliating splatter.
+                </p>
+                <p class="dialogue">"My leg! I've been attacked! Assassination—guards! GUARDS!"</p>
+                <p>The soldiers spun in circles, weapons raised. There was no one there.</p>
+                <p>Silence.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"What's happening?" Siseo asked, looking up.</p>
+                    <p class="dialogue">"Nothing," Cesare replied blandly.</p>
+                </div>
+
+                <p class="text-neutral-400 italic text-lg text-center my-12">
+                    The pebbles rolled back into the pot.
+                </p>
+            </div>
+
+            <!-- Scene 3: The Rain -->
+            <div class="scene-divider reveal"></div>
+
+            <div class="chapter-marker my-20 reveal">
+                <h3 class="font-heading text-3xl text-slate-300 mb-4">The Palace Grounds</h3>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>By the time Siseo left for the war council, the sky had broken.</p>
+                <p>Rain fell in sheets—cold, merciless, flattening the world into gray.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Boss, wait here!" Gallo called, already soaked. "I'll bring the carriage!"</p>
+                    <p class="dialogue">"It's unnecessary."</p>
+                    <p class="dialogue">"Like hell it is—!"</p>
+                </div>
+
+                <p>But Cesare had already stepped into the rain.</p>
+            </div>
+
+            <div class="my-16 bg-slate-900/30 border-l-4 border-blue-500 p-8 rounded-r reveal">
+                <p class="text-slate-300 font-body text-xl leading-relaxed mb-4">
+                    Water soaked through his coat instantly. He didn't notice.
+                </p>
+                <p class="text-slate-300 font-body text-xl leading-relaxed mb-0">
+                    He stopped.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Under the statue, Medea knelt—drowned in white.</p>
+                <p>
+                    Her dress clung to her like a shroud. Rain and sweat streaked her face. Her breathing was shallow, uneven.
+                </p>
+                <p>Her arm gave out.</p>
+                <p>She hit the stone hard enough to split skin.</p>
+            </div>
+
+            <div class="my-12 text-center reveal">
+                <p class="font-body text-2xl text-red-400 italic">
+                    Blood bloomed red—then vanished under the rain.
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Cesare didn't move.</p>
+                
+                <div class="bg-neutral-900/50 p-6 rounded-lg my-8 border border-neutral-800">
+                    <p class="thought text-lg mb-3">Do you even have human blood?</p>
+                    <p class="text-neutral-400 text-base mb-3">The curse. The accusation. The years of being surrounded by enemies who waited for him to fall.</p>
+                    <p class="thought text-lg mb-0">I won't lose. I will endure.</p>
+                </div>
+
+                <p>Medea gasped, her arm collapsing again.</p>
+                <p>For a moment, she fell forward.</p>
+                <p>Cesare took a step before he realized it.</p>
+            </div>
+
+            <div class="my-16 text-center reveal">
+                <p class="font-heading text-4xl text-slate-400 tracking-wide">Then—</p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>She rose.</p>
+                <p>
+                    Teeth clenched. Neck veins straining. She glanced—just once—toward the shadowed colonnade where Pinatelli stood watching.
+                </p>
+                <p>Then she lowered her head again.</p>
+                <p class="text-neutral-400 italic text-lg">Submission. Perfectly performed.</p>
+                <p>Cesare stopped.</p>
+                <p>A faint smile curved Medea's lips.</p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-blue-950 to-slate-950 border border-blue-800/50 p-10 rounded-lg shadow-2xl">
+                    <p class="dialogue text-blue-100 text-2xl font-body text-center m-0">
+                        "…Interesting. You're not enduring. You're <span class="text-blue-400 font-bold">acting</span>."
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>
+                    She was harvesting pity. Turning suffering into leverage.
+                </p>
+                <p class="thought">Talent, Cesare decided. Real talent.</p>
+            </div>
+
+            <!-- Scene 4: The Umbrella -->
+            <div class="scene-divider reveal"></div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Medea's vision swam.</p>
+                <p class="thought">Not yet. Hold on. Just a little longer.</p>
+                <p>Suddenly—the rain stopped.</p>
+                <p>Medea blinked.</p>
+                <p>Silence.</p>
+                <p>She looked up.</p>
+            </div>
+
+            <div class="h-[50vh] flex items-center justify-center reveal">
+                <div class="text-center">
+                    <div class="text-6xl mb-6">☂️</div>
+                    <p class="font-body text-3xl text-slate-300 italic mb-4">A black umbrella hovered above her.</p>
+                    <p class="text-neutral-500 text-lg">No footsteps. No presence.</p>
+                    <p class="text-neutral-600 mt-8">The courtyard was empty.</p>
+                </div>
+            </div>
+
+            <!-- Scene 5: The Queen Mother -->
+            <div class="scene-divider reveal"></div>
+
+            <div class="chapter-marker my-20 reveal">
+                <h3 class="font-heading text-3xl text-slate-300 mb-4">The Queen Mother's Palace</h3>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"She's vicious," the Queen Mother snapped, pacing. "Stubborn beyond reason. Why does she provoke me?"</p>
+                </div>
+
+                <p>Pinatelli wrung a warm cloth calmly.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Do you remember the maid who begged to take the punishment?"</p>
+                    <p class="dialogue">"That impertinent girl?"</p>
+                    <p class="dialogue">"Her name is Neril. Former Royal Guard." <span class="text-neutral-500 font-body text-lg italic block mt-1">Pinatelli paused.</span> "She served your son."</p>
+                </div>
+
+                <p>The Queen Mother froze.</p>
+            </div>
+
+            <div class="my-16 bg-amber-950/20 border-l-4 border-amber-700 p-8 rounded-r reveal">
+                <p class="dialogue text-amber-100 mb-0">
+                    "To the Princess, losing that maid would mean losing her father again."
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>Silence.</p>
+                <p>The Queen Mother's eldest son—gone. The wound still raw.</p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"Hmph," the Queen Mother muttered. "John was a King. That's a ridiculous comparison."</p>
+                </div>
+
+                <p>But the venom was gone.</p>
+
+                <p>
+                    "When my husband died, I had years to grieve," Pinatelli said softly. "I was an adult. The Princess lost everything overnight."
+                </p>
+
+                <div class="my-8 space-y-4">
+                    <p class="dialogue">"…Are you blaming me?" the Queen Mother asked.</p>
+                    <p class="dialogue">"Never." <span class="text-neutral-500 font-body text-lg italic block mt-1">Pinatelli bowed her head.</span> "But may I ask something else?"</p>
+                </div>
+
+                <p>She straightened.</p>
+
+                <p class="dialogue">
+                    "Why did the Head Maid attack so viciously? Forging evidence. Destroying reputation. That wasn't discipline—it was annihilation."
+                </p>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The Queen Mother frowned. "She claimed it was for Medea's sake… though she was Catherine's friend."</p>
+                <p>Pinatelli stepped forward and produced a stack of documents.</p>
+                <p class="dialogue">"I reviewed her accounts."</p>
+                <p>The Queen Mother read.</p>
+                <p>Once. Twice.</p>
+                <p>Her hands began to shake.</p>
+            </div>
+
+            <div class="my-16 grid grid-cols-3 gap-4 text-center reveal">
+                <div class="bg-red-950/30 p-4 rounded border border-red-900/50">
+                    <p class="text-red-400 font-heading text-sm uppercase tracking-widest">Bribes</p>
+                </div>
+                <div class="bg-red-950/30 p-4 rounded border border-red-900/50">
+                    <p class="text-red-400 font-heading text-sm uppercase tracking-widest">Embezzlement</p>
+                </div>
+                <div class="bg-red-950/30 p-4 rounded border border-red-900/50">
+                    <p class="text-red-400 font-heading text-sm uppercase tracking-widest">Selling Secrets</p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p>The tea table overturned with a crash.</p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-red-900/20 border-2 border-red-700 p-8 rounded-lg shadow-2xl">
+                    <p class="dialogue text-red-200 text-2xl font-bold text-center m-0 animate-shake">
+                        "Cuisine! That treacherous wretch!"
+                    </p>
+                </div>
+            </div>
+
+            <!-- Closing -->
+            <div class="scene-divider reveal"></div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400 italic text-center">
+                    Outside, rain continued to fall.
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-black/50 backdrop-blur border border-slate-700 p-12 rounded-lg text-center">
+                    <p class="font-body text-2xl text-slate-300 italic leading-relaxed">
+                        But beneath one unseen umbrella,<br/>
+                        a girl still knelt—<br/>
+                        <span class="text-blue-400">waiting for the final piece to fall into place.</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-32 mb-20 text-center reveal">
+                <div class="inline-block px-6 py-3 border border-blue-800/50 rounded-full bg-blue-950/20">
+                    <span class="text-blue-200 text-sm font-ui tracking-[0.3em] uppercase">End of Chapter</span>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        // Reveal on Scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+        // Rain Effect
+        const rainContainer = document.getElementById('rainContainer');
+        function createRaindrop() {
+            const drop = document.createElement('div');
+            drop.className = 'raindrop';
+            drop.style.left = Math.random() * 100 + '%';
+            drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+            drop.style.animationDelay = Math.random() * 2 + 's';
+            rainContainer.appendChild(drop);
+            
+            setTimeout(() => drop.remove(), 3000);
+        }
+
+        setInterval(createRaindrop, 100);
+    </script>
+</body>
+</html>

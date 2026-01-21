@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Serpent's Game - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        },
+                        shadow: {
+                            900: '#0a0a0f',
+                            800: '#12121a',
+                            700: '#1a1a25',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        poison: {
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            900: '#14532d',
+                        },
+                        rose: {
+                            400: '#f472b6',
+                            500: '#ec4899',
+                            600: '#db2777',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flicker': 'flicker 3s ease-in-out infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        flicker: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.8' },
+                            '75%': { opacity: '0.95' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050508;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .dialogue-medea {
+            border-left-color: rgba(16, 185, 129, 0.5);
+            color: #a7f3d0;
+        }
+
+        .dialogue-catherine {
+            border-left-color: rgba(244, 114, 182, 0.6);
+            color: #fbcfe8;
+        }
+
+        .dialogue-birna {
+            border-left-color: rgba(244, 114, 182, 0.4);
+            color: #f9a8d4;
+        }
+
+        .dialogue-quiggin {
+            border-left-color: rgba(139, 0, 0, 0.6);
+            color: #fca5a5;
+        }
+
+        .dialogue-etienne {
+            border-left-color: rgba(120, 120, 120, 0.6);
+            color: #d1d5db;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #10b981;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #10b981 0%, #064e3b 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-blood {
+            background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .scene-break {
+            position: relative;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scene-break::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
+        }
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-emerald-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-emerald-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-emerald-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-emerald-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Knives Being Sharpened</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-rose-950/20 via-black to-black -z-10"></div>
+
+        <!-- HEADER -->
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-rose-800/50 rounded-full bg-rose-950/20 backdrop-blur-sm">
+                    <span class="text-rose-200 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    The Serpent's <br />
+                    <span class="gradient-text italic pr-2">Game</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">
+                    "I would rather sell my soul than watch them throw me away."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- SCENE: THE TRUTH SPOKEN -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-rose-800/30 rounded-full z-10">
+                    <span class="text-rose-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Truth Is Often Inconvenient —
+                    </span>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-xl opacity-25 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="dialogue dialogue-medea text-3xl md:text-4xl font-heading">
+                            “The truth is often inconvenient, Auntie.”
+                        </p>
+                        <p class="text-neutral-500 text-lg mt-6 italic">
+                            Medea’s voice was small and even, but it carried across the room like a blade.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Catherine blinked, flustered. The timid, foolish girl she remembered would never have answered back. She forced a practiced smile into place.
+                </p>
+                <p class="dialogue dialogue-catherine">
+                    “I understand. I will bring the doctor later… and we can speak privately.”
+                </p>
+                <p class="text-neutral-400">
+                    Medea knew that Catherine would never actually take an Imperial doctor to the Dowager. It had been a bluff—one Catherine had folded.
+                </p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-rose-950/40 to-transparent p-10 rounded-2xl">
+                    <p class="dialogue dialogue-birna text-xl text-center">
+                        “Medea!”
+                    </p>
+                    <p class="text-neutral-400 text-center italic">
+                        Birna stamped her foot, pouting.
+                    </p>
+                    <p class="dialogue dialogue-birna text-xl text-center mt-4">
+                        “Mother went all the way to Kazen for you! Personally! Isn’t it an insult to treat her efforts like that?”
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-medea">
+                    “Auntie left herself?” Medea raised a brow. “In wartime? I didn’t think Lord Siseo would grant such a trip.”
+                </p>
+                <p class="text-neutral-400">
+                    Catherine flushed.
+                </p>
+                <p class="dialogue dialogue-catherine">
+                    “Birna—be quiet.”
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-rose-950/50 to-black p-12 rounded-2xl border border-rose-800/40 shadow-2xl">
+                    <p class="text-neutral-400 mb-6">
+                        She forced a smile that trembled at the edges.
+                    </p>
+                    <p class="dialogue dialogue-catherine text-xl text-center">
+                        “All formalities were observed. A government delegation is arriving shortly; the doctor simply came ahead with me.”
+                    </p>
+                    <p class="text-rose-300 text-center italic mt-6">
+                        A smooth lie.
+                    </p>
+                    <p class="text-neutral-400 text-center mt-4">
+                        Catherine dabbed at her eyes with a lace handkerchief and pressed the pity button for the room.
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 blur-3xl opacity-30 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-600/60 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="dialogue dialogue-medea text-2xl md:text-3xl font-heading mb-8">
+                            “You call me your daughter, yet you watched the Head Maid torment me for years. If Birna had been the one beaten and starved, would you be this composed?”
+                        </p>
+                        <p class="text-neutral-500 text-lg italic">
+                            Catherine’s hand tightened on Medea’s. Her eyes sought the room for rescue; the maids looked on, sympathy turning thin and shocked.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-medea text-xl">
+                    “You knew. The rumors reached the Duke’s house, did they not? Why else were my maids replaced so swiftly?”
+                </p>
+                <p class="text-neutral-400">
+                    A pause. The new maids shifted. Catherine’s composure frayed; her practiced tears read more like guilt than grief.
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-rose-950/40 to-black p-12 rounded-2xl border border-rose-800/30 shadow-2xl">
+                    <p class="text-neutral-400 mb-6">
+                        Catherine reached forward, clinging.
+                    </p>
+                    <p class="dialogue dialogue-catherine">
+                        “Medea, I—Quiggin is a longtime friend. I never meant—”
+                    </p>
+                    <p class="text-rose-300 text-xl text-center font-semibold mt-6">
+                        Medea pulled her hand back as if burned.
+                    </p>
+                    <p class="dialogue dialogue-medea text-2xl text-center mt-6">
+                        “Then forgive me. I cannot bear this theater.”
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-rose-600 blur-3xl opacity-25 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-neutral-400 mb-6">
+                            She rose slowly.
+                        </p>
+                        <p class="dialogue dialogue-medea text-3xl font-heading">
+                            “If you loved me, Auntie, would you stand so calmly while your niece was humiliated?”
+                        </p>
+                        <p class="text-neutral-500 text-lg italic mt-6">
+                            Catherine opened her mouth, found no words.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-black border-2 border-rose-700/50 p-12 rounded-lg text-center shadow-2xl">
+                    <p class="dialogue dialogue-medea text-2xl md:text-3xl font-heading text-rose-300">
+                        “You can say daughter all you like, but only blood decides whose face the court remembers. I have learned that lesson now.”
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-slate-900/60 to-black p-10 rounded-2xl border border-slate-700/40">
+                    <p class="text-neutral-400 text-center">
+                        Medea left, the silence swallowing her steps.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Catherine slumped into a chair and snapped at Birna.
+                </p>
+                <p class="dialogue dialogue-catherine">
+                    “You made it worse! I thought we had her—tamed her.”
+                </p>
+                <p class="dialogue dialogue-birna">
+                    “It’s Quiggin,” Birna muttered. “She went too far. I told her to be subtle.”
+                </p>
+                <p class="text-neutral-400">
+                    Catherine fumed, then slid into a quieter panic—reaching for explanations, excuses, anything to sew the threads back together.
+                </p>
+            </div>
+
+            <!-- SCENE BREAK: LATE NIGHT -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-blood-800/30 rounded-full z-10">
+                    <span class="text-blood-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        — Administrative Wing, Late —
+                    </span>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-shadow-900/60 to-black p-12 rounded-2xl border border-shadow-700/40 shadow-2xl">
+                    <p class="text-neutral-400 mb-8">
+                        A single lamp threw long shadows.
+                    </p>
+                    <p class="dialogue dialogue-etienne text-xl mb-6">
+                        “I heard you looked pitiful today,” a gravel voice observed. “Compared to the rumors, you held up well.”
+                    </p>
+                    <p class="text-neutral-500 italic text-center">
+                        Count Etienne lounged against a pillar, the picture of oily solidity: wide, piggish face, leering grin.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-quiggin text-xl font-semibold">
+                    “You crawling worm. Mind your mouth.”
+                </p>
+                <p class="dialogue dialogue-etienne">
+                    “Oh come now,” Etienne chuckled. “The Duchess slapped you. She cut you loose.”
+                </p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-blood-950/40 to-transparent p-10 rounded-2xl">
+                    <p class="text-neutral-400 text-center mb-4">
+                        Quiggin’s mouth tasted of iron. She touched the inside pocket of her dress and felt the crushed scrap of paper there:
+                    </p>
+                    <p class="text-blood-300 text-xl text-center font-semibold italic">
+                        You have served well. A successor will be appointed. — Regent’s Office
+                    </p>
+                    <p class="text-neutral-400 text-center mt-4">
+                        A dismissal. A calculated exile.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    She had been sacrificed to preserve the Regent’s reputation.
+                </p>
+                <p class="dialogue dialogue-etienne">
+                    “The Regent wants no images of his niece abused leaking out. Do as you’re told. Maybe exile will spare your head.”
+                </p>
+                <p class="text-neutral-400">
+                    Quiggin’s face hardened into something small and lethal. Pride had been stripped; only survival was left.
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blood-600 to-rose-600 blur-3xl opacity-30 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-blood-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-blood-300 text-2xl md:text-3xl font-heading mb-6">
+                            She needed leverage. Fast.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-quiggin text-xl">
+                    “You have ears, don’t you? I have sources. Things that would make a minister blanch.”
+                </p>
+                <p class="dialogue dialogue-etienne">
+                    “Such as?”
+                </p>
+                <p class="text-neutral-400">
+                    Quiggin let the invitation hang: not specific, but intimate enough to bait a toad.
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-blood-950/40 to-black p-12 rounded-2xl border border-blood-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-quiggin text-xl mb-6">
+                        “I’m going to the Dowager. But I will not go empty-handed. I need protection.”
+                    </p>
+                    <p class="dialogue dialogue-etienne text-center">
+                        “Protect yourself from the Duke? You expect me to stand against His Lordship for you?”
+                    </p>
+                    <p class="text-neutral-400 text-center mt-6 italic">
+                        She let a pause do the convincing work.
+                    </p>
+                    <p class="dialogue dialogue-quiggin text-2xl font-heading text-center mt-8 text-blood-300">
+                        “What if I offered you a path to something… greater?”
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blood-600 to-gray-600 blur-3xl opacity-25 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-blood-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="dialogue dialogue-quiggin text-xl mb-8">
+                            “Help me, and I can put you in a position where you bend the next succession.”
+                        </p>
+                        <p class="text-blood-300 text-3xl font-heading">
+                            “The Princess.”
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Etienne’s greedy imagination unfurled: lands, favors, influence.
+                </p>
+                <p class="dialogue dialogue-quiggin text-xl font-semibold text-blood-200">
+                    “In the right hands, she could be a prize. Help me and the Regent will owe you. Or better—help me secure a bond with the royal line.”
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-shadow-900/60 to-black p-12 rounded-2xl border border-shadow-700/40 shadow-2xl">
+                    <p class="dialogue dialogue-etienne text-xl mb-6">
+                        “Do you realize what you’re proposing?”
+                    </p>
+                    <p class="text-neutral-400 mb-6">
+                        Quiggin straightened, the spark of desperation in her eyes like flint.
+                    </p>
+                    <p class="dialogue dialogue-quiggin text-2xl md:text-3xl font-heading text-blood-300 text-center">
+                        “I realize I have nothing left to lose. And I would rather sell my soul than watch them throw me away.”
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blood-600 to-rose-600 blur-3xl opacity-30 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-blood-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-neutral-400 mb-6">
+                            Silence settled as the two predators measured their angles.
+                        </p>
+                        <p class="dialogue dialogue-etienne text-2xl font-heading text-blood-200">
+                            “If you’re serious… We’ll talk.”
+                        </p>
+                        <p class="dialogue dialogue-quiggin mt-6">
+                            “Good. We begin at dawn.”
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-blood-950/40 to-black p-12 rounded-2xl border border-blood-800/30 shadow-2xl">
+                    <p class="text-blood-300 text-3xl md:text-4xl font-heading text-center mb-8">
+                        “Medea.”
+                    </p>
+                    <p class="text-neutral-500 text-center italic text-lg">
+                        Outside, the palace slept under a cold, indifferent moon.<br>
+                        Inside, alliances were silently reassembled like knives being sharpened.
+                    </p>
+                </div>
+            </div>
+
+            <!-- END OF SCENE -->
+            <div class="my-40 text-center reveal">
+                <div class="inline-block px-8 py-3 border border-blood-700 rounded-full bg-blood-900/20 backdrop-blur">
+                    <span class="text-blood-400 font-ui text-xs tracking-[0.3em] uppercase">End of Chapter</span>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

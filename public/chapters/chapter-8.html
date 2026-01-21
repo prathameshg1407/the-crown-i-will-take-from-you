@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Pawns Advance - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        },
+                        shadow: {
+                            900: '#0a0a0f',
+                            800: '#12121a',
+                            700: '#1a1a25',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fog': 'fog 20s linear infinite alternate',
+                        'flicker': 'flicker 3s ease-in-out infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'shatter': 'shatter 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        fog: {
+                            '0%': { transform: 'translateX(-10%)' },
+                            '100%': { transform: 'translateX(10%)' }
+                        },
+                        flicker: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.8' },
+                            '75%': { opacity: '0.95' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        shatter: {
+                            '0%': { transform: 'scale(1)', opacity: '1' },
+                            '100%': { transform: 'scale(1.5) rotate(15deg)', opacity: '0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050508;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .dialogue-maid {
+            border-left-color: rgba(251, 191, 36, 0.4);
+            color: #fde68a;
+        }
+
+        .dialogue-medea {
+            border-left-color: rgba(16, 185, 129, 0.4);
+            color: #a7f3d0;
+        }
+
+        .dialogue-quiggin {
+            border-left-color: rgba(107, 114, 128, 0.4);
+            color: #9ca3af;
+        }
+
+        .dialogue-cesare {
+            border-left-color: rgba(148, 163, 184, 0.4);
+            color: #cbd5e1;
+        }
+
+        .dialogue-gallo {
+            border-left-color: rgba(234, 179, 8, 0.4);
+            color: #fef08a;
+        }
+
+        .dialogue-assistant {
+            border-left-color: rgba(156, 163, 175, 0.4);
+            color: #d1d5db;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #d97706;
+            text-shadow: 0 0 20px rgba(217, 119, 6, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #fbbf24 0%, #92400e 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-poison {
+            background: linear-gradient(180deg, #4ade80 0%, #166534 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .scene-break {
+            position: relative;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scene-break::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(217, 119, 6, 0.3), transparent);
+        }
+
+        .character-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            font-family: 'Lato', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .coin-float {
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .glass-shatter {
+            position: relative;
+        }
+
+        .glass-shatter::after {
+            content: '💔';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 1.5rem;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-amber-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-amber-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-amber-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-amber-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Intrigue</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/20 via-black to-black -z-10"></div>
+
+        <!-- HEADER -->
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-amber-800/50 rounded-full bg-amber-950/20 backdrop-blur-sm">
+                    <span class="text-amber-200 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    The Pawns <br />
+                    <span class="gradient-text italic pr-2">Advance</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">
+                    "A pawn is worthless—until it reaches the end."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- SCENE 1: THE PRINCESS'S PALACE -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-amber-800/30 rounded-full z-10">
+                    <span class="text-amber-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Princess's Palace —
+                    </span>
+                </div>
+            </div>
+
+            <!-- THE MAIDS' WHISPERS -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="drop-cap text-neutral-300">
+                    <span class="dialogue dialogue-maid">"It's good I managed to slip the earrings out before the lockdown."</span>
+                </p>
+            </div>
+
+            <div class="my-12 reveal">
+                <div class="bg-gradient-to-b from-amber-950/30 to-transparent p-8 rounded-2xl">
+                    <p class="dialogue dialogue-maid mb-4">"How much did the pawnshop give you?"</p>
+                    <div class="relative my-8">
+                        <div class="absolute inset-0 bg-gradient-to-r from-amber-600 to-yellow-500 blur-xl opacity-30 animate-pulse-slow"></div>
+                        <div class="relative bg-black border-2 border-amber-600/50 p-8 rounded-lg text-center">
+                            <p class="text-5xl md:text-6xl font-heading text-amber-400 mb-2">
+                                500,000
+                            </p>
+                            <p class="text-amber-200 text-lg">gold pieces</p>
+                        </div>
+                    </div>
+                    <p class="dialogue dialogue-maid text-center">"I could've pushed for more, but I didn't dare linger."</p>
+                </div>
+            </div>
+
+            <!-- GASPS -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-r from-transparent via-amber-950/20 to-transparent p-8 rounded-lg">
+                    <p class="dialogue dialogue-maid text-2xl text-center mb-4">"Five hundred thousand?!"</p>
+                    <p class="text-neutral-400 text-center italic">Gasps rippled through the room.</p>
+                </div>
+            </div>
+
+            <!-- THE MAID'S GREED -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-maid">
+                    "Right? A few more like that and I can clear my debts and walk out of this palace for good."
+                </p>
+                <p class="text-amber-200 text-xl text-center font-semibold">
+                    Greed shone openly now.
+                </p>
+            </div>
+
+            <!-- THE TRUE NATURE -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-slate-900/60 to-black p-10 rounded-2xl border border-slate-700/40 shadow-2xl">
+                    <div class="character-tag bg-slate-950 text-slate-300 border border-slate-700/50">The Truth</div>
+                    <p class="text-neutral-300 mb-6">
+                        They had been planted as the Head Maid's eyes—ordered to poison the Princess's life inch by inch.
+                    </p>
+                    <p class="text-amber-200 text-xl text-center font-semibold">
+                        Instead, they had learned a better loyalty: to gold.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THEIR PROTECTION -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-emerald-950/30 to-transparent p-10 rounded-2xl border border-emerald-800/30">
+                    <p class="text-neutral-300 mb-6">
+                        When spoiled food arrived, they intercepted it.
+                    </p>
+                    <p class="text-neutral-300 mb-6">
+                        When tainted linens were sent, they burned them.
+                    </p>
+                    <div class="mt-8 text-center">
+                        <p class="text-amber-100 text-lg italic">Not out of devotion to Medea,</p>
+                        <p class="text-amber-400 text-2xl font-heading mt-2">but to protect their treasure source.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ESCAPE PLANS -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-maid">"Pack your things. The rumors are already outside the palace."</p>
+                <p class="dialogue dialogue-maid">"Are you sure we're safe? If she finds out—"</p>
+                <p class="dialogue dialogue-maid">"She won't. She never sets foot here. We're invisible."</p>
+            </div>
+
+            <!-- THEY WERE WRONG -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-rose-600 to-red-600 blur-3xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-rose-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-4xl md:text-5xl font-heading text-rose-400 mb-6">
+                            They were wrong.
+                        </p>
+                        <p class="text-neutral-400 text-lg italic">
+                            The rumors moved faster than truth ever did.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THE RUMORS -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-slate-900/50 to-transparent p-10 rounded-2xl">
+                    <p class="text-neutral-500 text-center mb-8 italic">The whispers spread like wildfire:</p>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-slate-900/50 rounded-lg border-l-4 border-rose-700/50">
+                            <p class="text-rose-200 italic">"The Head Maid is starving the Princess."</p>
+                        </div>
+                        <div class="p-4 bg-slate-900/50 rounded-lg border-l-4 border-rose-700/50">
+                            <p class="text-rose-200 italic">"She hides needles in the sheets."</p>
+                        </div>
+                        <div class="p-4 bg-slate-900/50 rounded-lg border-l-4 border-rose-700/50">
+                            <p class="text-rose-200 italic">"The Princess is selling her dowry just to eat."</p>
+                        </div>
+                    </div>
+                    <p class="text-rose-400 text-xl text-center mt-8 font-semibold">
+                        By noon, the whispers had teeth.
+                    </p>
+                </div>
+            </div>
+
+            <!-- SCENE BREAK: HEAD MAID'S OFFICE -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-gray-700/30 rounded-full z-10">
+                    <span class="text-gray-400 font-heading text-sm tracking-[0.3em] uppercase">
+                        — Madame Quiggin's Office —
+                    </span>
+                </div>
+            </div>
+
+            <!-- QUIGGIN'S FURY -->
+            <div class="my-16 reveal">
+                <div class="relative bg-gradient-to-br from-gray-900/60 to-black p-10 rounded-2xl border border-gray-700/40 shadow-2xl">
+                    <p class="text-neutral-400 mb-4 italic">The office reeked of fury.</p>
+                    <p class="dialogue dialogue-quiggin text-2xl font-heading text-center mb-6">
+                        "What lies are these?!"
+                    </p>
+                    <p class="text-neutral-400 text-center">she screamed.</p>
+                </div>
+            </div>
+
+            <!-- THE REPORT -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-assistant">
+                    "They began among the servants, Madam. But the nobles are repeating them now. It's… everywhere."
+                </p>
+                <p class="text-neutral-400">
+                    Quiggin's hands shook.
+                </p>
+            </div>
+
+            <!-- HER DEFENSE -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-r from-transparent via-gray-800/30 to-transparent p-8 rounded-lg border-l-4 border-gray-600/50">
+                    <p class="text-neutral-300 mb-4">She had been meticulous. Quiet. Clean.</p>
+                    <p class="dialogue dialogue-quiggin text-xl">
+                        "Needles? Starvation? I never did anything so crude."
+                    </p>
+                </div>
+            </div>
+
+            <!-- IT DIDN'T MATTER -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-gray-600 to-slate-600 blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-gray-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-3xl font-heading text-gray-400 mb-4">
+                            It didn't matter.
+                        </p>
+                        <p class="text-neutral-400 text-lg mb-4">Perception had already hardened.</p>
+                        <p class="text-rose-300 text-xl font-semibold italic">
+                            And in the palace, scandal was deadlier than treason.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCENE BREAK: WHITE MANSION -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-slate-600/30 rounded-full z-10">
+                    <span class="text-slate-300 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The White Mansion —
+                    </span>
+                </div>
+            </div>
+
+            <!-- CESARE'S STUDY -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-slate-900/50 to-transparent p-10 rounded-2xl border border-slate-700/30">
+                    <div class="character-tag bg-slate-950 text-slate-300 border border-slate-700/50">Cesare</div>
+                    <p class="text-neutral-400 mb-6">
+                        Cesare studied the chessboard in silence.
+                    </p>
+                    <div class="flex justify-center mb-6">
+                        <div class="grid grid-cols-3 gap-2 p-4 bg-slate-900/50 rounded-lg">
+                            <div class="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-lg">♟</div>
+                            <div class="w-8 h-8 bg-white/5 rounded flex items-center justify-center text-lg">♝</div>
+                            <div class="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-lg">♔</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GALLO'S REPORT -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-gallo">
+                    "Really, Boss, the Head Maid's turned into a monster. The Princess is so desperate she's giving away the Regent's gifts—black sapphires, sheep's tears, the whole gaudy lot."
+                </p>
+            </div>
+
+            <!-- CESARE'S QUESTION -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-r from-transparent via-slate-800/30 to-transparent p-8 rounded-lg">
+                    <p class="text-neutral-400 mb-4">
+                        Cesare paused, a white pawn held between two fingers.
+                    </p>
+                    <p class="dialogue dialogue-cesare text-xl">"She's giving them away?"</p>
+                    <p class="dialogue dialogue-gallo mt-4">
+                        "Yes. The maids are scrambling for them. Pathetic, honestly. Trying to buy loyalty with trinkets."
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE PAWN'S PROMOTION -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-slate-500 to-white blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-slate-500/50 p-12 rounded-lg shadow-2xl">
+                        <p class="text-neutral-400 text-center mb-6">
+                            Cesare advanced the pawn to the final square.
+                        </p>
+                        <p class="text-4xl md:text-5xl font-heading text-slate-300 text-center mb-4">
+                            "Promotion."
+                        </p>
+                        <p class="text-neutral-500 text-center italic">he murmured.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THE EXCHANGE -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-gallo">"You traded a bishop for that."</p>
+                <p class="dialogue dialogue-cesare text-xl font-semibold">
+                    "A pawn is worthless. Until it reaches the end."
+                </p>
+            </div>
+
+            <!-- CESARE'S REALIZATION -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-emerald-950/30 to-black p-12 rounded-2xl border border-emerald-800/30 shadow-2xl">
+                    <p class="text-neutral-400 mb-4">He looked at the parchment again.</p>
+                    <p class="dialogue dialogue-cesare text-2xl font-heading text-center mb-6">
+                        "She isn't buying loyalty."
+                    </p>
+                    <p class="dialogue dialogue-cesare text-2xl font-heading text-center text-emerald-300">
+                        "She's buying proof."
+                    </p>
+                    <p class="text-neutral-400 text-center mt-8 italic">
+                        For the first time, interest stirred in his eyes.
+                    </p>
+                </div>
+            </div>
+
+            <!-- SCENE BREAK: PRINCESS'S PALACE -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-rose-800/30 rounded-full z-10">
+                    <span class="text-rose-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Princess's Palace —
+                    </span>
+                </div>
+            </div>
+
+            <!-- CHAOS AT DAWN -->
+            <div class="my-16 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-rose-600 to-red-600 blur-3xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-rose-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-3xl font-heading text-rose-400 mb-4">
+                            Chaos broke at dawn.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THE ARRESTS -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-maid text-rose-200">"Let go! Where are you taking me?!"</p>
+                <p class="text-neutral-400">
+                    Doors were kicked open. Women were dragged by their hair, screaming.
+                </p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-rose-950/30 to-transparent p-10 rounded-2xl">
+                    <div class="space-y-3">
+                        <p class="text-rose-300 text-xl text-center font-semibold">"Traitors!"</p>
+                        <p class="text-rose-300 text-xl text-center font-semibold">"Conspirators!"</p>
+                        <p class="text-rose-300 text-xl text-center font-semibold">"You slandered the Head Maid!"</p>
+                    </div>
+                    <p class="text-neutral-400 text-center mt-8">
+                        Madame Quiggin had acted decisively. To preserve her name, she severed the limb.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE PLEA -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-r from-transparent via-amber-950/20 to-transparent p-8 rounded-lg">
+                    <p class="dialogue dialogue-maid text-xl text-center">
+                        "Your Highness! Save us!"
+                    </p>
+                    <p class="text-neutral-400 text-center mt-4 italic">
+                        They screamed toward the closed doors.
+                    </p>
+                    <p class="text-neutral-500 text-center mt-4 italic">
+                        They believed she would.
+                    </p>
+                    <p class="text-neutral-500 text-center mt-2 italic">
+                        She had always been soft. Always kind.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE DOORS OPEN -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-white blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-neutral-400 text-lg mb-6">The doors opened.</p>
+                        <p class="text-4xl md:text-5xl font-heading text-emerald-300 mb-4">
+                            Medea stepped out in white.
+                        </p>
+                        <p class="text-2xl text-emerald-100 font-semibold">Silence fell.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THE ASSISTANT'S EXPLANATION -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-assistant">
+                    "These vipers. They spread falsehoods about the Head Maid. We are here to cleanse your palace."
+                </p>
+                <p class="text-neutral-400">
+                    Medea looked at the maids being dragged away.
+                </p>
+            </div>
+
+            <!-- WHAT MEDEA SAW -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-slate-900/50 to-transparent p-10 rounded-2xl">
+                    <p class="text-neutral-500 text-center mb-4">She saw:</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="p-4 bg-rose-950/30 rounded-lg text-center">
+                            <p class="text-rose-300">Their terror.</p>
+                        </div>
+                        <div class="p-4 bg-amber-950/30 rounded-lg text-center">
+                            <p class="text-amber-300">Their betrayal.</p>
+                        </div>
+                        <div class="p-4 bg-yellow-950/30 rounded-lg text-center">
+                            <p class="text-yellow-300">Their greed.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MEDEA'S RESPONSE -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-emerald-950/40 to-black p-12 rounded-2xl border border-emerald-800/30 shadow-2xl">
+                    <div class="character-tag bg-emerald-950 text-emerald-300 border border-emerald-700/50">Princess Medea</div>
+                    <p class="dialogue dialogue-medea text-xl mb-4">"Really?"</p>
+                    <p class="text-neutral-400 text-center mb-6 italic">She smiled.</p>
+                    <p class="dialogue dialogue-medea text-2xl font-heading text-center">
+                        "Excellent. The Head Maid is thorough."
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE MAIDS' SHOCK -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400 italic">
+                    The words struck harder than a slap.
+                </p>
+                <p class="dialogue dialogue-maid text-rose-200/70">"Y-Your Highness…?"</p>
+            </div>
+
+            <!-- MEDEA'S LESSON -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg shadow-2xl">
+                        <p class="text-neutral-400 mb-6">
+                            Medea turned to the trembling new girls waiting behind the assistant.
+                        </p>
+                        <p class="dialogue dialogue-medea text-xl leading-relaxed mb-6">
+                            "Look carefully. This is what happens to servants who try to serve two masters."
+                        </p>
+                        <p class="text-neutral-400 text-center">The girls nodded violently.</p>
+                        <p class="dialogue dialogue-medea text-xl leading-relaxed mt-6">
+                            "If you flutter back and forth like bats, you will be dragged out like vermin."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THE FINAL MESSAGE -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">She turned back to the assistant.</p>
+                <p class="dialogue dialogue-medea">
+                    "Please thank the Head Maid for me. She saved me the trouble of cleaning house myself."
+                </p>
+            </div>
+
+            <!-- THE DOORS CLOSE -->
+            <div class="my-16 reveal">
+                <div class="relative bg-gradient-to-br from-slate-900/60 to-black p-10 rounded-2xl border border-slate-700/40 shadow-2xl">
+                    <p class="text-neutral-400 text-center mb-4">The doors closed.</p>
+                    <p class="text-rose-300 text-xl text-center font-semibold">
+                        The screams were cut off.
+                    </p>
+                </div>
+            </div>
+
+            <!-- SCENE BREAK: HEAD MAID'S OFFICE -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-gray-700/30 rounded-full z-10">
+                    <span class="text-gray-400 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Head Maid's Office —
+                    </span>
+                </div>
+            </div>
+
+            <!-- THE SHATTERING -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-gray-500 to-slate-600 blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-gray-600/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-4xl md:text-5xl font-heading text-gray-400 mb-6">
+                            The teacups shattered against the wall.
+                        </p>
+                        <div class="flex justify-center gap-2 text-2xl opacity-60">
+                            <span>💔</span>
+                            <span>💔</span>
+                            <span>💔</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUIGGIN'S HORROR -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-gray-900/50 to-transparent p-10 rounded-2xl border border-gray-700/30">
+                    <div class="character-tag bg-gray-950 text-gray-400 border border-gray-700/50">Madame Quiggin</div>
+                    <p class="dialogue dialogue-quiggin text-xl mb-6">
+                        "I've been played."
+                    </p>
+                    <p class="text-neutral-400 text-center italic">
+                        Not out of rage.
+                    </p>
+                    <p class="text-rose-300 text-xl text-center font-semibold mt-4">
+                        Out of horror.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE REALIZATION -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-rose-950/30 to-black p-12 rounded-2xl border border-rose-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-quiggin text-xl leading-relaxed mb-6">
+                        "She made me do it. She made me purge my own spies."
+                    </p>
+                    <p class="text-neutral-400 text-center mb-6 italic">
+                        It was worse than defeat.
+                    </p>
+                    <div class="space-y-3 mt-8">
+                        <p class="text-rose-300 text-center">She had confirmed the rumors.</p>
+                        <p class="text-rose-300 text-center">Alienated servant families.</p>
+                        <p class="text-rose-200 text-xl text-center font-semibold">Handed the Princess a loyal palace.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QUIGGIN'S UNDERSTANDING -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-quiggin">
+                    "She planned it. From the jewels… to the whispers… to this."
+                </p>
+            </div>
+
+            <!-- THE NAME -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-rose-600 blur-3xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-5xl md:text-6xl font-heading gradient-text-poison mb-6">
+                            "Medea."
+                        </p>
+                        <p class="text-neutral-400 text-lg italic">
+                            she hissed.
+                        </p>
+                        <p class="text-rose-300 text-xl mt-6 font-semibold">
+                            The name tasted like poison.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FINAL IMAGE -->
+            <div class="my-32 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-gray-500 to-slate-600 blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-gray-600/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-4xl md:text-5xl font-heading text-gray-400">
+                            Glass kept breaking
+                        </p>
+                        <p class="text-neutral-500 text-lg mt-6 italic">
+                            long after the palace fell silent.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- End of Chapter Notice -->
+            <div class="my-40 text-center reveal">
+                <div class="inline-block px-8 py-3 border border-amber-700 rounded-full bg-amber-900/20 backdrop-blur">
+                    <span class="text-amber-400 font-ui text-xs tracking-[0.3em] uppercase">End of Chapter</span>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

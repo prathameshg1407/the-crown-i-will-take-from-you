@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Marquis - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        },
+                        shadow: {
+                            900: '#0a0a0f',
+                            800: '#12121a',
+                            700: '#1a1a25',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        poison: {
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            900: '#14532d',
+                        },
+                        iron: {
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flicker': 'flicker 3s ease-in-out infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        flicker: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.8' },
+                            '75%': { opacity: '0.95' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050508;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .dialogue-medea {
+            border-left-color: rgba(16, 185, 129, 0.5);
+            color: #a7f3d0;
+        }
+
+        .dialogue-neril {
+            border-left-color: rgba(96, 165, 250, 0.4);
+            color: #bfdbfe;
+        }
+
+        .dialogue-tom {
+            border-left-color: rgba(217, 119, 6, 0.6);
+            color: #fdba74;
+        }
+
+        .dialogue-crowd {
+            border-left-color: rgba(156, 163, 175, 0.5);
+            color: #d1d5db;
+        }
+
+        .dialogue-gillipos {
+            border-left-color: rgba(100, 116, 139, 0.6);
+            color: #cbd5e1;
+        }
+
+        .dialogue-butler {
+            border-left-color: rgba(120, 113, 108, 0.5);
+            color: #d6d3d1;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #64748b;
+            text-shadow: 0 0 20px rgba(100, 116, 139, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #64748b 0%, #1e293b 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-poison {
+            background: linear-gradient(180deg, #4ade80 0%, #166534 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-fire {
+            background: linear-gradient(180deg, #f59e0b 0%, #92400e 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .scene-break {
+            position: relative;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scene-break::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(100, 116, 139, 0.3), transparent);
+        }
+
+        .character-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            font-family: 'Lato', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .carriage-shake {
+            animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) infinite;
+        }
+
+        .weapon-glow {
+            box-shadow: 0 0 20px rgba(100, 116, 139, 0.3);
+        }
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-slate-700 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-slate-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-slate-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-slate-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: Iron & Honor</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-950/20 via-black to-black -z-10"></div>
+
+        <!-- HEADER -->
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-iron-600/50 rounded-full bg-iron-700/20 backdrop-blur-sm">
+                    <span class="text-iron-200 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    The <br />
+                    <span class="gradient-text italic pr-2">Marquis</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">
+                    "I don't need protection. I need you to buy something for me."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- SCENE: THE PASSAGE -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-shadow-700/30 rounded-full z-10">
+                    <span class="text-iron-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Hidden Door —
+                    </span>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="drop-cap text-neutral-300">
+                    <span class="dialogue dialogue-neril">"Here, Your Highness."</span>
+                </p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="relative bg-gradient-to-br from-shadow-900/60 to-black p-10 rounded-2xl border border-shadow-700/40 shadow-2xl">
+                    <p class="text-neutral-400 mb-6">
+                        Neril shoved aside a stack of crates in the Western Gymnasium. A narrow door emerged from the wall, its hinges dark with rust.
+                    </p>
+                    <p class="dialogue dialogue-neril text-xl">
+                        "This tunnel was dug by Royal Guard trainees. It leads straight into the city."
+                    </p>
+                    <p class="text-neutral-500 text-center italic mt-6">
+                        An open secret. A pressure valve for soldiers suffocating under palace discipline.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    The passage was damp and tight, the stone sweating cold. At its end, a plain carriage waited in the shadows.
+                </p>
+            </div>
+
+            <!-- TOM APPEARS -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-600 blur-xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-orange-700/50 p-12 rounded-lg shadow-2xl">
+                        <div class="character-tag bg-orange-950 text-orange-300 border border-orange-700/50">Tom - Coachman</div>
+                        <p class="dialogue dialogue-tom text-xl mb-6">
+                            "Neril. Finally."
+                        </p>
+                        <p class="text-neutral-400 mb-6">
+                            A young coachman lounged on the box, whip idly swinging. Messy hair. Freckles. The relaxed posture of someone who feared nothing the palace could do to him.
+                        </p>
+                        <p class="dialogue dialogue-tom text-xl">
+                            "I thought you dug a new hole and forgot me," he said, then glanced at Medea. "Hello, Princess."
+                        </p>
+                        <p class="text-orange-200 text-center italic mt-4">
+                            Too casual. Almost deliberate.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-neril font-semibold">
+                    "Tom. Mind your tone."
+                </p>
+                <p class="dialogue dialogue-tom">
+                    "Relax," Tom grinned, eyes cold. "Lowborn like me don't learn silk-tongue manners overnight."
+                </p>
+                <p class="dialogue dialogue-neril">
+                    "I apologize, Your Highness," Neril muttered.
+                </p>
+                <p class="dialogue dialogue-medea">
+                    "It is fine."
+                </p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-iron-950/40 to-transparent p-10 rounded-2xl border border-iron-700/30">
+                    <p class="text-neutral-400 mb-6">
+                        Medea climbed in without comment. Her gaze flicked once to Tom's hands.
+                    </p>
+                    <div class="space-y-3 my-6">
+                        <p class="text-iron-300 text-center">Calluses along the thumb.</p>
+                        <p class="text-iron-300 text-center">Rope scars at the knuckles.</p>
+                    </div>
+                    <p class="text-orange-200 text-xl text-center font-semibold mt-6">
+                        An archer. Gillipos's school.
+                    </p>
+                    <p class="text-neutral-400 text-center mt-4">
+                        And hatred—carefully nursed.
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-r from-transparent via-orange-950/30 to-transparent p-8 rounded-lg">
+                    <p class="text-neutral-400 text-center italic mb-4">
+                        To him, she was the Parasite Princess. Living soft while his friends bled out on foreign dirt.
+                    </p>
+                    <p class="text-emerald-200 text-xl text-center font-semibold">
+                        Good, Medea thought. Hatred listens better than indifference.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE ROUGH RIDE -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 blur-3xl opacity-25 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-orange-700/50 p-12 rounded-lg text-center shadow-2xl carriage-shake">
+                        <p class="text-neutral-400 mb-6">
+                            Outside the palace walls, the road turned vicious.
+                        </p>
+                        <p class="text-2xl font-heading text-orange-300 mb-6">
+                            The carriage slammed into ruts, bucked over stones.
+                        </p>
+                        <p class="dialogue dialogue-tom text-4xl font-heading">
+                            "Hyah!"
+                        </p>
+                        <p class="text-neutral-400 mt-6">
+                            Tom drove the horses hard, every jolt intentional.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-neril">
+                    "That bastard," Neril hissed, bracing Medea. "He's doing this on purpose."
+                </p>
+                <p class="dialogue dialogue-medea">
+                    "Leave him," Medea said calmly. "Let him believe I've never touched mud."
+                </p>
+            </div>
+
+            <!-- THE LANDSCAPE -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-gray-900/60 to-black p-12 rounded-2xl border border-gray-700/40 shadow-2xl">
+                    <p class="text-neutral-400 mb-8 text-center">
+                        She drew the curtain aside.
+                    </p>
+                    <p class="text-3xl font-heading text-gray-300 text-center mb-8">
+                        The city fell away.
+                    </p>
+                    <div class="space-y-6">
+                        <div class="p-4 bg-gray-950/50 rounded-lg border-l-4 border-gray-600/50">
+                            <p class="text-gray-300 text-xl">Fields lay cracked and barren.</p>
+                        </div>
+                        <div class="p-4 bg-gray-950/50 rounded-lg border-l-4 border-gray-600/50">
+                            <p class="text-gray-300 text-xl">Chimneys smoked no more.</p>
+                        </div>
+                        <div class="p-4 bg-gray-950/50 rounded-lg border-l-4 border-gray-600/50">
+                            <p class="text-gray-300 text-xl">Houses leaned like tired men ready to collapse.</p>
+                        </div>
+                    </div>
+                    <p class="text-4xl font-heading text-gray-400 text-center mt-8">
+                        This was Valdina.
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-blood-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-neutral-400 text-center mb-4">
+                        Ten years of war had hollowed it out. Victory hadn't fed the people—it had only shifted who starved first.
+                    </p>
+                    <p class="text-blue-300 text-xl text-center italic font-semibold">
+                        Peleus… I won't let them hang this on you again.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE RED BRICK HOUSE -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-red-700 to-orange-700 blur-3xl opacity-25 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-red-800/50 p-12 rounded-lg shadow-2xl">
+                        <p class="dialogue dialogue-tom text-xl mb-6">
+                            "Almost there! See the red brick house? That's Lord Gillipos's place."
+                        </p>
+                        <div class="my-8 p-6 bg-red-950/40 rounded-xl border border-red-700/40">
+                            <div class="text-5xl text-center mb-4">🏛️</div>
+                            <p class="text-red-200 text-lg leading-relaxed text-center">
+                                The mansion stood firm—but it was surrounded.
+                            </p>
+                            <p class="text-3xl font-heading text-red-300 text-center mt-4">
+                                Hundreds of people clustered around it.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-medea">
+                    "What's that?" Medea asked.
+                </p>
+                <p class="dialogue dialogue-tom">
+                    "Retired soldiers," Tom replied, his mockery thinning. "And their families. More every week."
+                </p>
+                <p class="text-neutral-400">
+                    Men missing limbs. Women with hollow faces. Children too quiet.
+                </p>
+                <p class="dialogue dialogue-tom text-xl font-semibold">
+                    "The Marquis couldn't turn them away. Feeds them outside. Mansion's full. More than the King's ever done."
+                </p>
+            </div>
+
+            <!-- THE BREAKDOWN -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-gray-600 to-slate-600 blur-xl opacity-30 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-gray-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-neutral-400 mb-6">The carriage lurched.</p>
+                        <p class="text-5xl font-heading text-gray-300 mb-6">
+                            Clunk. Clunk.
+                        </p>
+                        <p class="text-neutral-400 mb-6">It tilted sharply and stopped.</p>
+                        <p class="dialogue dialogue-tom text-2xl">
+                            "Wheel's loose. Might take a bit."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THE VOICES -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-gray-900/60 to-black p-12 rounded-2xl border border-gray-700/40 shadow-2xl">
+                    <p class="text-neutral-400 mb-8 text-center">
+                        The stopped carriage drew attention. Voices carried from the pots.
+                    </p>
+                    <div class="space-y-6">
+                        <div class="p-6 bg-gray-950/60 rounded-lg border border-gray-600/30">
+                            <p class="dialogue dialogue-crowd text-lg italic">
+                                "They feast while we line up."
+                            </p>
+                        </div>
+                        <div class="p-6 bg-gray-950/60 rounded-lg border border-gray-600/30">
+                            <p class="dialogue dialogue-crowd text-lg italic">
+                                "Wine flowing like water."
+                            </p>
+                        </div>
+                        <div class="p-6 bg-gray-950/60 rounded-lg border border-gray-600/30">
+                            <p class="dialogue dialogue-crowd text-lg italic">
+                                "That Cursed Princess wears a fortune on her neck."
+                            </p>
+                        </div>
+                        <div class="p-6 bg-gray-950/60 rounded-lg border border-gray-600/30">
+                            <p class="dialogue dialogue-crowd text-xl font-semibold">
+                                "Parasite."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-blue-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-neutral-400 text-center mb-4">
+                        Neril stiffened.
+                    </p>
+                    <p class="dialogue dialogue-neril">
+                        "Your Highness—"
+                    </p>
+                    <p class="text-neutral-400 mt-6">
+                        Medea listened.
+                    </p>
+                    <p class="text-red-300 text-2xl text-center font-heading mt-4">
+                        This was the sound of tinder.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE SEED -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-3xl opacity-25 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg shadow-2xl">
+                        <p class="text-neutral-400 mb-8">
+                            Then another voice cut through.
+                        </p>
+                        <p class="dialogue dialogue-crowd text-xl mb-6">
+                            "You idiots. Why would she wear them?"
+                        </p>
+                        <p class="text-neutral-500 text-center italic mb-6">
+                            A ripple of confusion.
+                        </p>
+                        <p class="dialogue dialogue-crowd text-2xl font-heading text-center mb-8">
+                            "Haven't you heard? She's selling them."
+                        </p>
+                        <p class="dialogue dialogue-crowd text-xl text-center mb-6">
+                            "She's not hoarding. The Head Maid bullied her. Rotten food. Needles in clothes. She sold her dowry just to survive."
+                        </p>
+                        <p class="text-3xl font-heading text-emerald-300 text-center mt-8">
+                            Silence fell.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-emerald-950/40 to-black p-12 rounded-2xl border border-emerald-800/30 shadow-2xl">
+                    <div class="space-y-6">
+                        <div class="p-4 bg-emerald-950/30 rounded-lg border-l-4 border-emerald-700/50">
+                            <p class="dialogue dialogue-crowd">"A Princess… bullied?"</p>
+                        </div>
+                        <div class="p-4 bg-emerald-950/30 rounded-lg border-l-4 border-emerald-700/50">
+                            <p class="dialogue dialogue-crowd">"By a servant?"</p>
+                        </div>
+                        <div class="p-4 bg-emerald-950/30 rounded-lg border-l-4 border-emerald-700/50">
+                            <p class="dialogue dialogue-crowd">"Those jewels—weren't they gifts from the Regent?"</p>
+                        </div>
+                        <div class="p-4 bg-emerald-950/30 rounded-lg border-l-4 border-emerald-700/50">
+                            <p class="dialogue dialogue-crowd">"Then how could he not know?"</p>
+                        </div>
+                        <div class="p-4 bg-emerald-950/30 rounded-lg border-l-4 border-emerald-700/50">
+                            <p class="dialogue dialogue-crowd text-xl font-semibold">"Maybe he doesn't care."</p>
+                        </div>
+                    </div>
+                    <p class="text-emerald-300 text-3xl font-heading text-center mt-8">
+                        The anger turned—slowly, inexorably.
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-emerald-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-neutral-400 text-center mb-4">
+                        Medea closed her eyes.
+                    </p>
+                    <p class="text-emerald-300 text-2xl text-center font-semibold italic">
+                        Good. The loudspeaker works.
+                    </p>
+                </div>
+            </div>
+
+            <!-- SCENE BREAK: THE MANSION -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-iron-700/30 rounded-full z-10">
+                    <span class="text-iron-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Marquis's Mansion —
+                    </span>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="relative bg-gradient-to-br from-stone-900/60 to-black p-10 rounded-2xl border border-stone-700/40 shadow-2xl">
+                    <div class="character-tag bg-stone-900 text-stone-300 border border-stone-700/50">Butler</div>
+                    <p class="dialogue dialogue-butler text-xl mb-6">
+                        "I greet Your Highness. My lord awaits."
+                    </p>
+                    <p class="text-neutral-400 text-center mb-6">
+                        Inside, the mansion smelled of iron and old wood.
+                    </p>
+                    <p class="dialogue dialogue-butler">
+                        "Neril stays."
+                    </p>
+                    <p class="dialogue dialogue-neril font-semibold">
+                        "I am her guard."
+                    </p>
+                    <p class="dialogue dialogue-butler">
+                        "Do you doubt your teacher's honor?"
+                    </p>
+                    <p class="text-neutral-400 mt-6">
+                        Neril hesitated.
+                    </p>
+                    <p class="dialogue dialogue-medea">
+                        "It's fine. Wait here."
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE STUDY -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-iron-600 to-slate-600 blur-xl opacity-25 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-iron-600/50 p-12 rounded-lg text-center shadow-2xl weapon-glow">
+                        <p class="text-iron-300 text-3xl font-heading mb-8">
+                            The study was a soldier's tomb.
+                        </p>
+                        <div class="flex justify-center gap-6 text-5xl my-8">
+                            <span>⚔️</span>
+                            <span>🛡️</span>
+                            <span>⚔️</span>
+                        </div>
+                        <p class="text-neutral-400">
+                            Weapons lined the walls—scarred, used, honest.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GILLIPOS -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-iron-950/40 to-black p-12 rounded-2xl border border-iron-800/30 shadow-2xl">
+                    <div class="character-tag bg-iron-950 text-iron-300 border border-iron-700/50">Marquis Gillipos</div>
+                    <p class="text-neutral-400 mb-6">
+                        An old man stood at the window.
+                    </p>
+                    <p class="dialogue dialogue-gillipos text-2xl text-center mb-8">
+                        "Your Highness."
+                    </p>
+                    <p class="text-neutral-400 text-center mb-6">
+                        Marquis Gillipos turned. His back was straight. His eyes sharp.
+                    </p>
+                    <p class="dialogue dialogue-gillipos text-xl text-center">
+                        "It's been a long time."
+                    </p>
+                    <p class="dialogue dialogue-medea text-xl text-center mt-4">
+                        "Years."
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    He studied her. The child who once cried herself sick was gone. What stood before him was fragile—and dangerous.
+                </p>
+                <p class="dialogue dialogue-gillipos">
+                    "I heard you saved my student. This old man thanks you."
+                </p>
+                <p class="dialogue dialogue-medea text-xl font-semibold">
+                    "Neril is mine. I protect what belongs to me."
+                </p>
+                <p class="text-neutral-400 italic">
+                    Gillipos exhaled. At least she wasn't helpless.
+                </p>
+            </div>
+
+            <!-- THE REFUSAL -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-iron-950/40 to-black p-12 rounded-2xl border border-iron-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-gillipos text-xl leading-relaxed mb-8">
+                        "I'll be plain. I've left politics. I won't return."
+                    </p>
+                    <p class="text-neutral-400 mb-6">
+                        He gestured toward the window.
+                    </p>
+                    <p class="dialogue dialogue-gillipos text-lg leading-relaxed mb-6">
+                        "These people are my charge now. Valdina is rotting. The King is stubborn. The Regent is a wolf."
+                    </p>
+                    <p class="text-neutral-500 text-center italic mb-6">
+                        He paused.
+                    </p>
+                    <p class="dialogue dialogue-gillipos text-xl text-center">
+                        "And the Princess—"
+                    </p>
+                    <p class="text-iron-400 text-center italic mt-4">
+                        Weak, hung unspoken.
+                    </p>
+                    <p class="dialogue dialogue-gillipos text-2xl font-heading text-center mt-8">
+                        "I want a quiet end. Go back to your palace."
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Medea did not plead.
+                </p>
+                <p class="dialogue dialogue-medea">
+                    "I understand," she said.
+                </p>
+                <p class="text-neutral-400">
+                    Gillipos frowned.
+                </p>
+            </div>
+
+            <!-- THE DOCUMENTS -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-xl opacity-25 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-neutral-400 mb-8">
+                            She reached into her cloak and placed a stack of documents on his desk.
+                        </p>
+                        <div class="text-6xl my-8">📜</div>
+                        <p class="text-emerald-200 text-xl">
+                            Deeds. Accounts. Titles.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    He sighed.
+                </p>
+                <p class="dialogue dialogue-gillipos">
+                    "I told you—"
+                </p>
+                <p class="dialogue dialogue-medea font-semibold">
+                    "No."
+                </p>
+            </div>
+
+            <!-- THE TWIST -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-3xl opacity-30 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="dialogue dialogue-medea text-3xl md:text-4xl font-heading mb-8">
+                            "I don't need protection."
+                        </p>
+                        <p class="text-neutral-400 mb-6">
+                            She met his gaze.
+                        </p>
+                        <p class="dialogue dialogue-medea text-2xl">
+                            "I need you to buy something for me."
+                        </p>
+                        <p class="text-neutral-400 text-xl mt-8">
+                            Gillipos's eyes sharpened.
+                        </p>
+                        <p class="dialogue dialogue-gillipos text-2xl mt-6">
+                            "…Buy what?"
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THE FINAL LINE -->
+            <div class="my-32 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-500 to-sky-500 blur-3xl opacity-30 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-600/60 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-neutral-400 mb-6 text-xl">
+                            Medea smiled faintly.
+                        </p>
+                        <p class="text-6xl md:text-7xl font-heading gradient-text-poison">
+                            "Time."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- End of Chapter Notice -->
+            <div class="my-40 text-center reveal">
+                <div class="inline-block px-8 py-3 border border-iron-700 rounded-full bg-iron-900/20 backdrop-blur">
+                    <span class="text-iron-400 font-ui text-xs tracking-[0.3em] uppercase">End of Chapter</span>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>

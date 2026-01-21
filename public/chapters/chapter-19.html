@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Accusation - Cinematic Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'body': ['"Cormorant Garamond"', 'serif'],
+                        'ui': ['"Lato"', 'sans-serif'],
+                        'heading': ['"Cinzel"', 'serif'],
+                    },
+                    colors: {
+                        blood: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            800: '#9f1239',
+                            900: '#881337',
+                            950: '#4c0519',
+                        },
+                        shadow: {
+                            900: '#0a0a0f',
+                            800: '#12121a',
+                            700: '#1a1a25',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        poison: {
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            900: '#14532d',
+                        },
+                        iron: {
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                        },
+                        violet: {
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            900: '#4c1d95',
+                        }
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flicker': 'flicker 3s ease-in-out infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(40px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        flicker: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.8' },
+                            '75%': { opacity: '0.95' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #050508;
+            color: #a3a3a3;
+        }
+        
+        .prose p {
+            line-height: 2.1;
+            margin-bottom: 2em;
+            font-size: 1.25rem;
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, 0.3);
+        }
+
+        .dialogue-medea {
+            border-left-color: rgba(16, 185, 129, 0.5);
+            color: #a7f3d0;
+        }
+
+        .dialogue-queen {
+            border-left-color: rgba(220, 38, 38, 0.6);
+            color: #fecaca;
+        }
+
+        .dialogue-quiggin {
+            border-left-color: rgba(139, 92, 246, 0.5);
+            color: #ddd6fe;
+        }
+
+        .dialogue-maria {
+            border-left-color: rgba(244, 114, 182, 0.4);
+            color: #fbcfe8;
+        }
+
+        .dialogue-birna {
+            border-left-color: rgba(244, 114, 182, 0.4);
+            color: #fbcfe8;
+        }
+
+        .dialogue-catherine {
+            border-left-color: rgba(139, 92, 246, 0.5);
+            color: #ddd6fe;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Cinzel', serif;
+            float: left;
+            font-size: 5rem;
+            line-height: 0.8;
+            margin-right: 1rem;
+            margin-top: 0.2rem;
+            color: #dc2626;
+            text-shadow: 0 0 20px rgba(220, 38, 38, 0.4);
+        }
+
+        .fog-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, transparent 60%, #000 100%);
+            z-index: 5; pointer-events: none;
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #10b981 0%, #064e3b 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-blood {
+            background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-violet {
+            background: linear-gradient(180deg, #8b5cf6 0%, #4c1d95 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-text-stone {
+            background: linear-gradient(180deg, #a8a29e 0%, #292524 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .scene-break {
+            position: relative;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scene-break::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.3), transparent);
+        }
+
+        .throne-glow {
+            box-shadow: 0 0 60px rgba(220, 38, 38, 0.4), 0 0 100px rgba(220, 38, 38, 0.2);
+        }
+    </style>
+</head>
+
+<body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-2xl transition-all hover:bg-neutral-800 cursor-pointer group">
+        <div class="flex gap-1 h-3 items-end">
+            <div class="w-1 bg-blood-500 h-2 animate-pulse"></div>
+            <div class="w-1 bg-blood-500 h-3 animate-pulse delay-75"></div>
+            <div class="w-1 bg-blood-500 h-1 animate-pulse delay-150"></div>
+        </div>
+        <span class="text-xs font-ui text-neutral-400 group-hover:text-white uppercase tracking-widest">Ambient: The Trial</span>
+    </div>
+
+    <div class="fog-container"></div>
+
+    <main class="relative min-h-screen pb-40">
+        
+        <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blood-950/20 via-black to-black -z-10"></div>
+
+        <!-- HEADER -->
+        <header class="h-screen flex flex-col items-center justify-center relative p-6">
+            <div class="animate-fade-up flex flex-col items-center">
+                <div class="mb-6 px-4 py-1 border border-blood-800/50 rounded-full bg-blood-950/20 backdrop-blur-sm">
+                    <span class="text-blood-200 text-[10px] font-ui tracking-[0.4em] uppercase">Continuation</span>
+                </div>
+                
+                <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+                    <span class="gradient-text-blood">The</span>
+                    <br/>
+                    <span class="gradient-text-blood italic">Accusation</span>
+                </h1>
+
+                <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">
+                    "What they say is not true."
+                </p>
+            </div>
+            
+            <div class="absolute bottom-10 animate-bounce text-neutral-600">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+            </div>
+        </header>
+
+        <article class="max-w-2xl mx-auto px-8 relative z-10">
+            
+            <!-- THE PALACE -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-stone-600 to-slate-600 blur-3xl opacity-20 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-stone-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="text-4xl md:text-5xl font-heading gradient-text-stone mb-8">
+                            The Queen's Palace swallowed sound.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal drop-cap">
+                <p class="text-neutral-400">
+                    Medea stepped into the vast hall, her footsteps vanishing against marble floors polished by centuries of submission.
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-stone-950/40 to-black p-12 rounded-2xl border border-stone-800/30 shadow-2xl">
+                    <p class="text-neutral-400 mb-6 leading-relaxed">
+                        Stone roses bloomed along the walls—delicate, obsessive carvings from a time when this palace had known laughter. Now they felt like funeral wreaths.
+                    </p>
+                    <p class="text-stone-300 text-xl mb-6">
+                        Pale goddesses stood in silent rows, marble eyes fixed downward in eternal judgment.
+                    </p>
+                    <p class="text-stone-400 text-2xl text-center font-semibold">
+                        Frankincense choked the air. Cold. Heavy. Funereal.
+                    </p>
+                </div>
+            </div>
+
+            <!-- MEMORY -->
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-emerald-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-emerald-300 text-2xl text-center italic mb-6">
+                        It hasn't changed, Medea thought.
+                    </p>
+                    <p class="text-emerald-400 text-3xl font-heading text-center">
+                        Only I have.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    As a child, she had feared this place. The statues had seemed alive then—waiting for her to err.
+                </p>
+                <p class="text-neutral-500 text-center italic">
+                    If she cried, she was scolded. If she spoke, she was corrected.
+                </p>
+                <p class="text-stone-300 text-xl text-center">
+                    So she learned to bleed quietly.
+                </p>
+            </div>
+
+            <!-- BIRNA'S ENTRANCE -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-pink-800/30 rounded-full z-10">
+                    <span class="text-pink-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Favorite —
+                    </span>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-pink-950/40 to-black p-12 rounded-2xl border border-pink-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-birna text-2xl text-center mb-8">
+                        "Grandmother!"
+                    </p>
+                    <p class="text-neutral-400 mb-6">
+                        Birna ran ahead, skirts swishing, etiquette abandoned. She threw herself into the Queen Mother's arms like a spoiled kitten.
+                    </p>
+                    <p class="dialogue dialogue-queen text-xl italic">
+                        "My little flower," the Queen Mother murmured, stroking Birna's hair. Her sharp, aged face softened instantly. "Did you miss me?"
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Then she looked up.
+                </p>
+                <p class="text-neutral-400">
+                    Her gaze landed on Medea—and hardened.
+                </p>
+            </div>
+
+            <!-- THE COMMAND -->
+            <div class="my-32 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blood-600 to-red-600 blur-3xl opacity-40 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-blood-700/50 p-12 rounded-lg text-center shadow-2xl throne-glow">
+                        <p class="dialogue dialogue-queen text-4xl font-heading mb-8">
+                            "You."
+                        </p>
+                        <p class="text-neutral-400 mb-8">
+                            The warmth vanished as if it had never existed.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Medea walked to the center of the hall and stopped. Her posture was flawless. Her expression serene.
+                </p>
+                <p class="dialogue dialogue-medea text-xl">
+                    "Medea greets Grandmother."
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blood-600 to-red-600 blur-xl opacity-30 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-blood-700/50 p-12 rounded-lg text-center shadow-2xl">
+                        <p class="dialogue dialogue-queen text-5xl md:text-6xl font-heading gradient-text-blood">
+                            "Kneel!"
+                        </p>
+                        <p class="text-neutral-400 mt-8">
+                            The command cracked through the hall.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Medea lowered herself smoothly, her movements controlled, dignified. Not hurried. Not defiant.
+                </p>
+            </div>
+
+            <!-- THE CONTRAST -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-emerald-950/40 to-black p-12 rounded-2xl border border-emerald-800/30 shadow-2xl">
+                    <p class="text-emerald-200 text-2xl text-center mb-8">
+                        The contrast was unmistakable.
+                    </p>
+                    <div class="space-y-6">
+                        <p class="text-pink-300 text-xl text-center">
+                            Birna ignored protocol and was cherished.
+                        </p>
+                        <p class="text-emerald-300 text-xl text-center">
+                            Medea obeyed perfectly—and was condemned.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-violet-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-neutral-400 text-center mb-6">
+                        Whispers rippled through the court. Even Catherine took an instinctive step back.
+                    </p>
+                    <p class="text-violet-300 text-xl text-center italic">
+                        Why is she this angry today? Usually, she barely acknowledges the girl.
+                    </p>
+                </div>
+            </div>
+
+            <!-- QUIGGIN'S SMILE -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-violet-950/40 to-black p-12 rounded-2xl border border-violet-800/30 shadow-2xl">
+                    <p class="text-neutral-400 mb-6">
+                        Medea raised her eyes.
+                    </p>
+                    <p class="text-neutral-400 mb-6">
+                        Behind the Queen Mother's throne, half-hidden by shadow, stood Madame Quiggin.
+                    </p>
+                    <p class="text-neutral-400 mb-8 text-center">
+                        The Head Maid met Medea's gaze—and smiled.
+                    </p>
+                    <p class="text-violet-300 text-3xl font-heading text-center italic">
+                        A thin, triumphant smile.
+                    </p>
+                </div>
+            </div>
+
+            <!-- MEDEA'S FIRST RESPONSE -->
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-medea text-xl">
+                    "I have come as commanded," Medea said softly. "But I fear such anger may harm Grandmother's health. If I have sinned, please tell me how. I will beg forgiveness."
+                </p>
+                <p class="dialogue dialogue-queen text-2xl">
+                    "Do you truly not know?" the Queen Mother snapped. "Or are you so shameless you dare feign ignorance?"
+                </p>
+                <p class="text-neutral-400">
+                    Her lips curled.
+                </p>
+                <p class="dialogue dialogue-queen text-2xl">
+                    "Do you think that because you lacked a mother, you may grow into a fool without consequence?"
+                </p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-blood-950/40 to-transparent p-10 rounded-2xl border border-blood-800/30">
+                    <p class="text-blood-200 text-xl text-center">
+                        The hall went still.
+                    </p>
+                </div>
+            </div>
+
+            <!-- MEDEA'S COUNTER -->
+            <div class="my-20 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-xl opacity-25 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-12 rounded-lg shadow-2xl">
+                        <p class="text-neutral-400 mb-6">
+                            Medea's eyes cooled.
+                        </p>
+                        <p class="dialogue dialogue-medea text-2xl text-center mb-8">
+                            "Why do you insult my parents?"
+                        </p>
+                        <p class="dialogue dialogue-medea text-xl text-center italic">
+                            "Is my existence not insult enough to you?"
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-queen text-3xl font-heading">
+                    "How dare you!" the Queen Mother slammed her palm against the throne. "Do you still deny your sin?"
+                </p>
+                <p class="dialogue dialogue-medea">
+                    "I cannot deny what I do not know."
+                </p>
+            </div>
+
+            <!-- THE ACCUSATION -->
+            <div class="my-32 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blood-600 to-red-600 blur-3xl opacity-50 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-blood-700/50 p-12 rounded-lg text-center shadow-2xl throne-glow">
+                        <p class="dialogue dialogue-queen text-3xl font-heading mb-8">
+                            "Liar!"
+                        </p>
+                        <p class="text-neutral-400 mb-8">
+                            The Queen Mother rose, trembling with fury.
+                        </p>
+                        <p class="dialogue dialogue-queen text-4xl md:text-5xl font-heading gradient-text-blood">
+                            "The Head Maid has confessed everything! You are secretly consorting with a man!"
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-blood-950/40 to-transparent p-10 rounded-2xl border border-blood-800/30">
+                    <p class="text-blood-200 text-3xl font-heading text-center">
+                        Gasps tore through the hall.
+                    </p>
+                </div>
+            </div>
+
+            <!-- CATHERINE'S REALIZATION -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-violet-950/40 to-black p-12 rounded-2xl border border-violet-800/30 shadow-2xl">
+                    <p class="text-violet-200 text-xl mb-6">
+                        Catherine stiffened. <em>An affair? Impossible.</em>
+                    </p>
+                    <p class="text-neutral-400 mb-6">
+                        She had monitored Medea's life for years. There had been no men. No letters. No meetings.
+                    </p>
+                    <p class="text-violet-300 text-2xl text-center font-semibold mb-8">
+                        Quiggin is lying, Catherine realized with horror.
+                    </p>
+                    <p class="text-violet-400 text-3xl font-heading text-center italic">
+                        She's gone mad.
+                    </p>
+                </div>
+            </div>
+
+            <!-- QUIGGIN'S TESTIMONY -->
+            <div class="scene-break reveal">
+                <div class="bg-black px-8 py-3 border border-violet-800/30 rounded-full z-10">
+                    <span class="text-violet-200 font-heading text-sm tracking-[0.3em] uppercase">
+                        — The Testimony —
+                    </span>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    Madame Quiggin stepped forward and bowed deeply.
+                </p>
+                <p class="dialogue dialogue-quiggin text-xl">
+                    "I beg Your Majesty's forgiveness," she said, voice heavy with false grief. "But I could no longer hide this disgrace."
+                </p>
+                <p class="text-neutral-400">
+                    She turned to Medea, eyes glistening.
+                </p>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-violet-950/40 to-black p-12 rounded-2xl border border-violet-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-quiggin text-xl leading-relaxed mb-6">
+                        "When I uncovered Her Highness's affair, she sought to silence me. She spread lies that I abused her, starved her… all to conceal her immorality."
+                    </p>
+                    <p class="text-neutral-400 mb-6">
+                        She struck her chest dramatically.
+                    </p>
+                    <p class="dialogue dialogue-quiggin text-2xl text-center">
+                        "As a servant of Valdina, I could not allow the Royal Honor to be defiled. Yet the Princess refused to repent."
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    She gestured.
+                </p>
+                <p class="dialogue dialogue-quiggin">
+                    "Maria. Step forward."
+                </p>
+            </div>
+
+            <!-- MARIA'S TESTIMONY -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-pink-950/40 to-black p-12 rounded-2xl border border-pink-800/30 shadow-2xl">
+                    <p class="text-neutral-400 mb-6">
+                        Maria emerged from the shadows, dressed in silk, hair styled carefully—no longer a maid, but not quite a lady.
+                    </p>
+                    <p class="dialogue dialogue-maria text-xl mb-6">
+                        "My name is Maria. My mother was Her Highness's wet nurse."
+                    </p>
+                    <p class="text-neutral-400 mb-6">
+                        She pressed a hand to her heart.
+                    </p>
+                    <p class="dialogue dialogue-maria text-xl leading-relaxed">
+                        "The Princess made me accompany her whenever she met him. I begged her to stop. I told her it was wrong."
+                    </p>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="text-neutral-400">
+                    A tear slid down her cheek on cue.
+                </p>
+                <p class="dialogue dialogue-maria text-xl">
+                    "When I refused to assist her sin, she cast me out. She gave my room to another. She ordered the new maids to beat me."
+                </p>
+                <p class="text-neutral-400">
+                    Maria bowed her head.
+                </p>
+                <p class="dialogue dialogue-maria">
+                    "I only wished to save her."
+                </p>
+            </div>
+
+            <!-- THE PERFECT TABLEAU -->
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-violet-950/40 to-black p-12 rounded-2xl border border-violet-800/30 shadow-2xl">
+                    <p class="dialogue dialogue-quiggin text-xl text-center mb-8">
+                        "I apologize, Your Majesty. But I could no longer remain silent. Please, Your Highness—stop hiding behind lies."
+                    </p>
+                    <p class="text-neutral-400 text-center mb-8">
+                        They stood together:
+                    </p>
+                    <div class="space-y-4 mb-8">
+                        <p class="text-violet-300 text-xl text-center italic">the loyal Head Maid,</p>
+                        <p class="text-pink-300 text-xl text-center italic">the wounded servant.</p>
+                    </div>
+                    <p class="text-violet-400 text-3xl font-heading text-center">
+                        A perfect tableau.
+                    </p>
+                </div>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-emerald-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-emerald-300 text-xl text-center italic mb-4">
+                        A beautiful script, Medea thought calmly.
+                    </p>
+                    <p class="text-emerald-400 text-xl text-center">
+                        The actors are convincing. The audience is enthralled.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE QUEEN'S FURY -->
+            <div class="my-32 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blood-600 to-red-600 blur-3xl opacity-50 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-blood-700/50 p-12 rounded-lg text-center shadow-2xl throne-glow">
+                        <p class="dialogue dialogue-queen text-4xl md:text-5xl font-heading mb-8 gradient-text-blood">
+                            "Medea! You disgust me!"
+                        </p>
+                        <p class="text-neutral-400 mb-8">
+                            This was worse than scandal.
+                        </p>
+                        <div class="space-y-4 mb-8">
+                            <p class="text-blood-300 text-2xl text-center">A Princess humiliated by servants.</p>
+                            <p class="text-blood-400 text-2xl text-center">Dragged into filth by common hands.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prose prose-invert prose-xl reveal">
+                <p class="dialogue dialogue-queen text-2xl">
+                    "You bear royal blood," the Queen Mother spat, "yet behave like a streetwalker!"
+                </p>
+            </div>
+
+            <div class="my-16 reveal">
+                <div class="bg-gradient-to-b from-violet-950/30 to-transparent p-10 rounded-2xl">
+                    <p class="text-neutral-400 text-center mb-6">
+                        Behind her sleeve, Quiggin smiled.
+                    </p>
+                    <p class="text-violet-300 text-xl text-center italic">
+                        Just wait, she thought. When the Queen hears the man's name…
+                    </p>
+                </div>
+            </div>
+
+            <!-- THE DEFENSE BEGINS -->
+            <div class="my-40 reveal">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 blur-3xl opacity-40 animate-pulse-slow"></div>
+                    <div class="relative bg-black border-2 border-emerald-700/50 p-16 rounded-lg text-center shadow-2xl">
+                        <p class="text-neutral-400 mb-8">
+                            Then—
+                        </p>
+                        <p class="dialogue dialogue-medea text-3xl md:text-4xl font-heading mb-8 leading-relaxed">
+                            "What they say," Medea's voice rang out—clear, steady, impossibly calm,
+                        </p>
+                        <p class="text-6xl md:text-7xl font-heading gradient-text">
+                            "is not true."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="my-20 reveal">
+                <div class="relative bg-gradient-to-br from-blood-950/40 to-black p-12 rounded-2xl border border-blood-800/30 shadow-2xl">
+                    <p class="text-blood-200 text-2xl text-center mb-8">
+                        The hall froze.
+                    </p>
+                    <p class="text-neutral-400 text-center mb-8">
+                        Every eye turned to the kneeling Princess.
+                    </p>
+                    <p class="text-5xl font-heading text-center gradient-text-blood">
+                        The game had begun.
+                    </p>
+                </div>
+            </div>
+
+            <!-- End of Chapter Notice -->
+            <div class="my-40 text-center reveal">
+                <div class="inline-block px-8 py-3 border border-blood-700 rounded-full bg-blood-900/20 backdrop-blur">
+                    <span class="text-blood-400 font-ui text-xs tracking-[0.3em] uppercase">To Be Continued</span>
+                </div>
+            </div>
+
+        </article>
+    </main>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    </script>
+</body>
+</html>
