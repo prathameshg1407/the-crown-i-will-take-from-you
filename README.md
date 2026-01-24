@@ -529,3 +529,36 @@ COMMENT ON FUNCTION clean_expired_sessions() IS 'Removes expired sessions and re
 -- =====================================================
 -- END OF SCHEMA
 -- =====================================================
+
+
+
+API Key:
+BAAjEfJLcRUySMvPJQyU-rzixxXKuim5jWaxB_2oLPMC6ZJocVWg0DZ11JwPlBGH6T4kdKg1AvEECoSUTw
+Secret:
+EAQ8bIqOiAIbQr2_08ruKylWoVm__GIh5Cntcr_MkZ721SESBMRd3Xid4SIqhBIfYz8-xXM0QELk4UcU
+
+
+Username:
+sb-xuvpa49005314@business.example.com
+Password:X=AsWTM2
+
+
+
+API credentials
+
+Sandbox
+Live
+API Key:
+AcVVEaFfnvBVKZATZS4YhvPXcFBBslVICiwpeh9dc87iHSn2D5VtkCJfEy2WeIEBE26vJXnVkRUYACzu
+copy text
+Secret:
+EJeNglWOVGGLwu1_CaPwix7BHsuJ_XqSu5aPuiMiLINislta8c5XROQZSRXzF0I_VbvPWSjlGIBAmAgx
+decrypt textcopy text
+Manage API credentials
+Sandbox credentials
+
+Username:
+sb-xuvpa49005314@business.example.com
+copy text
+Password:
+X=AsWTM2

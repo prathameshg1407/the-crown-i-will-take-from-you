@@ -1,22 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Chapter 27: The Weight of a Paper Cut</title>
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap"
-    rel="stylesheet" media="print" onload='this.media="all"'>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Lato:wght@400&display=swap" rel="stylesheet">
+  
   <style>
-    *,
-    ::after,
-    ::before {
-      box-sizing: border-box;
+    /* ==========================================
+       CSS Variables
+       ========================================== */
+    :root {
+      --font-heading: 'Cinzel', serif;
+      --font-body: 'Cormorant Garamond', Georgia, serif;
+      --font-ui: 'Lato', sans-serif;
+      --color-bg: #0a0a0a;
+      --color-text-primary: #e5e5e5;
+      --color-text-secondary: #a3a3a3;
+      --color-text-muted: #737373;
+      --color-accent-red: #9f1239;
+    }
+
+    /* ==========================================
+       Reset & Base
+       ========================================== */
+    *, *::after, *::before {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
 
     html {
@@ -26,13 +41,14 @@
     }
 
     body {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      background-color: #0a0a0a;
-      color: #a3a3a3;
+      background-color: var(--color-bg);
+      color: var(--color-text-secondary);
+      font-family: var(--font-body);
+      font-size: 16px;
       line-height: 1.8;
       overflow-x: hidden;
       min-height: 100vh;
-      padding-bottom: 100px;
+      padding-bottom: 80px;
     }
 
     ::selection {
@@ -40,129 +56,193 @@
       color: #fff;
     }
 
-    /* hide scrollbars */
-    ::-webkit-scrollbar {
-      display: none;
-    }
-
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    .font-heading {
-      font-family: Cinzel, serif;
-    }
-
-    .font-body {
-      font-family: 'Cormorant Garamond', serif;
-    }
-
-    .font-ui {
-      font-family: Lato, sans-serif;
-    }
-
+    /* ==========================================
+       Background Gradient
+       ========================================== */
     .bg-gradient {
-      position: absolute;
+      position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, .2), #000, #000);
+      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
       z-index: -1;
       pointer-events: none;
     }
 
-    .hero {
+    /* ==========================================
+       Header
+       ========================================== */
+    header {
       min-height: 60vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem 2rem 2rem;
+      padding: 3rem 1.5rem 2rem;
       text-align: center;
       position: relative;
     }
 
+    @media (max-width: 768px) {
+      header {
+        min-height: 50vh;
+        padding: 2rem 1rem;
+      }
+    }
+
     .chapter-badge {
+      display: inline-block;
       margin-bottom: 1.5rem;
-      padding: .25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, .5);
+      padding: 0.25rem 1rem;
+      border: 1px solid rgba(248, 113, 113, 0.5);
       border-radius: 9999px;
-      background-color: rgba(24, 24, 27, .7);
+      background-color: rgba(24, 24, 27, 0.7);
       backdrop-filter: blur(4px);
     }
 
     .chapter-badge span {
       color: #fee2e2;
-      font-size: 10px;
-      font-family: Lato, sans-serif;
-      letter-spacing: .4em;
+      font-size: 0.625rem;
+      font-family: var(--font-ui);
+      letter-spacing: 0.4em;
       text-transform: uppercase;
     }
 
-    .hero-title {
-      font-family: Cinzel, serif;
-      font-size: clamp(2.5rem, 8vw, 4.5rem);
+    h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(2.25rem, 7vw, 4rem);
       line-height: 1.1;
-      letter-spacing: -.02em;
-      color: #f5f5f5;
+      letter-spacing: -0.02em;
+      color: var(--color-text-primary);
       margin-bottom: 1.5rem;
     }
 
-    .hero-quote {
-      font-family: 'Cormorant Garamond', serif;
+    .gradient-text {
+      background: linear-gradient(180deg, #dc2626 0%, #7f1d1d 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-style: italic;
+    }
+
+    header p {
+      font-family: var(--font-body);
       font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
+      color: var(--color-text-muted);
       font-style: italic;
       max-width: 30rem;
     }
 
-    .gradient-text {
-      background: linear-gradient(180deg, #dc2626 0, #7f1d1d 80%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    /* ==========================================
+       Article Container
+       ========================================== */
+    article {
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: 0 1.5rem;
     }
 
-    .prose {
-      color: #a3a3a3;
+    @media (max-width: 768px) {
+      article {
+        padding: 0 1rem;
+      }
     }
 
+    /* ==========================================
+       Prose
+       ========================================== */
     .prose p {
       line-height: 2.1;
-      margin-bottom: 2em;
-      font-size: 1.25rem;
-      text-align: center;
+      margin-bottom: 1.75em;
+      font-size: 1.2rem;
+      color: var(--color-text-secondary);
     }
 
+    @media (max-width: 768px) {
+      .prose p {
+        font-size: 1.1rem;
+        line-height: 2;
+        margin-bottom: 1.5em;
+      }
+    }
+
+    /* ==========================================
+       Drop Cap
+       ========================================== */
+    .drop-cap::first-letter {
+      font-family: var(--font-heading);
+      float: left;
+      font-size: 4rem;
+      line-height: 0.8;
+      margin-right: 0.75rem;
+      margin-top: 0.15rem;
+      color: var(--color-accent-red);
+      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+    }
+
+    @media (max-width: 640px) {
+      .drop-cap::first-letter {
+        font-size: 3.5rem;
+        margin-right: 0.5rem;
+      }
+    }
+
+    /* ==========================================
+       Dialogue
+       ========================================== */
     .dialogue {
       color: #e2e8f0;
       font-style: normal;
       position: relative;
       padding-left: 1rem;
-      border-left: 2px solid rgba(136, 19, 55, .3);
-      text-align: left;
-      margin: 1.5rem 0;
+      border-left: 2px solid rgba(136, 19, 55, 0.3);
+      margin: 0.75rem 0;
+      line-height: 1.9;
     }
 
-    .thought {
+    .dialogue.text-red-100,
+    .dialogue.text-red-200 {
+      border-left-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .dialogue.text-red-100 { color: #fee2e2; }
+    .dialogue.text-red-200 { color: #fecaca; }
+
+    .dialogue.text-yellow-400 {
+      border-left-color: rgba(250, 204, 21, 0.4);
+      color: #facc15;
+    }
+
+    .dialogue.text-amber-200,
+    .dialogue.text-amber-300 {
+      border-left-color: rgba(251, 191, 36, 0.3);
+    }
+
+    .dialogue.text-amber-200 { color: #fde68a; }
+    .dialogue.text-amber-300 { color: #fcd34d; }
+
+    .dialogue.text-slate-300 {
       color: #cbd5e1;
-      font-style: italic;
-      opacity: .9;
+      border-left-color: rgba(148, 163, 184, 0.3);
     }
 
-    .drop-cap::first-letter {
-      font-family: Cinzel, serif;
-      float: left;
-      font-size: 5rem;
-      line-height: .8;
-      margin-right: 1rem;
-      margin-top: .2rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, .4);
+    @media (max-width: 480px) {
+      .dialogue {
+        padding-left: 0.75rem;
+      }
+    }
+
+    /* ==========================================
+       Scene Elements
+       ========================================== */
+    .scene-divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, #475569, transparent);
+      margin: 4rem 0;
     }
 
     .chapter-marker {
       position: relative;
       padding-left: 2rem;
+      margin: 5rem 0 3rem;
     }
 
     .chapter-marker::before {
@@ -175,262 +255,309 @@
       background: linear-gradient(to bottom, #dc2626, transparent);
     }
 
-    .scene-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
+    .chapter-marker h2 {
+      font-family: var(--font-heading);
+      font-size: 1.75rem;
+      color: #cbd5e1;
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .chapter-marker {
+        padding-left: 1.5rem;
+        margin: 4rem 0 2rem;
+      }
+
+      .chapter-marker h2 {
+        font-size: 1.5rem;
+      }
+    }
+
+    /* ==========================================
+       Special Containers
+       ========================================== */
+    .rage-container {
+      background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
+      border: 2px solid #991b1b;
+      box-shadow: 0 0 40px rgba(127, 29, 29, 0.3);
+      padding: 2rem;
+      border-radius: 0.5rem;
       margin: 4rem 0;
     }
 
-    .fevered-text {
-      text-shadow: 0 0 20px rgba(239, 68, 68, .5);
-      animation: heartbeat 1.5s ease-in-out infinite;
-    }
-
     .cold-realization {
-      background: linear-gradient(135deg, #1e293b 0, #0f172a 100%);
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
       border-left: 4px solid #3b82f6;
-      box-shadow: inset 0 0 30px rgba(59, 130, 246, .1);
+      box-shadow: inset 0 0 30px rgba(59, 130, 246, 0.1);
+      padding: 2rem;
+      border-radius: 0 0.5rem 0.5rem 0;
+      margin: 4rem 0;
     }
 
-    .rage-container {
-      background: linear-gradient(135deg, #7f1d1d 0, #450a0a 100%);
-      border: 2px solid #991b1b;
-      box-shadow: 0 0 40px rgba(127, 29, 29, .3);
-    }
-
-    @keyframes heartbeat {
-      0%, 100% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.03);
-      }
-    }
-
-    .animate-fade-up {
-      animation: fadeUp 1s cubic-bezier(.2, .8, .2, 1) forwards;
-    }
-
-    @keyframes fadeUp {
-      0% {
-        opacity: 0;
-        transform: translateY(40px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .reveal {
-      opacity: 1;
-      transform: translateY(0);
-      transition: opacity .8s ease-out, transform .8s ease-out;
-    }
-
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .text-center {
-      text-align: center;
-    }
-
-    .italic {
+    .thought {
+      color: #cbd5e1;
       font-style: italic;
+      opacity: 0.9;
+      text-align: center;
+      line-height: 1.625;
     }
 
-    .text-xl {
-      font-size: 1.25rem;
+    .featured-box {
+      padding: 2rem;
+      border-radius: 0.5rem;
+      margin: 4rem 0;
     }
 
-    .text-2xl {
-      font-size: 1.5rem;
+    .featured-box.red {
+      background: rgba(69, 10, 10, 0.3);
+      border-left: 4px solid #b91c1c;
     }
 
-    .text-3xl {
-      font-size: 1.875rem;
+    .featured-box.slate {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid #334155;
     }
 
-    .text-4xl {
-      font-size: 2.25rem;
+    .featured-box.amber {
+      background: linear-gradient(to bottom right, rgba(120, 53, 15, 0.2), rgba(69, 26, 3, 0.3));
+      border: 2px solid rgba(180, 83, 9, 0.5);
     }
 
-    .text-5xl {
-      font-size: 3rem;
+    @media (max-width: 768px) {
+      .rage-container,
+      .cold-realization,
+      .featured-box {
+        padding: 1.5rem;
+        margin: 3rem 0;
+      }
     }
 
-    .my-16 {
-      margin-top: 4rem;
-      margin-bottom: 4rem;
+    /* ==========================================
+       Blockquote
+       ========================================== */
+    blockquote {
+      border-left: 4px solid;
+      padding-left: 1.5rem;
+      font-style: italic;
+      margin: 3rem 0;
     }
 
-    .my-20 {
-      margin-top: 5rem;
-      margin-bottom: 5rem;
-    }
-
-    .my-32 {
-      margin-top: 8rem;
-      margin-bottom: 8rem;
-    }
-
-    .mb-4 {
-      margin-bottom: 1rem;
-    }
-
-    .mb-6 {
-      margin-bottom: 1.5rem;
-    }
-
-    .mb-8 {
-      margin-bottom: 2rem;
-    }
-
-    .mt-4 {
-      margin-top: 1rem;
-    }
-
-    .mt-6 {
-      margin-top: 1.5rem;
-    }
-
-    .text-neutral-300 {
-      color: #d4d4d4;
-    }
-
-    .text-neutral-400 {
-      color: #a3a3a3;
-    }
-
-    .text-neutral-500 {
-      color: #737373;
-    }
-
-    .text-red-100 {
-      color: #fee2e2;
-    }
-
-    .text-red-200 {
-      color: #fecaca;
-    }
-
-    .text-red-300 {
-      color: #fca5a5;
-    }
-
-    .text-red-500 {
-      color: #ef4444;
-    }
-
-    .text-slate-200 {
-      color: #e5e7eb;
-    }
-
-    .text-slate-300 {
-      color: #cbd5f5;
-    }
-
-    .text-slate-600 {
-      color: #475569;
-    }
-
-    .text-amber-100 {
-      color: #fef3c7;
-    }
-
-    .text-amber-200 {
+    blockquote.amber {
+      border-color: #b45309;
       color: #fde68a;
     }
 
-    .text-amber-300 {
-      color: #fcd34d;
+    blockquote.slate {
+      border-color: #475569;
+      color: #cbd5e1;
     }
 
-    .text-yellow-300 {
-      color: #fcd34d;
+    /* ==========================================
+       Comparison Grid
+       ========================================== */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin: 5rem 0;
     }
 
-    .text-yellow-400 {
-      color: #facc15;
+    .comparison-card {
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      text-align: center;
     }
 
-    @media (max-width:640px) {
-      .container {
-        padding: 0 1.5rem;
-      }
-      .prose p {
-        font-size: 1.125rem;
-      }
-      body {
-        padding-bottom: 120px;
-      }
+    .comparison-card.red {
+      background: rgba(69, 10, 10, 0.3);
+      border: 2px solid #991b1b;
+    }
+
+    .comparison-card.yellow {
+      background: rgba(66, 32, 6, 0.3);
+      border: 2px solid #854d0e;
+    }
+
+    .comparison-card h3 {
+      font-family: var(--font-heading);
+      font-size: 1.125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .comparison-card p {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    /* ==========================================
+       Emotional Moments
+       ========================================== */
+    .emotional-moment {
+      min-height: 40vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin: 5rem 0;
+    }
+
+    .fevered-text {
+      text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+    }
+
+    /* ==========================================
+       Final Box
+       ========================================== */
+    .final-box {
+      margin: 6rem auto 4rem;
+      text-align: center;
+    }
+
+    .end-card {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      border: 1px solid rgba(153, 27, 27, 0.5);
+      border-radius: 9999px;
+      background-color: rgba(69, 10, 10, 0.2);
+    }
+
+    .end-card span {
+      color: #fecaca;
+      font-size: 0.75rem;
+      font-family: var(--font-ui);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+
+    /* ==========================================
+       Utility Classes
+       ========================================== */
+    .text-center { text-align: center; }
+    .italic { font-style: italic; }
+    .font-bold { font-weight: 700; }
+    .font-heading { font-family: var(--font-heading); }
+    .font-body { font-family: var(--font-body); }
+
+    /* Text Sizes */
+    .text-lg { font-size: 1.125rem; }
+    .text-xl { font-size: 1.25rem; }
+    .text-2xl { font-size: 1.5rem; }
+    .text-3xl { font-size: 1.875rem; }
+    .text-4xl { font-size: 2.25rem; }
+    .text-5xl { font-size: 3rem; }
+    .text-6xl { font-size: 3.75rem; }
+
+    /* Margins */
+    .m-0 { margin: 0; }
+    .mb-0 { margin-bottom: 0; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-6 { margin-bottom: 1.5rem; }
+    .mb-8 { margin-bottom: 2rem; }
+    .mt-4 { margin-top: 1rem; }
+    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
+    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
+    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
+
+    /* Spacing */
+    .space-y-4 > * + * { margin-top: 1rem; }
+
+    /* Text Colors */
+    .text-neutral-300 { color: #d4d4d4; }
+    .text-neutral-400 { color: #a3a3a3; }
+    .text-neutral-500 { color: #737373; }
+    .text-slate-200 { color: #e2e8f0; }
+    .text-slate-300 { color: #cbd5e1; }
+    .text-red-100 { color: #fee2e2; }
+    .text-red-200 { color: #fecaca; }
+    .text-red-300 { color: #fca5a5; }
+    .text-red-500 { color: #ef4444; }
+    .text-amber-100 { color: #fef3c7; }
+    .text-amber-200 { color: #fde68a; }
+    .text-amber-300 { color: #fcd34d; }
+    .text-yellow-300 { color: #fcd34d; }
+    .text-yellow-400 { color: #facc15; }
+    .text-blue-100 { color: #dbeafe; }
+    .text-blue-200 { color: #bfdbfe; }
+
+    /* Leading */
+    .leading-relaxed { line-height: 1.625; }
+    .tracking-widest { letter-spacing: 0.1em; }
+
+    @media (min-width: 768px) {
+      .md\:text-4xl { font-size: 2.25rem; }
+      .md\:text-5xl { font-size: 3rem; }
     }
   </style>
 </head>
 
 <body>
   <div class="bg-gradient"></div>
-  <main style="position:relative;min-height:100vh">
-    <header class="hero">
-      <div class="animate-fade-up" style="display:flex;flex-direction:column;align-items:center">
+  
+  <main>
+    <!-- HEADER -->
+    <header>
+      <div>
         <div class="chapter-badge">
           <span>Chapter 27</span>
         </div>
-        <h1 class="hero-title">
-          The Weight of a <span class="gradient-text italic">Paper Cut</span>
+        <h1>
+          The Weight of a <span class="gradient-text">Paper Cut</span>
         </h1>
-        <p class="hero-quote">"Father… please don't leave me…"</p>
+        <p>"Father… please don't leave me…"</p>
       </div>
     </header>
 
-    <article class="container">
-      <div class="prose prose-invert prose-xl reveal">
+    <!-- MAIN CONTENT -->
+    <article>
+      <!-- Opening -->
+      <section class="prose">
         <p class="drop-cap text-neutral-300">
           Reports lay scattered across the marble floor like fallen soldiers on a battlefield.
         </p>
         <p>
-          The documents Baroness Pinatelli had delivered now decorated every corner of the chamber—casualties of the
-          Queen Mother's explosive rage.
+          The documents Baroness Pinatelli had delivered now decorated every corner of the chamber—casualties of the Queen Mother's explosive rage.
         </p>
-      </div>
+      </section>
 
-      <div class="my-16 rage-container p-8 rounded-lg reveal">
+      <!-- Queen Mother's Outburst -->
+      <div class="rage-container">
         <p class="dialogue text-red-100 text-2xl mb-0">
           "Stealing from the palace coffers to line your own pockets? You dare lay hands on what belongs to Medea? The woman is utterly deranged!"
         </p>
       </div>
 
-      <div class="prose prose-invert prose-xl reveal">
-        <div class="my-8 space-y-4" style="text-align:left">
+      <section class="prose">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "Indeed, Your Majesty," Baroness Pinatelli replied, her voice measured and precise. "Personal items intended for Her Highness were systematically replaced with inferior substitutes. Financial records were falsified to conceal the theft."
           </p>
         </div>
         <p>She paused, allowing her next words to land with surgical precision.</p>
-        <p class="dialogue">
-          "The maids who were previously disciplined—those who leveled accusations against the Princess—were accomplices. They participated in the embezzlement scheme under Madame Quiggin's direct orders."
-        </p>
-        <p class="text-neutral-400 italic text-lg text-center my-12">
+        <div class="my-8 space-y-4">
+          <p class="dialogue">
+            "The maids who were previously disciplined—those who leveled accusations against the Princess—were accomplices. They participated in the embezzlement scheme under Madame Quiggin's direct orders."
+          </p>
+        </div>
+        <p class="text-neutral-400 italic text-center my-12">
           The dead tell no tales—and had been conveniently transformed into perfect scapegoats.
         </p>
         <p>
-          Not every detail was fabricated. Baroness Pinatelli had woven truth and falsehood together with such artistry that
-          the narrative carried the weight of undeniable authenticity.
+          Not every detail was fabricated. Baroness Pinatelli had woven truth and falsehood together with such artistry that the narrative carried the weight of undeniable authenticity.
+        </p>
+      </section>
+
+      <div class="featured-box red">
+        <p class="dialogue text-red-200 text-xl mb-0">
+          "The audacity! The sheer, unmitigated audacity of that woman!"
         </p>
       </div>
 
-      <div class="my-16 reveal">
-        <div class="bg-red-950/30 border-l-4 border-red-700 p-8 rounded-r">
-          <p class="dialogue text-red-200 text-xl mb-0">
-            "The audacity! The sheer, unmitigated audacity of that woman!"
-          </p>
-        </div>
-      </div>
-
-      <div class="prose prose-invert prose-xl reveal">
-        <div class="my-8 space-y-4" style="text-align:left">
+      <section class="prose">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "The Princess's Palace has long been the most neglected residence in the entire complex. Madame Quiggin assumed—correctly, until now—that no one would take notice."
           </p>
@@ -439,73 +566,71 @@
           </p>
         </div>
         <p>Yet what ignited the Queen Mother's fury beyond all else was a singular, unbearable truth—</p>
-      </div>
+      </section>
 
-      <div class="my-16 rage-container p-8 rounded-lg reveal">
+      <div class="rage-container">
         <p class="dialogue text-red-100 text-2xl mb-0">
           "She manipulated me—used my own hand to strike down my granddaughter? Has she taken complete leave of her senses?!"
         </p>
       </div>
 
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p>
           However distant she might have been, would she truly have cast aside her own flesh and blood with such cruelty?
         </p>
         <p>
-          The Queen Mother trembled with indignation—conveniently forgetting the bitter words she herself had hurled at
-          Medea.
+          The Queen Mother trembled with indignation—conveniently forgetting the bitter words she herself had hurled at Medea.
         </p>
-      </div>
+      </section>
 
-      <div class="my-20 cold-realization p-10 rounded-lg reveal">
-        <p class="thought text-blue-200 text-xl text-center leading-relaxed mb-4">
+      <div class="cold-realization">
+        <p class="thought text-blue-200 text-xl mb-4">
           The traitor testified that the Prince Regent had Quiggin removed from her position...
         </p>
-        <p class="thought text-blue-100 text-2xl text-center leading-relaxed">
+        <p class="thought text-blue-100 text-2xl">
           Did Quiggin truly orchestrate all of this alone?
         </p>
       </div>
 
-      <div class="prose prose-invert prose-xl reveal">
+      <!-- The Collapse -->
+      <section class="prose">
         <p>At that moment, the chamber doors burst open.</p>
         <p>A maid stumbled in, face drained of color, gasping for breath.</p>
+      </section>
+
+      <div class="emotional-moment">
+        <p class="dialogue text-yellow-400 text-3xl md:text-4xl font-bold">
+          "Your Majesty! The Princess—Her Highness has collapsed!"
+        </p>
       </div>
 
-      <div class="my-20 flex items-center justify-center reveal" style="min-height:40vh">
-        <div class="text-center">
-          <p class="dialogue text-yellow-400 text-3xl md:text-4xl font-bold">
-            "Your Majesty! The Princess—Her Highness has collapsed!"
-          </p>
-        </div>
+      <div class="scene-divider"></div>
+
+      <!-- Royal Chapel -->
+      <div class="chapter-marker">
+        <h2>The Royal Chapel</h2>
       </div>
 
-      <div class="scene-divider reveal"></div>
-
-      <div class="chapter-marker my-20 reveal">
-        <h3 class="font-heading text-3xl text-slate-300 mb-4">The Royal Chapel</h3>
-      </div>
-
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p class="text-2xl text-center mb-8 font-heading text-red-300">
           The Queen Mother rushed to her side.
         </p>
         <p>
           When she arrived, her unconscious granddaughter was already being lifted from the cold chapel floor.
         </p>
-      </div>
+      </section>
 
-      <div class="my-16 bg-neutral-900/50 border-2 border-neutral-800 p-8 rounded-lg reveal">
-        <p class="text-neutral-300 text-xl leading-relaxed text-center">
+      <div class="featured-box slate">
+        <p class="text-neutral-300 text-xl leading-relaxed text-center m-0">
           "She was already in this state when we found her."
         </p>
       </div>
 
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p>
-          The Princess, hastily carried from the chapel, appeared utterly bloodless—as though life itself had begun
-          retreating from her body.
+          The Princess, hastily carried from the chapel, appeared utterly bloodless—as though life itself had begun retreating from her body.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "Why was this discovered so late? Did no one think to check on her condition?"
           </p>
@@ -514,13 +639,12 @@
           </p>
         </div>
         <p>
-          The Queen Mother felt a sharp pang of mortification. Her granddaughter's condition was far worse than any
-          report had suggested.
+          The Queen Mother felt a sharp pang of mortification. Her granddaughter's condition was far worse than any report had suggested.
         </p>
-        <p class="text-center text-neutral-500 italic my-8">
+        <p class="text-neutral-500 italic text-center my-8">
           Five days. Wearing nothing but a thin dress. How had she survived at all?
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "Look at her lips—cracked and bleeding! Why wasn't medicine applied?"
           </p>
@@ -532,20 +656,17 @@
           </p>
         </div>
         <p>
-          The Queen Mother seemed determined to direct her fury at everything within reach. Her attendants stood
-          frozen, paralyzed by confusion.
+          The Queen Mother seemed determined to direct her fury at everything within reach. Her attendants stood frozen, paralyzed by confusion.
         </p>
         <p>Her gaze fell upon Medea's slack, pallid face.</p>
-      </div>
+      </section>
 
-      <div class="my-12 reveal">
-        <blockquote class="border-l-4 border-amber-700 pl-6 italic text-amber-200 text-xl">
-          "Stubborn child," she murmured. "Are you trying to torment this old woman?"
-        </blockquote>
-      </div>
+      <blockquote class="amber text-xl">
+        "Stubborn child," she murmured. "Are you trying to torment this old woman?"
+      </blockquote>
 
-      <div class="prose prose-invert prose-xl reveal">
-        <div class="my-8 space-y-4" style="text-align:left">
+      <section class="prose">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "Pardon? Ah... yes, Your Majesty..."
           </p>
@@ -554,13 +675,11 @@
           </p>
         </div>
         <p>
-          Her attendants exchanged bewildered glances, utterly lost. Baroness Pinatelli—who might have decoded the
-          Queen Mother's erratic behavior—was momentarily absent.
+          Her attendants exchanged bewildered glances, utterly lost. Baroness Pinatelli—who might have decoded the Queen Mother's erratic behavior—was momentarily absent.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
-            "What are you standing there gaping for? The Princess has collapsed—do you intend to leave her lying on this
-            frozen floor all night?"
+            "What are you standing there gaping for? The Princess has collapsed—do you intend to leave her lying on this frozen floor all night?"
           </p>
           <p class="dialogue">
             "Your Majesty... then...?"
@@ -576,28 +695,25 @@
           Hadn't she just been condemning the fallen Princess moments ago?
         </p>
         <p>
-          The maids felt hopelessly adrift, unable to predict her next command. Nevertheless, they lifted the Princess
-          with trembling care, though she remained lost to consciousness.
+          The maids felt hopelessly adrift, unable to predict her next command. Nevertheless, they lifted the Princess with trembling care, though she remained lost to consciousness.
+        </p>
+      </section>
+
+      <div class="featured-box slate text-center">
+        <p class="dialogue text-slate-300 text-2xl m-0">
+          "To the Princess's Palace!"
         </p>
       </div>
 
-      <div class="my-16 reveal">
-        <div class="bg-slate-900/50 p-8 rounded-lg text-center border border-slate-700">
-          <p class="dialogue text-slate-300 text-2xl mb-0">
-            "To the Princess's Palace!"
-          </p>
-        </div>
-      </div>
-
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p>
           As they lifted the stretcher, a pale hand slipped free, dangling lifelessly over the edge.
         </p>
         <p>The Queen Mother's face drained of color.</p>
-      </div>
+      </section>
 
-      <div class="my-20 text-center reveal">
-        <p class="text-neutral-500 text-lg mb-4">
+      <div class="emotional-moment" style="min-height: 30vh;">
+        <p class="text-neutral-500 mb-4">
           For one terrible instant, she saw another hand—
         </p>
         <p class="text-neutral-400 text-xl italic">
@@ -608,42 +724,37 @@
         </p>
       </div>
 
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p>
-          That devastating morning when all warmth had fled, leaving only cold, rigid parchment where her child had once
-          been.
+          That devastating morning when all warmth had fled, leaving only cold, rigid parchment where her child had once been.
         </p>
-      </div>
+      </section>
 
-      <div class="my-20 flex items-center justify-center reveal" style="min-height:30vh">
+      <div class="emotional-moment">
         <p class="dialogue text-4xl md:text-5xl text-red-300 font-heading fevered-text">
           "Medea!"
         </p>
       </div>
 
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p>
-          She rushed forward, turning the girl over with desperate hands. Only after confirming the faint, fragile
-          rhythm of breath did she allow the maids to continue.
+          She rushed forward, turning the girl over with desperate hands. Only after confirming the faint, fragile rhythm of breath did she allow the maids to continue.
         </p>
+      </section>
+
+      <div class="scene-divider"></div>
+
+      <!-- Princess's Palace -->
+      <div class="chapter-marker">
+        <h2>The Princess's Palace — Late Night</h2>
       </div>
 
-      <div class="scene-divider reveal"></div>
-
-      <div class="chapter-marker my-20 reveal">
-        <h3 class="font-heading text-3xl text-slate-300 mb-4">
-          The Princess's Palace — Late Night
-        </h3>
-      </div>
-
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p>The Princess's wing erupted into chaos.</p>
         <p>
-          First, because the Princess who had been kneeling in punishment before the chapel had been carried away
-          unconscious. But more significantly—because the Queen Mother, who rarely stirred from her own chambers, had
-          come herself.
+          First, because the Princess who had been kneeling in punishment before the chapel had been carried away unconscious. But more significantly—because the Queen Mother, who rarely stirred from her own chambers, had come herself.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "To behold Her Majesty the Queen Mother! Infinite glory be unto Valdina's eternal light—"
           </p>
@@ -655,29 +766,26 @@
           The Queen Mother's frown deepened as she surveyed her surroundings.
         </p>
         <p>
-          The Princess's Palace was saturated with cold emptiness. Despite the evening hour, it carried an oppressive
-          desolation—as though no one truly inhabited these walls. She noted with displeasure the abundance of young,
-          inexperienced faces unfamiliar with proper court protocol.
+          The Princess's Palace was saturated with cold emptiness. Despite the evening hour, it carried an oppressive desolation—as though no one truly inhabited these walls. She noted with displeasure the abundance of young, inexperienced faces unfamiliar with proper court protocol.
         </p>
-      </div>
+      </section>
 
-      <div class="my-16 cold-realization p-10 rounded-lg reveal">
-        <p class="thought text-blue-200 text-xl text-center leading-relaxed">
+      <div class="cold-realization">
+        <p class="thought text-blue-200 text-xl text-center">
           Why are so many incompetents surrounding the Princess?
         </p>
       </div>
 
-      <div class="prose prose-invert prose-xl reveal">
-        <div class="my-8 space-y-4" style="text-align:left">
+      <section class="prose">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
-            "The former Head Maid systematically dismissed the experienced staff, claiming they caused problems. They
-            were replaced with girls newly arrived at the palace—untrained and easily controlled."
+            "The former Head Maid systematically dismissed the experienced staff, claiming they caused problems. They were replaced with girls newly arrived at the palace—untrained and easily controlled."
           </p>
         </div>
         <p>
           Baroness Pinatelli, having returned, supplied this information with quiet precision.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "Quiggin—that scheming creature wrought chaos until the very end."
           </p>
@@ -685,7 +793,7 @@
         <p>
           The Queen Mother continued her inspection, disgust evident in every glance.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "We offer humble thanks for Your Majesty's boundless generosity. Her Royal Highness will never forget this kindness."
           </p>
@@ -694,47 +802,44 @@
           </p>
         </div>
         <p>
-          The Queen Mother snapped at Baroness Pinatelli—fully aware that the constant stream of messages from the
-          Princess had been orchestrated through this very woman.
+          The Queen Mother snapped at Baroness Pinatelli—fully aware that the constant stream of messages from the Princess had been orchestrated through this very woman.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "Your Majesty, please forgive me. Age must be dulling my faculties."
           </p>
         </div>
         <p>
-          At that moment, a maid emerged carrying a damp cloth. Upon spotting the Queen Mother, she hastily stepped
-          aside and lowered herself in a deep bow.
+          At that moment, a maid emerged carrying a damp cloth. Upon spotting the Queen Mother, she hastily stepped aside and lowered herself in a deep bow.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "I greet Her Majesty the Queen Mother."
           </p>
         </div>
         <p>
-          Beyond the partially opened door, the bedroom curtain was visible. Baroness Pinatelli noted how the Queen
-          Mother's attention remained fixed on the chamber where Medea lay.
+          Beyond the partially opened door, the bedroom curtain was visible. Baroness Pinatelli noted how the Queen Mother's attention remained fixed on the chamber where Medea lay.
         </p>
         <p>Quietly, Pinatelli approached and pushed the door wider.</p>
         <p>The Queen Mother entered as though drawn by invisible threads.</p>
         <p class="text-neutral-400 italic text-center">
           Baroness Pinatelli lowered her eyes, concealing her satisfied smile.
         </p>
+      </section>
+
+      <div class="scene-divider"></div>
+
+      <!-- The Bedroom -->
+      <div class="chapter-marker">
+        <h2>The Bedroom</h2>
       </div>
 
-      <div class="scene-divider reveal"></div>
-
-      <div class="chapter-marker my-20 reveal">
-        <h3 class="font-heading text-3xl text-slate-300 mb-4">The Bedroom</h3>
-      </div>
-
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p>The Princess's bedroom held a thick, oppressive warmth.</p>
         <p>
-          Not from any fire in the hearth, but from the fever radiating off the patient in waves, accompanying each
-          labored breath.
+          Not from any fire in the hearth, but from the fever radiating off the patient in waves, accompanying each labored breath.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
+        <div class="my-8 space-y-4">
           <p class="dialogue">
             "The cold compresses have been applied, Your Majesty."
           </p>
@@ -744,161 +849,129 @@
         </p>
         <p>The Queen Mother raised a hand in dismissal.</p>
         <p>
-          The gesture was unmistakable: everyone was to leave. Baroness Pinatelli quietly ushered the attendants out.
-          The door closed with a soft creak.
+          The gesture was unmistakable: everyone was to leave. Baroness Pinatelli quietly ushered the attendants out. The door closed with a soft creak.
         </p>
         <p>The Queen Mother surveyed the chamber in silence.</p>
         <p>
-          This was her first time visiting the Princess's Palace—her first time seeing Medea's private quarters. Paint
-          peeled in numerous places. The decorations were crude, the furniture worn and faded.
+          This was her first time visiting the Princess's Palace—her first time seeing Medea's private quarters. Paint peeled in numerous places. The decorations were crude, the furniture worn and faded.
         </p>
-      </div>
+      </section>
 
-      <div class="my-12 reveal">
-        <blockquote class="border-l-4 border-slate-600 pl-6 italic text-slate-300 text-xl">
-          "Despite everything, you are the King's only daughter... the sole Princess of this nation..."
-        </blockquote>
-      </div>
+      <blockquote class="slate text-xl">
+        "Despite everything, you are the King's only daughter... the sole Princess of this nation..."
+      </blockquote>
 
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p>How could her chamber be so utterly shabby?</p>
         <p>
-          Even the sheets upon which Medea lay were coarse—not the lowest quality perhaps, but certainly unworthy of
-          royalty.
+          Even the sheets upon which Medea lay were coarse—not the lowest quality perhaps, but certainly unworthy of royalty.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "Ngh..."
-          </p>
-          <p class="dialogue">
-            "You're conscious?"
-          </p>
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Ngh..."</p>
+          <p class="dialogue">"You're conscious?"</p>
         </div>
         <p>
-          Medea's eyes fluttered open, glazed and burning with fever. Upon seeing the figure beside her bed, she
-          murmured vaguely.
+          Medea's eyes fluttered open, glazed and burning with fever. Upon seeing the figure beside her bed, she murmured vaguely.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "Ah..."
-          </p>
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Ah..."</p>
         </div>
         <p>
           Then she extended a trembling arm and seized the Queen Mother's sleeve with surprising strength.
         </p>
         <p>
-          Despite her weakened state, she gripped so tightly that veins stood out across the back of her hand—refusing
-          absolutely to let go.
+          Despite her weakened state, she gripped so tightly that veins stood out across the back of her hand—refusing absolutely to let go.
+        </p>
+      </section>
+
+      <!-- Father Memory -->
+      <div class="featured-box amber text-center">
+        <p class="text-amber-200 text-xl leading-relaxed italic m-0">
+          "I look exactly like your father. Whenever you miss him, you can look at me instead."
         </p>
       </div>
 
-      <div class="my-20 reveal">
-        <div class="relative bg-gradient-to-br from-amber-900/20 to-amber-950/30 border-2 border-amber-700/50 p-10 rounded-lg shadow-2xl">
-          <p class="text-amber-200 text-xl text-center leading-relaxed italic">
-            "I look exactly like your father. Whenever you miss him, you can look at me instead."
-          </p>
-        </div>
-      </div>
-
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p>
-          The Queen Mother and Medea's father had been nearly identical in appearance. Her late husband had often
-          complained that their son favored only his mother's features.
+          The Queen Mother and Medea's father had been nearly identical in appearance. Her late husband had often complained that their son favored only his mother's features.
         </p>
         <p>
           It was not unreasonable for a delirious child to mistake one for the other.
         </p>
+      </section>
+
+      <div class="emotional-moment" style="min-height: 50vh;">
+        <p class="dialogue text-4xl md:text-5xl text-amber-200 font-body italic fevered-text mb-8">
+          "Father…"
+        </p>
+        <p class="dialogue text-3xl text-amber-300 font-body italic fevered-text">
+          "Please don't leave me…"
+        </p>
       </div>
 
-      <div class="my-20 flex items-center justify-center reveal" style="min-height:50vh">
-        <div class="text-center">
-          <p class="dialogue text-4xl md:text-5xl text-amber-200 font-body italic fevered-text mb-8">
-            "Father…"
-          </p>
-          <p class="dialogue text-3xl text-amber-300 font-body italic fevered-text">
-            "Please don't leave me…"
-          </p>
-        </div>
-      </div>
-
-      <div class="prose prose-invert prose-xl reveal">
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "What... what nonsense is this..."
-          </p>
+      <section class="prose">
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"What... what nonsense is this..."</p>
         </div>
         <p>
-          The Queen Mother felt a flush of embarrassment and attempted to extricate herself from the grip—then froze
-          abruptly.
+          The Queen Mother felt a flush of embarrassment and attempted to extricate herself from the grip—then froze abruptly.
         </p>
         <p>
           She had spotted an old locket resting on the bedside table. Its shape struck her as strangely familiar.
         </p>
+      </section>
+
+      <!-- The Locket -->
+      <div class="featured-box amber text-center">
+        <div class="mb-6 text-6xl">🔗</div>
+        <p class="text-neutral-300 text-xl leading-relaxed mb-4 m-0">
+          Inside the open locket—a portrait.
+        </p>
+        <p class="text-amber-200 text-2xl font-heading m-0">
+          Of her eldest son. King John.
+        </p>
+        <p class="text-amber-100 italic mt-4 m-0">
+          The colors had faded where a thumb had traced the image countless times.
+        </p>
       </div>
 
-      <div class="my-20 reveal">
-        <div class="relative bg-gradient-to-br from-yellow-900/20 to-amber-950/30 border-2 border-amber-700/50 p-10 rounded-lg shadow-2xl">
-          <div class="text-center mb-6 text-6xl">🔗</div>
-          <p class="text-neutral-300 text-xl text-center leading-relaxed mb-4">
-            Inside the open locket—a portrait.
-          </p>
-          <p class="text-amber-200 text-2xl text-center font-heading">
-            Of her eldest son. King John.
-          </p>
-          <p class="text-amber-100 text-lg text-center italic mt-4">
-            The colors had faded where a thumb had traced the image countless times.
-          </p>
-        </div>
-      </div>
-
-      <div class="prose prose-invert prose-xl reveal">
+      <section class="prose">
         <p>
           The Queen Mother gazed down at the locket and her feverish granddaughter for a long, silent moment.
         </p>
         <p>Then she turned away and rose to her feet.</p>
+      </section>
+
+      <div class="scene-divider"></div>
+
+      <!-- The Hallway -->
+      <div class="chapter-marker">
+        <h2>The Hallway</h2>
       </div>
 
-      <div class="scene-divider reveal"></div>
-
-      <div class="chapter-marker my-20 reveal">
-        <h3 class="font-heading text-3xl text-slate-300 mb-4">The Hallway</h3>
-      </div>
-
-      <div class="prose prose-invert prose-xl reveal">
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "Your Majesty."
-          </p>
+      <section class="prose">
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Your Majesty."</p>
         </div>
         <p>
           When the Queen Mother emerged, everyone rose as though they had been waiting.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "Your Highness's fever refuses to subside. What should we do?"
-          </p>
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Your Highness's fever refuses to subside. What should we do?"</p>
         </div>
         <p>
           The maids' anxious murmuring reached her ears. The Queen Mother's frown deepened.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "Has the physician not yet arrived? What could possibly be taking so long?"
-          </p>
-          <p class="dialogue">
-            "Well, that is... Ah, someone approaches now!"
-          </p>
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Has the physician not yet arrived? What could possibly be taking so long?"</p>
+          <p class="dialogue">"Well, that is... Ah, someone approaches now!"</p>
         </div>
         <p>
           The maid who had been dispatched to summon the court physician returned—empty-handed and alone.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "Your Majesty the Queen Mother. May Valdina's infinite light shine upon you."
-          </p>
-          <p class="dialogue">
-            "Enough formalities. Where is the physician? Why have you returned alone?"
-          </p>
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Your Majesty the Queen Mother. May Valdina's infinite light shine upon you."</p>
+          <p class="dialogue">"Enough formalities. Where is the physician? Why have you returned alone?"</p>
         </div>
         <p>
           The Queen Mother dismissed the greeting curtly, demanding an immediate explanation.
@@ -906,86 +979,62 @@
         <p class="text-neutral-400 italic text-center my-8">
           The royal physician's quarters were not far from the Princess's Palace. This delay made no sense.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "He said he is presently occupied and will come once he has finished attending to his current patient. He
-            instructed me to return ahead."
-          </p>
-          <p class="dialogue">
-            "And you found this acceptable? Did you not explain the Princess's condition properly?"
-          </p>
-          <p class="dialogue">
-            "I did, Your Majesty! I told him Her Highness Princess Medea had collapsed, that her fever burned like fire,
-            that he must come at once..."
-          </p>
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"He said he is presently occupied and will come once he has finished attending to his current patient. He instructed me to return ahead."</p>
+          <p class="dialogue">"And you found this acceptable? Did you not explain the Princess's condition properly?"</p>
+          <p class="dialogue">"I did, Your Majesty! I told him Her Highness Princess Medea had collapsed, that her fever burned like fire, that he must come at once..."</p>
         </div>
-        <p>
-          The maid protested as though unjustly accused.
-        </p>
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "But he insisted he could not come immediately because he is treating Lady Birna's injury..."
-          </p>
+        <p>The maid protested as though unjustly accused.</p>
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"But he insisted he could not come immediately because he is treating Lady Birna's injury..."</p>
           <p class="dialogue">
             "Birna?"
-            <span class="text-neutral-500 font-body text-lg italic block mt-1">
+            <span class="text-neutral-500 font-body italic" style="display:block;margin-top:0.25rem;font-size:1rem">
               The Queen Mother's voice sharpened.
             </span>
             "Where and how was she injured?"
           </p>
         </div>
         <p>
-          Concern flickered across her features at the mention of her beloved younger granddaughter—though surely the
-          injury couldn't be severe enough to justify delaying treatment for a collapsed Princess.
+          Concern flickered across her features at the mention of her beloved younger granddaughter—though surely the injury couldn't be severe enough to justify delaying treatment for a collapsed Princess.
         </p>
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "That is..."
-          </p>
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"That is..."</p>
         </div>
-        <p>
-          The maid hesitated, as though uncertain whether she should speak at all.
+        <p>The maid hesitated, as though uncertain whether she should speak at all.</p>
+      </section>
+
+      <!-- The Reveal -->
+      <div class="emotional-moment">
+        <p class="dialogue text-3xl text-yellow-400 font-body">
+          "She... cut her hand while opening an invitation."
         </p>
       </div>
 
-      <div class="my-20 flex items-center justify-center reveal" style="min-height:40vh">
-        <div class="text-center">
-          <p class="dialogue text-3xl text-yellow-400 font-body">
-            "She... cut her hand while opening an invitation."
-          </p>
-        </div>
-      </div>
-
-      <div class="prose prose-invert prose-xl reveal">
-        <div class="my-8 space-y-4" style="text-align:left">
-          <p class="dialogue">
-            "What did you say?"
-          </p>
+      <section class="prose">
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"What did you say?"</p>
         </div>
         <p>
           The Queen Mother asked again, as though unable to believe what she had just heard.
         </p>
-      </div>
+      </section>
 
-      <div class="my-20 reveal">
-        <div class="grid md:grid-cols-2 gap-8">
-          <div class="bg-red-950/30 border-2 border-red-800 p-6 rounded-lg text-center">
-            <p class="text-red-300 text-xl font-heading uppercase tracking-widest mb-2">
-              A dying Princess
-            </p>
-            <p class="text-red-500 text-3xl font-bold">Ignored</p>
-          </div>
-          <div class="bg-yellow-950/30 border-2 border-yellow-800 p-6 rounded-lg text-center">
-            <p class="text-yellow-300 text-xl font-heading uppercase tracking-widest mb-2">
-              A paper cut
-            </p>
-            <p class="text-yellow-500 text-3xl font-bold">Prioritized</p>
-          </div>
+      <!-- Comparison Grid -->
+      <div class="comparison-grid">
+        <div class="comparison-card red">
+          <h3 class="text-red-300">A dying Princess</h3>
+          <p class="text-red-500">Ignored</p>
+        </div>
+        <div class="comparison-card yellow">
+          <h3 class="text-yellow-300">A paper cut</h3>
+          <p class="text-yellow-400">Prioritized</p>
         </div>
       </div>
 
-      <div class="my-20 text-center reveal">
-        <p class="text-neutral-400 text-lg italic mb-8">
+      <!-- Final Understanding -->
+      <div class="emotional-moment" style="min-height: 30vh;">
+        <p class="text-neutral-400 italic mb-8">
           The Queen Mother stared at the maid in absolute silence.
         </p>
         <p class="text-slate-200 text-4xl font-heading tracking-widest">
@@ -993,34 +1042,15 @@
         </p>
       </div>
 
-      <div class="scene-divider reveal"></div>
+      <div class="scene-divider"></div>
 
-      <div class="mt-32 mb-20 text-center reveal">
-        <div class="inline-block px-6 py-3 border border-red-800/50 rounded-full bg-red-950/20">
-          <span class="text-red-200 text-sm font-ui tracking-[0.3em] uppercase">
-            End of Chapter
-          </span>
+      <!-- End Card -->
+      <div class="final-box">
+        <div class="end-card">
+          <span>End of Chapter</span>
         </div>
       </div>
     </article>
   </main>
-
-  <script>
-    function initReveal() {
-      const obs = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) entry.target.classList.add("active");
-        });
-      }, { threshold: .1, rootMargin: "50px" });
-      document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
-    }
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initReveal);
-    } else {
-      initReveal();
-    }
-    window.addEventListener("load", initReveal);
-  </script>
 </body>
-
 </html>

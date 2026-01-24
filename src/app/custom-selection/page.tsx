@@ -2,20 +2,38 @@
 "use client"
 
 import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { useRazorpay } from '@/lib/razorpay/hooks'
 import { chapters, PRICING } from '@/data/chapters'
-import { Check, ShoppingCart, ArrowLeft, Search, Crown } from 'lucide-react'
+import { Check, ShoppingCart, ArrowLeft, Search, Crown, CreditCard, Globe } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+
+// Dynamic import for PayPal button to avoid SSR issues
+const PayPalButton = dynamic(() => import('@/components/PayPalButton'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse flex items-center justify-center">
+      <span className="text-neutral-500 text-sm">Loading PayPal...</span>
+    </div>
+  ),
+})
+
+type PaymentMethod = 'razorpay' | 'paypal'
 
 export default function CustomSelectionPage() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-  const { initializePayment, isProcessing } = useRazorpay()
+  const searchParams = useSearchParams()
+  const { user, isAuthenticated, isLoading: authLoading, refreshUser } = useAuth()
+  const { initializePayment, isProcessing: isRazorpayProcessing } = useRazorpay()
   const router = useRouter()
   
   const [selectedChapters, setSelectedChapters] = useState<number[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    (searchParams.get('payment') as PaymentMethod) || 'razorpay'
+  )
 
   // User tier
   const userTier = user?.tier || 'free'
@@ -83,14 +101,21 @@ export default function CustomSelectionPage() {
   const selectAll = () => setSelectedChapters(availableChapters.map(ch => ch.id))
   const clearSelection = () => setSelectedChapters([])
 
-  const totalCost = selectedChapters.length * PRICING.CUSTOM_SELECTION.pricePerChapter
+  const totalCostINR = selectedChapters.length * PRICING.CUSTOM_SELECTION.pricePerChapter
+  const totalCostUSD = (totalCostINR / 83.5).toFixed(2)
   const canPurchase = selectedChapters.length >= PRICING.CUSTOM_SELECTION.minChapters
 
-  const handlePurchase = async () => {
+  const handleRazorpayPurchase = async () => {
     if (!canPurchase) return
     await initializePayment('custom', {
       customChapters: selectedChapters,
     })
+  }
+
+  const handlePaymentSuccess = () => {
+    // Refresh user data to get updated owned chapters
+    refreshUser?.()
+    router.push('/#chapters')
   }
 
   // Complete pack view - user already has access
@@ -119,7 +144,6 @@ export default function CustomSelectionPage() {
   }
 
   // Calculate total premium chapters available
-  const totalPremiumChapters = chapters.filter(ch => ch.id > PRICING.FREE_CHAPTERS).length
   const alreadyOwnedCount = ownedChapters.length
 
   return (
@@ -127,7 +151,7 @@ export default function CustomSelectionPage() {
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10" />
       
       {/* SCROLLABLE CONTENT */}
-      <div className="relative min-h-screen pb-64 md:pb-48">
+      <div className="relative min-h-screen pb-72 md:pb-56">
         <div className="max-w-7xl mx-auto px-6 py-12">
           {/* Header */}
           <div className="mb-12">
@@ -136,7 +160,39 @@ export default function CustomSelectionPage() {
               <span className="text-sm font-ui">Back to Home</span>
             </Link>
             <h1 className="text-4xl md:text-6xl font-heading text-neutral-100 mb-4 tracking-tight">Custom Chapter Selection</h1>
-            <p className="text-lg text-neutral-400 font-body">Pick exactly which chapters you want • ₹{PRICING.CUSTOM_SELECTION.pricePerChapter}/chapter</p>
+            <p className="text-lg text-neutral-400 font-body">
+              Pick exactly which chapters you want • 
+              {paymentMethod === 'razorpay' 
+                ? ` ₹${PRICING.CUSTOM_SELECTION.pricePerChapter}/chapter`
+                : ` $${(PRICING.CUSTOM_SELECTION.pricePerChapter / 83.5).toFixed(2)}/chapter`
+              }
+            </p>
+            
+            {/* Payment Method Selector */}
+            <div className="mt-6 inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5">
+              <button
+                onClick={() => setPaymentMethod('razorpay')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-ui text-sm transition-all ${
+                  paymentMethod === 'razorpay'
+                    ? 'bg-[#9f1239] text-white shadow-lg'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                <CreditCard className="w-4 h-4" />
+                <span>India (UPI/Cards)</span>
+              </button>
+              <button
+                onClick={() => setPaymentMethod('paypal')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-ui text-sm transition-all ${
+                  paymentMethod === 'paypal'
+                    ? 'bg-[#0070ba] text-white shadow-lg'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                <Globe className="w-4 h-4" />
+                <span>International (PayPal)</span>
+              </button>
+            </div>
             
             {/* Recommendation Banner */}
             {selectedChapters.length >= 50 && (
@@ -148,9 +204,13 @@ export default function CustomSelectionPage() {
                       💡 Consider the Complete Pack!
                     </p>
                     <p className="text-amber-200/70 text-sm font-body">
-                      You're selecting {selectedChapters.length} chapters for ₹{totalCost}. 
-                      The Complete Pack gives you all {PRICING.COMPLETE_PACK.chapters} chapters for just ₹{PRICING.COMPLETE_PACK.price} 
-                      (₹{PRICING.COMPLETE_PACK.pricePerChapter}/chapter).
+                      You're selecting {selectedChapters.length} chapters for 
+                      {paymentMethod === 'razorpay' ? ` ₹${totalCostINR}` : ` $${totalCostUSD}`}. 
+                      The Complete Pack gives you all {PRICING.COMPLETE_PACK.chapters} chapters for just 
+                      {paymentMethod === 'razorpay' 
+                        ? ` ₹${PRICING.COMPLETE_PACK.price}` 
+                        : ` $${(PRICING.COMPLETE_PACK.price / 83.5).toFixed(2)}`
+                      } (₹{PRICING.COMPLETE_PACK.pricePerChapter}/chapter).
                     </p>
                     <Link 
                       href="/#pricing" 
@@ -175,7 +235,9 @@ export default function CustomSelectionPage() {
               <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">Selected</div>
             </div>
             <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-lg p-4">
-              <div className="text-2xl font-heading text-neutral-100 mb-1">₹{totalCost}</div>
+              <div className="text-2xl font-heading text-neutral-100 mb-1">
+                {paymentMethod === 'razorpay' ? `₹${totalCostINR}` : `$${totalCostUSD}`}
+              </div>
               <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">Total Cost</div>
             </div>
             <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-lg p-4">
@@ -281,7 +343,10 @@ export default function CustomSelectionPage() {
                           {chapter.title}
                         </h3>
                         <div className="text-xs text-[#9f1239] font-ui">
-                          ₹{PRICING.CUSTOM_SELECTION.pricePerChapter}
+                          {paymentMethod === 'razorpay' 
+                            ? `₹${PRICING.CUSTOM_SELECTION.pricePerChapter}`
+                            : `$${(PRICING.CUSTOM_SELECTION.pricePerChapter / 83.5).toFixed(2)}`
+                          }
                         </div>
                       </div>
                     </div>
@@ -298,34 +363,63 @@ export default function CustomSelectionPage() {
 
       {/* FIXED FOOTER */}
       <div className="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-md border-t border-neutral-800 p-6 z-50 shadow-[0_-10px_20px_rgba(0,0,0,0.4)]">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-center md:text-left">
-            <div className="text-sm text-neutral-400 font-body mb-1">
-              {selectedChapters.length} chapter{selectedChapters.length !== 1 ? 's' : ''} selected
-              {selectedChapters.length > 0 && !canPurchase && (
-                <span className="text-red-400 ml-2">(min {PRICING.CUSTOM_SELECTION.minChapters} required)</span>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left">
+              <div className="text-sm text-neutral-400 font-body mb-1">
+                {selectedChapters.length} chapter{selectedChapters.length !== 1 ? 's' : ''} selected
+                {selectedChapters.length > 0 && !canPurchase && (
+                  <span className="text-red-400 ml-2">(min {PRICING.CUSTOM_SELECTION.minChapters} required)</span>
+                )}
+              </div>
+              <div className="text-2xl font-heading text-neutral-100">
+                Total: {paymentMethod === 'razorpay' ? `₹${totalCostINR}` : `$${totalCostUSD}`}
+              </div>
+            </div>
+
+            {/* Payment Buttons */}
+            <div className="w-full md:w-auto">
+              {paymentMethod === 'razorpay' ? (
+                <button
+                  onClick={handleRazorpayPurchase}
+                  disabled={!canPurchase || isRazorpayProcessing}
+                  className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg"
+                >
+                  {isRazorpayProcessing ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-4 h-4" />
+                      Pay with Razorpay
+                    </>
+                  )}
+                </button>
+              ) : (
+                <div className={`w-full md:w-64 ${!canPurchase ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <PayPalButton
+                    purchaseType="custom"
+                    chapters={selectedChapters}
+                    disabled={!canPurchase}
+                    onSuccess={handlePaymentSuccess}
+                    onError={(error) => console.error('PayPal error:', error)}
+                  />
+                </div>
               )}
             </div>
-            <div className="text-2xl font-heading text-neutral-100">Total: ₹{totalCost}</div>
           </div>
-
-          <button
-            onClick={handlePurchase}
-            disabled={!canPurchase || isProcessing}
-            className="px-8 py-3 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
-          >
-            {isProcessing ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="w-4 h-4" />
-                Purchase Selected
-              </>
-            )}
-          </button>
+          
+          {/* Payment method info */}
+          <div className="mt-3 text-center md:text-right">
+            <p className="text-xs text-neutral-500">
+              {paymentMethod === 'razorpay' 
+                ? 'Pay with UPI, Credit/Debit Cards, Net Banking'
+                : 'Pay with PayPal or International Cards'
+              }
+            </p>
+          </div>
         </div>
       </div>
     </div>

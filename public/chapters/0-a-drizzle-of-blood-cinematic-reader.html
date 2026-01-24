@@ -5,13 +5,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Prologue: A Drizzle of Blood</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap"
-        rel="stylesheet" media="print" onload='this.media="all"'>
+    
+    <!-- Self-hosted fonts -->
+    <link rel="stylesheet" href="/fonts/fonts.css">
+    
     <style>
         *,
         ::after,
@@ -282,7 +279,6 @@
         }
 
         @keyframes shake {
-
             10%,
             90% {
                 transform: translate3d(-1px, 0, 0)
@@ -318,7 +314,6 @@
         }
 
         @keyframes drip {
-
             0%,
             100% {
                 transform: translateY(-100%)
@@ -345,7 +340,6 @@
         }
 
         @keyframes pulse {
-
             0%,
             100% {
                 opacity: .5
@@ -866,7 +860,21 @@
             </div>
         </article>
     </main>
-    <script>function initReveal() { const e = new IntersectionObserver(e => { e.forEach(e => { e.isIntersecting && e.target.classList.add("active") }) }, { threshold: .1, rootMargin: "50px" }); document.querySelectorAll(".reveal").forEach(t => e.observe(t)) } "loading" === document.readyState ? document.addEventListener("DOMContentLoaded", initReveal) : initReveal(), window.addEventListener("load", initReveal)</script>
+    <script>
+        function initReveal() {
+            const e = new IntersectionObserver(e => {
+                e.forEach(e => {
+                    e.isIntersecting && e.target.classList.add("active")
+                })
+            }, {
+                threshold: .1,
+                rootMargin: "50px"
+            });
+            document.querySelectorAll(".reveal").forEach(t => e.observe(t))
+        }
+        "loading" === document.readyState ? document.addEventListener("DOMContentLoaded", initReveal) : initReveal();
+        window.addEventListener("load", initReveal)
+    </script>
 </body>
 
 </html>

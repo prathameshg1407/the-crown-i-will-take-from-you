@@ -2,24 +2,116 @@
 "use client"
 
 import { pricingPlans, PRICING } from "@/data/chapters"
-import { Check, Crown, Sparkles, Zap } from "lucide-react"
+import { Check, Crown, Sparkles, Zap, CreditCard, Globe } from "lucide-react"
 import { useAuth } from "@/lib/auth/AuthContext"
 import { useRazorpay } from "@/lib/razorpay/hooks"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import dynamic from 'next/dynamic'
+
+// Dynamic import for PayPal button to avoid SSR issues
+const PayPalButton = dynamic(() => import('./PayPalButton'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse" />
+  ),
+})
+
+type PaymentMethod = 'razorpay' | 'paypal'
+
+// Loading skeleton that matches server render structure
+function PricingPlansSkeleton() {
+  return (
+    <section id="pricing" className="max-w-7xl mx-auto px-6 md:px-8 py-32 reveal">
+      {/* Header */}
+      <div className="text-center mb-16">
+        <div className="mb-6 inline-flex items-center gap-2 px-5 py-2 border border-amber-900/30 rounded-full bg-amber-950/10 backdrop-blur-sm">
+          <Crown className="w-4 h-4 text-amber-400" />
+          <span className="text-amber-200/60 text-[9px] font-ui tracking-[0.45em] uppercase font-light">
+            Premium Access
+          </span>
+        </div>
+        
+        <h2 className="text-4xl md:text-6xl font-heading text-neutral-100 mb-6 tracking-tight">
+          Unlock the Complete <span className="gradient-text italic">Story</span>
+        </h2>
+        
+        <p className="text-lg md:text-xl text-neutral-400 font-body max-w-2xl mx-auto">
+          One-time payment. Lifetime access. No subscriptions.
+        </p>
+      </div>
+
+      {/* Payment Method Selector Skeleton */}
+      <div className="flex justify-center gap-4 mb-8">
+        <div className="inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5">
+          <div className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-neutral-800/50 animate-pulse">
+            <div className="w-4 h-4 bg-neutral-700 rounded" />
+            <div className="w-24 h-4 bg-neutral-700 rounded" />
+          </div>
+          <div className="flex items-center gap-2 px-5 py-2.5 rounded-lg">
+            <div className="w-4 h-4 bg-neutral-800 rounded" />
+            <div className="w-28 h-4 bg-neutral-800 rounded" />
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs Skeleton */}
+      <div className="flex justify-center gap-4 mb-12">
+        <div className="px-6 py-3 rounded-lg bg-neutral-800/50 animate-pulse w-28 h-12" />
+        <div className="px-6 py-3 rounded-lg bg-neutral-900/40 border border-neutral-800 w-36 h-12" />
+      </div>
+
+      {/* Cards Skeleton */}
+      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        {[1, 2].map((i) => (
+          <div
+            key={i}
+            className="bg-neutral-900/40 backdrop-blur-sm border border-neutral-800/60 rounded-2xl p-8"
+          >
+            <div className="h-8 bg-neutral-800/50 rounded w-32 mb-4 animate-pulse" />
+            <div className="h-16 bg-neutral-800/50 rounded w-24 mb-6 animate-pulse" />
+            <div className="space-y-3 mb-8">
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="h-4 bg-neutral-800/50 rounded animate-pulse" />
+              ))}
+            </div>
+            <div className="h-12 bg-neutral-800/50 rounded animate-pulse" />
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
 
 export default function PricingPlans() {
+  const [mounted, setMounted] = useState(false)
   const { user, isAuthenticated } = useAuth()
-  const { initializePayment, isProcessing } = useRazorpay()
+  const { initializePayment, isProcessing: isRazorpayProcessing } = useRazorpay()
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('razorpay')
+
+  // Handle hydration - only render interactive content after mount
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Safe user tier access
   const userTier = user?.tier || 'free'
   const hasCompletePack = userTier === 'complete'
   const ownedChaptersCount = user?.ownedChapters?.length ?? 0
 
-  const handleCompletePurchase = async () => {
+  const handleRazorpayPurchase = async () => {
     await initializePayment('complete', { tier: 'complete' })
+  }
+
+  const handlePaymentSuccess = () => {
+    // Refresh user data or redirect
+    window.location.reload()
+  }
+
+  // Show skeleton during SSR and initial hydration
+  if (!mounted) {
+    return <PricingPlansSkeleton />
   }
 
   return (
@@ -61,6 +153,47 @@ export default function PricingPlans() {
         )}
       </div>
 
+      {/* Payment Method Selector */}
+      <div className="flex justify-center gap-4 mb-8">
+        <div className="inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5">
+          <button
+            onClick={() => setPaymentMethod('razorpay')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-ui text-sm transition-all ${
+              paymentMethod === 'razorpay'
+                ? 'bg-[#9f1239] text-white shadow-lg'
+                : 'text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>India (UPI/Cards)</span>
+          </button>
+          <button
+            onClick={() => setPaymentMethod('paypal')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-ui text-sm transition-all ${
+              paymentMethod === 'paypal'
+                ? 'bg-[#0070ba] text-white shadow-lg'
+                : 'text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <Globe className="w-4 h-4" />
+            <span>International (PayPal)</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Payment Method Info */}
+      <div className="text-center mb-12">
+        {paymentMethod === 'razorpay' ? (
+          <p className="text-sm text-neutral-500">
+            Pay with UPI, Credit/Debit Cards, Net Banking • Prices in INR
+          </p>
+        ) : (
+          <p className="text-sm text-neutral-500">
+            Pay with PayPal, Credit/Debit Cards • Prices in USD
+          </p>
+        )}
+      </div>
+
       {/* Tabs */}
       <div className="flex justify-center gap-4 mb-12">
         <button
@@ -91,6 +224,7 @@ export default function PricingPlans() {
           {pricingPlans.map((plan) => {
             const isPurchased = hasCompletePack && plan.id === 'complete'
             const isFree = plan.id === 'free'
+            const usdPrice = plan.price > 0 ? (plan.price / 83.5).toFixed(2) : '0'
 
             return (
               <div
@@ -142,13 +276,24 @@ export default function PricingPlans() {
 
                 <div className="mb-8">
                   <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-5xl md:text-6xl font-heading text-neutral-100">
-                      {plan.price === 0 ? 'Free' : `₹${plan.price}`}
-                    </span>
+                    {paymentMethod === 'razorpay' ? (
+                      <span className="text-5xl md:text-6xl font-heading text-neutral-100">
+                        {plan.price === 0 ? 'Free' : `₹${plan.price}`}
+                      </span>
+                    ) : (
+                      <span className="text-5xl md:text-6xl font-heading text-neutral-100">
+                        {plan.price === 0 ? 'Free' : `$${usdPrice}`}
+                      </span>
+                    )}
                   </div>
-                  {plan.pricePerChapter && (
+                  {plan.pricePerChapter && paymentMethod === 'razorpay' && (
                     <div className="text-sm text-neutral-500 font-body">
                       ₹{plan.pricePerChapter}/chapter
+                    </div>
+                  )}
+                  {plan.pricePerChapter && paymentMethod === 'paypal' && (
+                    <div className="text-sm text-neutral-500 font-body">
+                      ${(plan.pricePerChapter / 83.5).toFixed(2)}/chapter
                     </div>
                   )}
                 </div>
@@ -173,6 +318,7 @@ export default function PricingPlans() {
                   ))}
                 </ul>
 
+                {/* Action Buttons */}
                 {isFree ? (
                   <Link
                     href="#chapters"
@@ -187,13 +333,13 @@ export default function PricingPlans() {
                   >
                     ✓ Purchased
                   </button>
-                ) : (
+                ) : paymentMethod === 'razorpay' ? (
                   <button
-                    onClick={handleCompletePurchase}
-                    disabled={isProcessing}
+                    onClick={handleRazorpayPurchase}
+                    disabled={isRazorpayProcessing}
                     className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
-                    {isProcessing ? (
+                    {isRazorpayProcessing ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         Processing...
@@ -201,10 +347,15 @@ export default function PricingPlans() {
                     ) : (
                       <>
                         <Zap className="w-4 h-4" />
-                        Unlock Now
+                        Pay with Razorpay
                       </>
                     )}
                   </button>
+                ) : (
+                  <PayPalButton
+                    purchaseType="complete"
+                    onSuccess={handlePaymentSuccess}
+                  />
                 )}
               </div>
             )
@@ -220,14 +371,27 @@ export default function PricingPlans() {
             <h3 className="text-2xl font-heading text-neutral-100 mb-3">
               Custom Chapter Selection
             </h3>
-            <p className="text-neutral-400 font-body mb-6">
-              Pick exactly which chapters you want • ₹{PRICING.CUSTOM_SELECTION.pricePerChapter}/chapter
-            </p>
-            <p className="text-sm text-neutral-500 font-body mb-8">
-              Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters (₹{PRICING.CUSTOM_SELECTION.minAmount})
-            </p>
+            {paymentMethod === 'razorpay' ? (
+              <>
+                <p className="text-neutral-400 font-body mb-6">
+                  Pick exactly which chapters you want • ₹{PRICING.CUSTOM_SELECTION.pricePerChapter}/chapter
+                </p>
+                <p className="text-sm text-neutral-500 font-body mb-8">
+                  Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters (₹{PRICING.CUSTOM_SELECTION.minAmount})
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-neutral-400 font-body mb-6">
+                  Pick exactly which chapters you want • ${(PRICING.CUSTOM_SELECTION.pricePerChapter / 83.5).toFixed(2)}/chapter
+                </p>
+                <p className="text-sm text-neutral-500 font-body mb-8">
+                  Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters (${(PRICING.CUSTOM_SELECTION.minAmount / 83.5).toFixed(2)})
+                </p>
+              </>
+            )}
             <Link
-              href="/custom-selection"
+              href={`/custom-selection?payment=${paymentMethod}`}
               className="inline-block px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all"
             >
               Select Chapters
@@ -241,8 +405,18 @@ export default function PricingPlans() {
         <p className="text-sm text-neutral-500 font-body">
           All purchases are one-time payments with lifetime access. No subscriptions.
         </p>
+        <div className="flex items-center justify-center gap-6 text-xs text-neutral-600">
+          <span className="flex items-center gap-2">
+            <CreditCard className="w-4 h-4" />
+            Razorpay (India)
+          </span>
+          <span className="flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            PayPal (International)
+          </span>
+        </div>
         <p className="text-xs text-neutral-600 font-body">
-          Secure payment powered by Razorpay • 100% safe and encrypted
+          100% secure and encrypted payments
         </p>
       </div>
     </section>

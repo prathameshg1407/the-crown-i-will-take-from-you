@@ -5,7 +5,11 @@ import { verifyAccessToken } from '@/lib/auth/jwt'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 
-export async function GET(request: NextRequest) {
+interface ReadingProgressRecord {
+  is_completed: boolean
+}
+
+export async function GET(_request: NextRequest) {
   try {
     const cookieStore = await cookies()
     const accessToken = cookieStore.get('access_token')?.value
@@ -33,7 +37,7 @@ export async function GET(request: NextRequest) {
     // Fetch user from database (using service role bypasses RLS)
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
-      .select('*') // ✅ Select all columns to ensure owned_chapters is included
+      .select('*')
       .eq('id', userId)
       .single()
 
@@ -59,7 +63,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // ✅ Log raw database response
+    // Log raw database response
     logger.info({ 
       userId, 
       email: user.email,
@@ -83,28 +87,30 @@ export async function GET(request: NextRequest) {
       .select('is_completed')
       .eq('user_id', userId)
 
+    const progressRecords = (progress || []) as ReadingProgressRecord[]
+
     const stats = {
       activeSessions: sessions?.length || 0,
-      chaptersCompleted: progress?.filter(p => p.is_completed).length || 0,
-      chaptersInProgress: progress?.filter(p => !p.is_completed).length || 0,
+      chaptersCompleted: progressRecords.filter((p) => p.is_completed).length,
+      chaptersInProgress: progressRecords.filter((p) => !p.is_completed).length,
     }
 
     // Update last login (don't await to avoid blocking)
-   ;(async () => {
-  const { error: lastLoginError } = await supabaseAdmin
-    .from('users')
-    .update({ last_login: new Date().toISOString() })
-    .eq('id', userId)
+    void (async () => {
+      const { error: lastLoginError } = await supabaseAdmin
+        .from('users')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', userId)
 
-  if (lastLoginError) {
-    logger.error(
-      { error: lastLoginError, userId },
-      'Failed to update last login'
-    )
-  }
-})()
+      if (lastLoginError) {
+        logger.error(
+          { error: lastLoginError, userId },
+          'Failed to update last login'
+        )
+      }
+    })()
 
-    // ✅ Ensure owned_chapters is properly formatted
+    // Ensure owned_chapters is properly formatted
     const ownedChapters = Array.isArray(user.owned_chapters) ? user.owned_chapters : []
 
     const responsePayload = {
@@ -115,7 +121,7 @@ export async function GET(request: NextRequest) {
           email: user.email,
           name: user.name,
           tier: user.tier,
-          owned_chapters: ownedChapters, // ✅ Keep snake_case for API consistency
+          owned_chapters: ownedChapters,
           avatar_url: user.avatar_url,
           created_at: user.created_at,
         },
@@ -123,7 +129,7 @@ export async function GET(request: NextRequest) {
       },
     }
 
-    // ✅ Log what we're sending
+    // Log what we're sending
     logger.info({
       userId,
       owned_chapters_sent: ownedChapters,
@@ -132,12 +138,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(responsePayload)
     
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as Error
     logger.error({ 
       error: {
-        message: error.message,
-        stack: error.stack,
-        ...error
+        message: err.message,
+        stack: err.stack,
       }
     }, 'Failed to fetch user - unhandled error')
     

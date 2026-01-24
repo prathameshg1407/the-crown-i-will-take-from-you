@@ -66,11 +66,12 @@ export async function POST(request: NextRequest) {
     }
     
     // Generate new access token
+    // Convert null to undefined for name field
     const accessToken = await generateAccessToken({
       sub: user.id,
       email: user.email,
       tier: user.tier,
-      name: user.name,
+      name: user.name ?? undefined, // ✅ Convert null to undefined
     })
     
     // Rotate refresh token for security

@@ -6,6 +6,30 @@ import { PRICING } from '@/data/chapters'
 import { logger } from '@/lib/logger'
 import { nanoid } from 'nanoid'
 import { CreateOrderParams, VerifyPaymentParams } from './payment.types'
+import type { Json } from '@/lib/supabase/database.types' // Import Json type
+
+// Add type for purchase_data
+interface CustomPurchaseData {
+  chapters: number[]
+  chapterCount: number
+  pricePerChapter: number
+}
+
+interface CompletePurchaseData {
+  tier: 'complete'
+}
+
+type PurchaseData = CustomPurchaseData | CompletePurchaseData
+
+// Type guard to check if purchase_data is CustomPurchaseData
+function isCustomPurchaseData(data: unknown): data is CustomPurchaseData {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'chapters' in data &&
+    Array.isArray((data as CustomPurchaseData).chapters)
+  )
+}
 
 export class PaymentService {
   static async createOrder(params: CreateOrderParams) {
@@ -37,7 +61,7 @@ export class PaymentService {
       logger.info({ currentTier, ownedChaptersCount: ownedChapters.length }, 'User data fetched')
 
       let amount: number
-      let purchaseData: any
+      let purchaseData: PurchaseData
 
       // COMPLETE PACK PURCHASE
       if (purchaseType === 'complete' && tier === 'complete') {
@@ -137,7 +161,7 @@ export class PaymentService {
       const purchaseRecord = {
         user_id: userId,
         purchase_type: purchaseType,
-        purchase_data: purchaseData,
+        purchase_data: purchaseData as unknown as Json, // Cast to Json type
         amount: amount / 100, // Store in rupees
         currency: 'INR',
         razorpay_order_id: order.id,
@@ -283,13 +307,13 @@ export class PaymentService {
         logger.info({ userId }, '✅ User upgraded to complete tier')
       } 
       else if (purchase.purchase_type === 'custom') {
-        // Add individual chapters to owned_chapters
-        const chapters = purchase.purchase_data.chapters
-
-        if (!chapters || !Array.isArray(chapters)) {
+        // Validate purchase_data exists and has correct shape
+        if (!isCustomPurchaseData(purchase.purchase_data)) {
           logger.error({ purchaseData: purchase.purchase_data }, 'Invalid chapter data')
           throw new Error('Invalid chapter data')
         }
+
+        const chapters = purchase.purchase_data.chapters
 
         // Try RPC function first
         const { error: rpcError } = await supabaseAdmin.rpc('add_owned_chapters', {
