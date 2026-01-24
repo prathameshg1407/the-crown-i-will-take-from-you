@@ -219,3 +219,30 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+
+.chapter-content {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1000px;
+}
+
+/* Reduce layout shift */
+.prose img,
+.prose video {
+  aspect-ratio: attr(width) / attr(height);
+}
+
+/* Optimize reveal animations */
+.reveal {
+  will-change: opacity, transform;
+}
+
+.reveal-visible {
+  will-change: auto;
+}
+
+/* Optimize fog effect */
+.fog-container {
+  will-change: transform;
+  transform: translateZ(0);
+}

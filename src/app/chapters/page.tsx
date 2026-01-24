@@ -1,10 +1,10 @@
 // app/chapters/page.tsx
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuth } from '@/lib/auth/AuthContext'
-import { chapters, PRICING } from '@/data/chapters'
-import { Lock, Check, Crown, Search, Filter, ArrowLeft, BookOpen } from 'lucide-react'
+import { chapters, PRICING, isChapterLocked } from '@/data/chapters'
+import { Lock, Check, Crown, Search, ArrowLeft, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 
 type FilterType = 'all' | 'free' | 'locked' | 'owned'
@@ -15,50 +15,54 @@ export default function ChaptersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<FilterType>('all')
 
-  // Memoize owned chapters
+  // User tier and owned chapters
+  const userTier = user?.tier || 'free'
   const ownedChapters = useMemo(() => {
     if (!user?.ownedChapters) return []
     if (!Array.isArray(user.ownedChapters)) return []
     return user.ownedChapters
   }, [user?.ownedChapters])
 
-  const hasCompletePack = user?.tier === 'complete'
+  const hasCompletePack = userTier === 'complete'
 
-  // Check if chapter is accessible
+  // Check if chapter is accessible (use the helper function)
   const isChapterAccessible = (chapterId: number) => {
-    // Free chapters
-    if (chapterId <= PRICING.FREE_CHAPTERS) return true
-    
-    // Complete pack access
-    if (hasCompletePack) return true
-    
-    // Individually owned
-    if (ownedChapters.includes(chapterId)) return true
-    
-    return false
+    return !isChapterLocked(chapterId, userTier, ownedChapters)
   }
 
   // Filter and search chapters
   const filteredChapters = useMemo(() => {
     return chapters.filter(chapter => {
       // Search filter
-      if (searchQuery && !chapter.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return false
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        const matchesTitle = chapter.title.toLowerCase().includes(query)
+        const matchesNumber = chapter.number.toLowerCase().includes(query)
+        const matchesId = chapter.id.toString().includes(query)
+        
+        if (!matchesTitle && !matchesNumber && !matchesId) {
+          return false
+        }
       }
 
       // Type filter
-      if (filter === 'free' && chapter.id > PRICING.FREE_CHAPTERS) return false
-      if (filter === 'locked' && isChapterAccessible(chapter.id)) return false
-      if (filter === 'owned' && !isChapterAccessible(chapter.id)) return false
-
-      return true
+      switch (filter) {
+        case 'free':
+          return chapter.id <= PRICING.FREE_CHAPTERS
+        case 'locked':
+          return !isChapterAccessible(chapter.id)
+        case 'owned':
+          return isChapterAccessible(chapter.id)
+        default:
+          return true
+      }
     })
-  }, [searchQuery, filter, ownedChapters, hasCompletePack])
+  }, [searchQuery, filter, userTier, ownedChapters])
 
   // Stats
   const stats = useMemo(() => {
     const totalChapters = chapters.length
-    const freeChapters = PRICING.FREE_CHAPTERS
+    const freeChapters = PRICING.FREE_CHAPTERS + 1 // 0 to FREE_CHAPTERS inclusive
     const accessibleChapters = chapters.filter(ch => isChapterAccessible(ch.id)).length
     const lockedChapters = totalChapters - accessibleChapters
 
@@ -68,7 +72,7 @@ export default function ChaptersPage() {
       accessible: accessibleChapters,
       locked: lockedChapters,
     }
-  }, [ownedChapters, hasCompletePack])
+  }, [userTier, ownedChapters])
 
   if (authLoading) {
     return (
@@ -125,7 +129,7 @@ export default function ChaptersPage() {
                 ) : ownedChapters.length > 0 ? (
                   <>{ownedChapters.length} Custom Chapters Owned</>
                 ) : (
-                  <>Free Tier - {PRICING.FREE_CHAPTERS} Chapters</>
+                  <>Free Tier - {stats.free} Chapters</>
                 )}
               </span>
             </div>
@@ -178,7 +182,7 @@ export default function ChaptersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
             <input
               type="text"
-              placeholder="Search chapters by title..."
+              placeholder="Search chapters by title or number..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-neutral-900/40 border border-neutral-800 rounded-lg text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-[#9f1239] focus:ring-1 focus:ring-[#9f1239] transition-all font-body"
@@ -192,17 +196,17 @@ export default function ChaptersPage() {
               className={`px-4 py-2 rounded-lg font-ui text-sm uppercase tracking-wider transition-all ${
                 filter === 'all'
                   ? 'bg-[#9f1239] text-white'
-                  : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200'
+                  : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
               }`}
             >
-              All ({chapters.length})
+              All ({stats.total})
             </button>
             <button
               onClick={() => setFilter('free')}
               className={`px-4 py-2 rounded-lg font-ui text-sm uppercase tracking-wider transition-all ${
                 filter === 'free'
                   ? 'bg-[#9f1239] text-white'
-                  : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200'
+                  : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
               }`}
             >
               Free ({stats.free})
@@ -212,7 +216,7 @@ export default function ChaptersPage() {
               className={`px-4 py-2 rounded-lg font-ui text-sm uppercase tracking-wider transition-all ${
                 filter === 'owned'
                   ? 'bg-[#9f1239] text-white'
-                  : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200'
+                  : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
               }`}
             >
               Accessible ({stats.accessible})
@@ -222,7 +226,7 @@ export default function ChaptersPage() {
               className={`px-4 py-2 rounded-lg font-ui text-sm uppercase tracking-wider transition-all ${
                 filter === 'locked'
                   ? 'bg-[#9f1239] text-white'
-                  : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200'
+                  : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
               }`}
             >
               Locked ({stats.locked})
@@ -235,38 +239,48 @@ export default function ChaptersPage() {
           {filteredChapters.map((chapter) => {
             const isAccessible = isChapterAccessible(chapter.id)
             const isFree = chapter.id <= PRICING.FREE_CHAPTERS
-            const isOwnedCustom = ownedChapters.includes(chapter.id)
+            const isOwnedCustom = ownedChapters.includes(chapter.id) && !isFree
+            const isPrologue = chapter.id === 0
 
             return (
               <Link
                 key={chapter.id}
-                href={isAccessible ? `/read/${chapter.id}` : '/#pricing'}
-                className={`block p-5 rounded-xl border transition-all ${
+                href={isAccessible ? `/read/${chapter.slug}` : '/#pricing'}
+                className={`block p-5 rounded-xl border transition-all group ${
                   isAccessible
-                    ? 'bg-neutral-900/40 border-neutral-800/60 hover:border-[#9f1239] hover:bg-neutral-900/60'
+                    ? 'bg-neutral-900/40 border-neutral-800/60 hover:border-[#9f1239]/50 hover:bg-neutral-900/60'
                     : 'bg-neutral-900/20 border-neutral-800/30 opacity-60 hover:opacity-80'
                 }`}
               >
                 <div className="flex items-start gap-4">
-                  {/* Chapter Number */}
-                  <div className={`flex-shrink-0 w-14 h-14 rounded-lg flex items-center justify-center font-heading text-lg ${
+                  {/* Chapter Number Badge */}
+                  <div className={`flex-shrink-0 w-14 h-14 rounded-lg flex items-center justify-center font-heading text-lg transition-transform group-hover:scale-105 ${
                     isAccessible
                       ? 'bg-[#9f1239]/10 border border-[#9f1239]/30 text-[#9f1239]'
                       : 'bg-neutral-800/30 border border-neutral-700/30 text-neutral-600'
                   }`}>
-                    {chapter.id}
+                    {isPrologue ? 'P' : chapter.id}
                   </div>
 
                   {/* Chapter Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4 mb-2">
-                      <h3 className="text-lg font-heading text-neutral-100 line-clamp-2">
-                        {chapter.title}
-                      </h3>
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-ui tracking-[0.3em] uppercase text-neutral-500 mb-1">
+                          {chapter.number}
+                        </div>
+                        <h3 className={`text-lg font-heading line-clamp-2 transition-colors ${
+                          isAccessible 
+                            ? 'text-neutral-100 group-hover:text-white' 
+                            : 'text-neutral-400'
+                        }`}>
+                          {chapter.title}
+                        </h3>
+                      </div>
                       
                       {/* Access Badge */}
                       <div className="flex-shrink-0">
-                        {hasCompletePack ? (
+                        {hasCompletePack && !isFree ? (
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-600/20 to-yellow-600/20 border border-amber-500/30 rounded-full">
                             <Crown className="w-3 h-3 text-amber-400" />
                             <span className="text-xs text-amber-300 font-ui uppercase tracking-wider">Complete</span>
@@ -292,14 +306,15 @@ export default function ChaptersPage() {
 
                     {/* Metadata */}
                     <div className="flex items-center gap-4 text-sm text-neutral-500 font-body">
-                      <span>Chapter {chapter.id}</span>
                       {!isAccessible && (
-                        <>
-                          <span>•</span>
-                          <span className="text-[#9f1239]">
-                            ₹{PRICING.CUSTOM_SELECTION.pricePerChapter} to unlock
-                          </span>
-                        </>
+                        <span className="text-[#9f1239]">
+                          Unlock with Complete Pack or ₹{PRICING.CUSTOM_SELECTION.pricePerChapter}/chapter
+                        </span>
+                      )}
+                      {isAccessible && (
+                        <span className="text-neutral-600 group-hover:text-neutral-400 transition-colors">
+                          Click to read →
+                        </span>
                       )}
                     </div>
                   </div>
@@ -319,6 +334,15 @@ export default function ChaptersPage() {
             <p className="text-neutral-500 font-body">
               {searchQuery ? `No chapters match "${searchQuery}"` : 'No chapters in this category'}
             </p>
+            <button
+              onClick={() => {
+                setSearchQuery('')
+                setFilter('all')
+              }}
+              className="mt-4 px-6 py-2 bg-neutral-800 text-neutral-300 rounded-lg font-ui text-sm hover:bg-neutral-700 transition-colors"
+            >
+              Clear Filters
+            </button>
           </div>
         )}
 
@@ -329,19 +353,19 @@ export default function ChaptersPage() {
             <h3 className="text-2xl font-heading text-neutral-100 mb-3">
               Unlock {stats.locked} More Chapters
             </h3>
-            <p className="text-neutral-400 font-body mb-6">
-              Get access to all premium chapters with a one-time purchase
+            <p className="text-neutral-400 font-body mb-6 max-w-md mx-auto">
+              Get access to all premium chapters with the Complete Story Pack - one-time payment, lifetime access.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link
                 href="/#pricing"
-                className="px-8 py-3 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 transition-all"
+                className="px-8 py-3 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 transition-all shadow-lg hover:shadow-red-900/20"
               >
                 View Pricing
               </Link>
               <Link
                 href="/custom-selection"
-                className="px-8 py-3 bg-neutral-800 text-neutral-300 rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:bg-neutral-700 transition-all"
+                className="px-8 py-3 bg-neutral-800 text-neutral-300 rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:bg-neutral-700 transition-all border border-neutral-700"
               >
                 Custom Selection
               </Link>

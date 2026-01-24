@@ -13,13 +13,15 @@ export default function PricingPlans() {
   const { initializePayment, isProcessing } = useRazorpay()
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages')
 
+  // Safe user tier access
+  const userTier = user?.tier || 'free'
+  const hasCompletePack = userTier === 'complete'
+  const ownedChaptersCount = user?.ownedChapters?.length ?? 0
+
   const handleCompletePurchase = async () => {
     await initializePayment('complete', { tier: 'complete' })
   }
 
-  // ✅ Safe access to owned chapters
-
-  const ownedChaptersCount = user?.ownedChapters?.length ?? 0
   return (
     <section id="pricing" className="max-w-7xl mx-auto px-6 md:px-8 py-32 reveal">
       {/* Header */}
@@ -47,7 +49,7 @@ export default function PricingPlans() {
               <div className="absolute inset-0 w-3 h-3 bg-green-500 rounded-full animate-ping" />
             </div>
             <span className="text-sm text-green-400 font-ui uppercase tracking-wider">
-              {user.tier === 'complete' ? (
+              {hasCompletePack ? (
                 <>✓ Complete Pack Active</>
               ) : ownedChaptersCount > 0 ? (
                 <>{ownedChaptersCount} Custom Chapters Owned</>
@@ -66,7 +68,7 @@ export default function PricingPlans() {
           className={`px-6 py-3 rounded-lg font-heading text-sm uppercase tracking-wider transition-all ${
             activeTab === 'packages'
               ? 'bg-[#9f1239] text-white'
-              : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200'
+              : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
           }`}
         >
           Packages
@@ -76,7 +78,7 @@ export default function PricingPlans() {
           className={`px-6 py-3 rounded-lg font-heading text-sm uppercase tracking-wider transition-all ${
             activeTab === 'custom'
               ? 'bg-[#9f1239] text-white'
-              : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200'
+              : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
           }`}
         >
           Custom Selection
@@ -87,21 +89,22 @@ export default function PricingPlans() {
       {activeTab === 'packages' && (
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {pricingPlans.map((plan) => {
-            const isPurchased = user?.tier === 'complete' || (plan.id === 'free')
+            const isPurchased = hasCompletePack && plan.id === 'complete'
+            const isFree = plan.id === 'free'
 
             return (
               <div
                 key={plan.id}
                 className={`relative bg-neutral-900/40 backdrop-blur-sm border rounded-2xl p-8 transition-all duration-300 ${
-                  isPurchased && plan.id === 'complete'
+                  isPurchased
                     ? 'border-green-800/60 shadow-xl shadow-green-900/20'
                     : plan.popular
-                    ? 'border-[#9f1239] shadow-2xl shadow-[#9f1239]/30 scale-105'
+                    ? 'border-[#9f1239] shadow-2xl shadow-[#9f1239]/30 md:scale-105'
                     : 'border-neutral-800/60'
                 }`}
               >
                 {/* Badge */}
-                {isPurchased && plan.id === 'complete' ? (
+                {isPurchased ? (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-green-600 to-emerald-700 rounded-full border border-green-500/50 shadow-lg">
                     <div className="flex items-center gap-1.5">
                       <Check className="w-3 h-3 text-white" />
@@ -119,7 +122,7 @@ export default function PricingPlans() {
                       </span>
                     </div>
                   </div>
-                ) : plan.id === 'free' ? (
+                ) : isFree ? (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-emerald-600 to-emerald-800 rounded-full border border-emerald-500/50">
                     <span className="text-[9px] font-ui tracking-[0.3em] uppercase text-white">
                       Free Forever
@@ -170,13 +173,13 @@ export default function PricingPlans() {
                   ))}
                 </ul>
 
-                {plan.id === 'free' ? (
-                  <a
+                {isFree ? (
+                  <Link
                     href="#chapters"
                     className="block w-full py-3 px-6 bg-neutral-800 text-neutral-300 rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:bg-neutral-700 transition-all text-center"
                   >
                     Start Reading
-                  </a>
+                  </Link>
                 ) : isPurchased ? (
                   <button
                     disabled
@@ -223,12 +226,12 @@ export default function PricingPlans() {
             <p className="text-sm text-neutral-500 font-body mb-8">
               Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters (₹{PRICING.CUSTOM_SELECTION.minAmount})
             </p>
-         <Link
-  href="/custom-selection"
-  className="inline-block px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all"
->
-  Select Chapters
-</Link>
+            <Link
+              href="/custom-selection"
+              className="inline-block px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all"
+            >
+              Select Chapters
+            </Link>
           </div>
         </div>
       )}
