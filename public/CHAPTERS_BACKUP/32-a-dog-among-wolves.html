@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Chapter 32: A Dog Among Wolves</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet" media="print" onload='this.media="all"'>
+    <style>
+        *,
+        ::after,
+        ::before {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background-color: #050505;
+            color: #a3a3a3;
+            line-height: 1.8;
+            overflow-x: hidden;
+            min-height: 100vh
+        }
+
+        ::selection {
+            background-color: #1e3a8a;
+            color: #fff
+        }
+
+        .font-heading {
+            font-family: Cinzel, serif
+        }
+
+        .font-body {
+            font-family: 'Cormorant Garamond', serif
+        }
+
+        .font-ui {
+            font-family: Lato, sans-serif
+        }
+
+        .container {
+            max-width: 42rem;
+            margin: 0 auto;
+            padding: 0 2rem
+        }
+
+        .bg-gradient {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at top, rgba(30, 58, 138, .2), #000, #000);
+            z-index: -1;
+            pointer-events: none
+        }
+
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative
+        }
+
+        .chapter-badge {
+            margin-bottom: 1.5rem;
+            padding: .25rem 1rem;
+            border: 1px solid rgba(30, 58, 138, .5);
+            border-radius: 9999px;
+            background-color: rgba(30, 58, 138, .2);
+            backdrop-filter: blur(4px)
+        }
+
+        .chapter-badge span {
+            color: #dbeafe;
+            font-size: 10px;
+            font-family: Lato, sans-serif;
+            letter-spacing: .4em;
+            text-transform: uppercase
+        }
+
+        .hero-title {
+            font-family: Cinzel, serif;
+            font-size: clamp(3rem, 10vw, 6rem);
+            line-height: 1.1;
+            letter-spacing: -.02em;
+            color: #f5f5f5;
+            margin-bottom: 2rem
+        }
+
+        .hero-quote {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.125rem, 3vw, 1.5rem);
+            color: #737373;
+            font-style: italic;
+            max-width: 28rem
+        }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #3b82f6 0, #1e3a8a 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .prose {
+            color: #a3a3a3
+        }
+
+        .prose p {
+            font-size: 1.25rem;
+            line-height: 2.1;
+            margin-bottom: 2em
+        }
+
+        .drop-cap::first-letter {
+            font-family: Cinzel, serif;
+            float: left;
+            font-size: 4.5rem;
+            line-height: .8;
+            margin-right: .75rem;
+            margin-top: .25rem;
+            color: #3b82f6;
+            text-shadow: 0 0 20px rgba(59, 130, 246, .4)
+        }
+
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(59, 130, 246, .3)
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+            gap: 1rem
+        }
+
+        .divider-line {
+            height: 1px;
+            width: 6rem;
+            background-color: #1e40af
+        }
+
+        .divider-diamond {
+            width: .5rem;
+            height: .5rem;
+            background-color: #1e40af;
+            transform: rotate(45deg)
+        }
+
+        .quote-block {
+            padding: 3rem 0;
+            text-align: center
+        }
+
+        .quote-block blockquote {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.875rem;
+            font-style: italic;
+            color: rgba(191, 219, 254, .7);
+            line-height: 1.6;
+            position: relative;
+            display: inline-block
+        }
+
+        .quote-mark {
+            position: absolute;
+            font-size: 4rem;
+            color: rgba(30, 64, 175, .2);
+            font-family: serif
+        }
+
+        .quote-mark-open {
+            top: -1.5rem;
+            left: -1rem
+        }
+
+        .quote-mark-close {
+            bottom: -2.5rem;
+            right: -1rem
+        }
+
+        .inner-thought {
+            font-style: italic;
+            color: #a3a3a3;
+            background: rgba(30, 58, 138, .1);
+            padding: 1.5rem;
+            border-left: 3px solid rgba(59, 130, 246, .3);
+            margin: 2rem 0;
+            border-radius: 0 .5rem .5rem 0
+        }
+
+        .jewel-box {
+            background: linear-gradient(135deg, rgba(239, 68, 68, .1), rgba(168, 85, 247, .1));
+            border: 1px solid rgba(239, 68, 68, .3);
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+            border-radius: .5rem
+        }
+
+        .highlight-box {
+            background-color: rgba(30, 58, 138, .2);
+            border-left: 4px solid #3b82f6;
+            padding: 2rem;
+            margin: 3rem 0;
+            border-radius: 0 .5rem .5rem 0
+        }
+
+        .section-divider {
+            font-family: Cinzel, serif;
+            text-align: center;
+            color: #525252;
+            font-size: .875rem;
+            letter-spacing: .3em;
+            margin: 4rem 0;
+            text-transform: uppercase
+        }
+
+        .time-marker {
+            background: linear-gradient(90deg, transparent, rgba(30, 58, 138, .1), transparent);
+            border-top: 1px solid rgba(59, 130, 246, .3);
+            border-bottom: 1px solid rgba(59, 130, 246, .3);
+            padding: 1.5rem 0;
+            margin: 3rem 0
+        }
+
+        .end-card {
+            margin: 6rem 0 4rem;
+            position: relative
+        }
+
+        .end-card-glow {
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(to right, #1e3a8a, #000);
+            border-radius: .5rem;
+            filter: blur(8px);
+            opacity: .5;
+            animation: pulse 4s cubic-bezier(.4, 0, .6, 1) infinite
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: .5
+            }
+            50% {
+                opacity: .3
+            }
+        }
+
+        .end-card-content {
+            position: relative;
+            background-color: #000;
+            border: 1px solid rgba(30, 64, 175, .5);
+            padding: 3rem;
+            border-radius: .5rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, .25)
+        }
+
+        .end-card-label {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #000;
+            padding: 0 1rem;
+            border: 1px solid rgba(30, 64, 175, .5);
+            border-radius: .25rem;
+            font-family: Lato, sans-serif;
+            font-size: .75rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #60a5fa
+        }
+
+        .end-card-title {
+            font-family: Cinzel, serif;
+            font-size: clamp(2rem, 6vw, 3rem);
+            background: linear-gradient(to bottom, #3b82f6, #1e3a8a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: .15em;
+            margin-bottom: 1.5rem
+        }
+
+        .end-card-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #1e40af, transparent);
+            margin: 2rem 0
+        }
+
+        .end-card-quote {
+            color: #64748b;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 1.25rem
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity .8s ease-out, transform .8s ease-out
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        .animate-fade-up {
+            animation: fadeUp 1s cubic-bezier(.2, .8, .2, 1) forwards
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(40px)
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @media (max-width:640px) {
+            .container {
+                padding: 0 1.5rem
+            }
+            .prose p {
+                font-size: 1.125rem
+            }
+            .drop-cap::first-letter {
+                font-size: 3.5rem
+            }
+        }
+
+        .text-center {
+            text-align: center
+        }
+
+        .italic {
+            font-style: italic
+        }
+
+        .mt-12 {
+            margin-top: 3rem
+        }
+
+        .mt-16 {
+            margin-top: 4rem
+        }
+
+        .my-12 {
+            margin-top: 3rem;
+            margin-bottom: 3rem
+        }
+
+        .my-16 {
+            margin-top: 4rem;
+            margin-bottom: 4rem
+        }
+
+        .my-20 {
+            margin-top: 5rem;
+            margin-bottom: 5rem
+        }
+
+        .my-24 {
+            margin-top: 6rem;
+            margin-bottom: 6rem
+        }
+
+        .my-32 {
+            margin-top: 8rem;
+            margin-bottom: 8rem
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+    <main style="position:relative;min-height:100vh;padding-bottom:6rem">
+        <header class="hero">
+            <div class="animate-fade-up" style="display:flex;flex-direction:column;align-items:center">
+                <div class="chapter-badge"><span>Chapter 32</span></div>
+                <h1 class="hero-title">A Dog Among<br><span class="gradient-text italic">Wolves</span></h1>
+                <p class="hero-quote">"If you raise a dog in a wolf's den and treat it as a wolf... will the dog truly comprehend when told it must bark?"</p>
+            </div>
+        </header>
+
+        <article class="container">
+            <section class="prose reveal">
+                <p class="drop-cap">"If the tutor proves unsuitable, we shall procure another."</p>
+                <p>The Queen Mother's fingers flicked in a barely perceptible gesture toward Baroness Pinatelli, closing the matter as cleanly as a snapped fan.</p>
+                <p class="dialogue">"However, Medea—for the sole Princess of this realm, your appearance is unforgivably plain."</p>
+                <p>The simple dress. The lone string of pearls. Medea's austerity stood in stark, almost insolent contrast to Birna's ornate finery, commanding the Queen Mother's attention as if by force.</p>
+            </section>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p>Princess in title, yet she stands alone. Birna has her mother to polish and instruct her, but Medea...</p>
+                    <p style="margin-top:1rem;color:#93c5fd">That duty falls to me, whether I will it or no.</p>
+                </div>
+            </div>
+
+            <section class="prose reveal">
+                <p>Catching the silent command, Baroness Pinatelli opened an opulent chest of violet velvet.</p>
+                <p>Jewels blazed against the purple lining—shards of captured starlight beneath the chandeliers.</p>
+            </section>
+
+            <div class="jewel-box reveal">
+                <p class="italic" style="color:#f9a8d4;margin:0;font-size:1.25rem">Grandmother's private collection!</p>
+                <p style="color:#a3a3a3;margin-top:1rem">Birna's eyes flew wide. These were pieces she had only ever glimpsed from afar on state occasions—treasures normally held under lock and key.</p>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue">"Medea, select whatever pleases you. Consider it a gift from me."</p>
+                <p class="italic" style="color:#a3a3a3">An oblique apology for old cruelties, disguised as magnanimity.</p>
+            </section>
+
+            <section class="prose mt-12 reveal">
+                <p>Medea studied the Queen Mother wordlessly, as though weighing her on a jeweler's scale for purity and false alloy.</p>
+                <p>Something twisted like a blade in the old woman's chest. The girl was not rejoicing over the jewels—she was dissecting the intention behind them, searching for barbs concealed beneath the silk.</p>
+            </section>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p style="color:#93c5fd">Have I marked this child so deeply that she cannot receive kindness without first hunting for the trap?</p>
+                </div>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue">"Do not fret. Simply choose what appeals to you."</p>
+                <p>Only then did Medea incline her head.</p>
+                <p class="dialogue" style="color:#c4b5fd">"Thank you, Grandmother."</p>
+                <p>She bent over the chest with the wary curiosity of a kitten approaching an unfamiliar hand.</p>
+            </section>
+
+            <div class="my-20 reveal">
+                <div style="background-color:rgba(131,24,67,.1);border-left:4px solid #be185d;padding:2rem;border-radius:0 .5rem .5rem 0">
+                    <p class="italic" style="margin:0">Birna's blood began to seethe.</p>
+                    <div class="inner-thought" style="margin:1.5rem 0;background:transparent;padding:0;border:none">
+                        <p style="margin:0">In that chest lay the very pieces she had coveted for years—the coronation tiara, the sapphire necklace she had begged her grandmother to reserve for her wedding day.</p>
+                        <p style="margin-top:1rem;color:#f9a8d4">Why should someone like Medea lay hands on these?</p>
+                    </div>
+                    <p style="margin:1.5rem 0 0">Each time Medea's gaze lingered upon a jewel, Birna felt a claw raking through her chest—as though something rightfully hers were being silently stolen.</p>
+                </div>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue" style="color:#fbcfe8">"Sister, if nothing catches your eye, might I choose before you?"</p>
+                <p>Unable to restrain herself any longer, Birna shouldered past Medea and claimed the place before the chest. Her fingers clamped around the sapphire necklace with the desperation of a drowning woman clutching driftwood.</p>
+                <p class="dialogue" style="color:#fbcfe8">"Grandmother, I simply adore this sapphire! Does it not complement my eyes to perfection?"</p>
+                <p>The Queen Mother's face hardened, warmth freezing from her features in an instant.</p>
+                <p class="dialogue">"How dare you."</p>
+                <p class="dialogue" style="color:#fbcfe8">"G-Grandmother?"</p>
+                <p>Birna stared, aghast. The grandmother who had never once raised her voice to her was... rebuking her?</p>
+            </section>
+
+            <div class="my-20 reveal">
+                <p class="text-center" style="font-family:Cinzel,serif;font-size:1.875rem;color:#ef4444;letter-spacing:.2em;font-weight:700">BAM.</p>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue">"I did not extend this gift to you. You possessed no right to lay hands upon the Princess's property without leave. Where did you acquire such presumptuousness?"</p>
+                <p class="dialogue" style="color:#fbcfe8">"But she was not choosing anything, so I merely thought—"</p>
+                <p>Her lower lip trembled; her eyes brimmed with indignant tears.</p>
+                <p class="dialogue">"'She'?"</p>
+                <p>The Queen Mother's voice cracked like a whip.</p>
+                <p class="dialogue">"You will address your cousin as 'Your Highness.' Birna Robin Claudio!"</p>
+                <p>Her palm struck the table with a sharp report.</p>
+            </section>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p>When Medea entered, the girl did not even rise—merely sprawled across my lap as though this palace were her private parlor.</p>
+                    <p style="margin-top:1rem;color:#fca5a5">Like a courtesan receiving tributes, not a subject greeting her sovereign.</p>
+                </div>
+            </div>
+
+            <div class="highlight-box reveal">
+                <p class="dialogue">"Have you forgotten that you bear the Claudio name while dwelling beneath this roof? Medea is not merely your kin. She is your sovereign. You owe her deference, not familiarity."</p>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue" style="color:#fbcfe8">"But, Grandmother—!"</p>
+                <p class="dialogue">"How long did you intend to conduct yourself as a spoiled simpleton? You are a Claudio. Have you absorbed nothing of the discipline befitting a military house?"</p>
+                <p>The reprimand descended like a sudden frost, each syllable a shard of ice lodging in Birna's heart.</p>
+                <p>Never had she imagined that the grandmother who praised her beauty and charm would one day wield her lesser birth as a weapon against her.</p>
+                <p class="dialogue">"Apologize. This instant. Offer Her Highness the respect that is due."</p>
+                <p>Birna's lips thinned, trembling. Her eyes burned with wounded pride and choking rage.</p>
+                <p>To be chastised before Medea constituted humiliation enough. To bow and beg forgiveness of <span class="italic">her</span>—and with honorifics?</p>
+            </section>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p style="color:#fbcfe8">What transgression have I committed?</p>
+                    <p style="margin-top:1rem">She was a king's daughter, a princess by blood. Her lineage towered above that of a half-blood girl whose mother had been a common dancer.</p>
+                </div>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue" style="color:#fbcfe8">"How could you do this to me, Grandmother? It is too cruel!"</p>
+                <p>She fled the chamber in a blur of silk and tears, her vision swimming.</p>
+                <p class="dialogue">"That witless child. Tch."</p>
+                <p>The Queen Mother clicked her tongue and turned back to Medea.</p>
+                <p class="dialogue" style="color:#737373;font-style:italic">"Your Majesty, shall I bring Lady Birna back?"</p>
+                <p style="padding-left:1rem;color:#737373">Baroness Pinatelli ventured, anxious.</p>
+                <p class="dialogue">"Leave her. She must learn the shape of hierarchy—and the cost of defying it. How much longer was I expected to indulge such antics?"</p>
+                <p>Her voice held both vexation and a weary sorrow.</p>
+                <p>Since the recent scandal within the palace, her fondness for the Claudio mother and daughter had cooled considerably. She had not cast them out entirely, which proved some remnant of attachment remained—but the flame no longer burned bright.</p>
+            </section>
+
+            <section class="prose mt-16 reveal">
+                <p>Medea, who had observed the scene in silence, finally spoke.</p>
+                <p class="dialogue" style="color:#c4b5fd">"Grandmother, I ask that you consider Birna's position. We have shared everything since childhood."</p>
+                <p class="dialogue">"What?"</p>
+                <p class="dialogue" style="color:#c4b5fd">"What I possessed, Birna possessed as well. What Birna lacked, I was not permitted to enjoy either. Your words today must have struck her like a blow."</p>
+            </section>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p style="color:#93c5fd">What Birna did not have, Medea was denied as well?</p>
+                    <p style="margin-top:1rem">The Queen Mother stilled, her brow tightening as the implication sank deep.</p>
+                </div>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue">"Whatever the past may have held, the arrangement cannot remain unchanged. You are the Princess. Your path diverges from hers."</p>
+                <p>Medea's tone remained calm, almost detached—like a philosopher turning over a paradox.</p>
+                <p class="dialogue" style="color:#c4b5fd">"Grandmother, Birna has spent more of her life within these palace walls than at the duchy."</p>
+            </section>
+
+            <div class="quote-block my-32 reveal">
+                <blockquote>
+                    <span class="quote-mark quote-mark-open">"</span>
+                    If you raise a dog in a wolf's den and treat it as a wolf...<br>
+                    <span style="font-size:1.5rem;color:#94a3b8">will the dog truly comprehend when told it must bark?</span>
+                    <span class="quote-mark quote-mark-close">"</span>
+                </blockquote>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue" style="color:#c4b5fd">"And will the other beasts accept that the dog born and reared among wolves is still merely a dog?"</p>
+                <p>Silence followed, heavy as stone.</p>
+                <p>The Queen Mother possessed no ready answer.</p>
+                <p>She sat frozen, as though Medea had dropped a boulder into the still pond of her mind and left her watching the ripples spread.</p>
+            </section>
+
+            <section class="prose mt-16 reveal">
+                <p>Having loosed that thought like an arrow, Medea turned her attention back to the trove of jewels with unhurried grace.</p>
+                <p class="dialogue" style="color:#c4b5fd">"Grandmother, may I have this?"</p>
+                <p>She lifted a purple fan from the corner of the chest.</p>
+                <p class="dialogue">"A fan? That is far too modest. Select something of greater worth."</p>
+                <p class="dialogue" style="color:#c4b5fd">"I prefer this."</p>
+                <p>Her fingertips glided along the fan's cool metal ribs.</p>
+            </section>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p>Damascus steel.</p>
+                    <p style="margin-top:1rem">Damascus steel—capable of cleaving stone yet supple enough never to snap. A blade concealed beneath the guise of an ornament.</p>
+                    <p style="margin-top:1rem;color:#c4b5fd">I required a weapon. Fortune smiles.</p>
+                </div>
+            </div>
+
+            <section class="prose reveal">
+                <p>It would serve admirably as a concealed means of defense.</p>
+                <p class="dialogue">"So be it. If it pleases you, it is yours."</p>
+                <p>Medea thanked her grandmother and withdrew, the fan resting lightly in her hand like a folded secret.</p>
+            </section>
+
+            <section class="prose mt-16 reveal">
+                <p class="dialogue">"...That child speaks truth. They should never have been confined together in that gilded cage. Not Birna, not Joaquin."</p>
+                <p>A sigh escaped the Queen Mother, long and low.</p>
+            </section>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p style="color:#93c5fd">Is Birna the only one who has lost her sense of proper station?</p>
+                    <p style="margin-top:1rem">Her granddaughter's words had cast harsh light into corners she had preferred to keep in shadow. Her lined fingers drummed restlessly upon the table.</p>
+                </div>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue" style="color:#737373;font-style:italic">"Your Majesty..."</p>
+                <p>Baroness Pinatelli observed the Queen Mother's face—now emptied of its earlier warmth, carved instead in cool resolve.</p>
+                <p class="dialogue">"Prepare a letter to the Montega bloodline. Summon them back to the royal castle."</p>
+                <p>That very night, a carriage bearing the Queen Mother's seal rattled out toward the distant provinces, carrying her commands to the far-flung branches of the royal house.</p>
+            </section>
+
+            <div class="time-marker reveal">
+                <p class="section-divider">Duke Claudio's Estate</p>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue" style="color:#d8b4fe">"Birna? What has happened? Cease that sniveling and speak plainly."</p>
+                <p>Catherine's elegant brows arched in alarm as her daughter stumbled into the duchy, weeping.</p>
+                <p>She had not accompanied Birna to the palace that day, judging it wiser to permit the girl to go alone. What catastrophe could possibly have unfolded during so simple a visit?</p>
+                <p>But as Birna poured forth her story, Catherine's expression transformed from concern to marble.</p>
+                <p class="dialogue" style="color:#d8b4fe">"How could you storm out in such a manner?"</p>
+                <p>Her voice sharpened to a blade's edge.</p>
+                <p class="dialogue" style="color:#d8b4fe">"Do you imagine your grandmother's indulgence is inexhaustible—that you may fling it in her face and suffer no consequence?"</p>
+                <p>She whirled upon her daughter, fury barely contained.</p>
+                <p class="dialogue" style="color:#d8b4fe">"I have counseled you time and again: never hand anyone a pretext to censure you."</p>
+                <p>To lose control before the Queen Mother—and in such precarious times?</p>
+                <p class="dialogue" style="color:#d8b4fe">"Do you fancy yourself so secure that you can afford temper tantrums? Has all my teaching been utterly wasted upon you?"</p>
+            </section>
+
+            <div class="my-20 reveal">
+                <div class="inner-thought">
+                    <p>The silence from the palace—the absence of any summons, any gentle inquiry—spoke louder than words.</p>
+                    <p style="margin-top:1rem;color:#fca5a5">The Queen Mother was not rushing to soothe an offended darling.</p>
+                    <p style="margin-top:1rem">Her affections had shifted. The axis of favor was turning.</p>
+                </div>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue" style="color:#d8b4fe">"Your grandmother now has Medea to pour her attentions upon. You are no longer her sole granddaughter."</p>
+                <p>Instead of securing their position, Birna had staged a spectacle. All of Catherine's meticulous labor—the daily visits, the rehearsed charms, the feet rubbed raw by endless walks through palace corridors—undone in the space of one childish outburst.</p>
+                <p>For a moment, Catherine lost the polished composure she wore like armor and very nearly raised her hand to strike her daughter.</p>
+            </section>
+
+            <div class="end-card reveal">
+                <div class="end-card-glow"></div>
+                <div class="end-card-content">
+                    <div class="end-card-label">The Reckoning</div>
+                    <h2 class="end-card-title">The Pack<br>Remembers Its Master</h2>
+                    <div class="end-card-divider"></div>
+                    <p class="end-card-quote">"When the hierarchy shifts, those who forget their place are reminded."</p>
+                    <p style="margin-top:2rem;color:#52525b;font-family:Lato,sans-serif;font-size:.875rem;letter-spacing:.1em;text-transform:uppercase">[ To Be Continued ]</p>
+                </div>
+            </div>
+        </article>
+    </main>
+
+    <script>
+        function initReveal() {
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("active")
+                    }
+                })
+            }, {
+                threshold: .1,
+                rootMargin: "50px"
+            });
+            document.querySelectorAll(".reveal").forEach(el => observer.observe(el))
+        }
+        "loading" === document.readyState ? document.addEventListener("DOMContentLoaded", initReveal) : initReveal();
+        window.addEventListener("load", initReveal)
+    </script>
+</body>
+
+</html>
