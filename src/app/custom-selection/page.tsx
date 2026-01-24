@@ -1,7 +1,7 @@
 // app/custom-selection/page.tsx
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { Suspense, useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { useRazorpay } from '@/lib/razorpay/hooks'
@@ -23,7 +23,7 @@ const PayPalButton = dynamic(() => import('@/components/PayPalButton'), {
 
 type PaymentMethod = 'razorpay' | 'paypal'
 
-export default function CustomSelectionPage() {
+function CustomSelectionInner() {
   const searchParams = useSearchParams()
   const { user, isAuthenticated, isLoading: authLoading, refreshUser } = useAuth()
   const { initializePayment, isProcessing: isRazorpayProcessing } = useRazorpay()
@@ -423,5 +423,20 @@ export default function CustomSelectionPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CustomSelectionPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#9f1239] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-neutral-400 font-body">Loading...</p>
+        </div>
+      </div>
+    }>
+      <CustomSelectionInner />
+    </Suspense>
   )
 }
