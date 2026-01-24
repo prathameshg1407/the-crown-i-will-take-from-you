@@ -6,10 +6,7 @@ import { useAuth } from '@/lib/auth/AuthContext'
 import { useLogout } from '@/lib/auth/hooks'
 import Link from 'next/link'
 import { 
-  User, 
-  Settings, 
   LogOut, 
-  BookOpen, 
   Crown,
 } from 'lucide-react'
 
@@ -111,20 +108,8 @@ export default function UserMenuFixed() {
           </div>
 
           {/* Menu Items */}
-          <div className="py-2">
-            <MenuItem
-              href="/chapters"
-              icon={<BookOpen className="w-4 h-4" />}
-              label="Browse Chapters"
-              onClick={() => setIsOpen(false)}
-            />
-            <MenuItem
-              href="/profile"
-              icon={<User className="w-4 h-4" />}
-              label="My Profile"
-              onClick={() => setIsOpen(false)}
-            />
-            {user.tier !== 'complete' && (
+          {user.tier !== 'complete' && (
+            <div className="py-2">
               <MenuItem
                 href="/pricing"
                 icon={<Crown className="w-4 h-4" />}
@@ -132,14 +117,8 @@ export default function UserMenuFixed() {
                 onClick={() => setIsOpen(false)}
                 highlight
               />
-            )}
-            <MenuItem
-              href="/settings"
-              icon={<Settings className="w-4 h-4" />}
-              label="Settings"
-              onClick={() => setIsOpen(false)}
-            />
-          </div>
+            </div>
+          )}
 
           {/* Logout */}
           <div className="border-t border-neutral-800 py-2">

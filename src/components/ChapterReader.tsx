@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo, memo } from "react"
 import { createPortal } from "react-dom"
-import { chapters, isChapterLocked, PRICING } from "@/data/chapters"
+import { chapters, isChapterLocked, PRICING } from "@/data"
 import { X, ArrowLeft, ArrowRight, Lock, Loader2, Crown, BookOpen, Sparkles, Zap } from "lucide-react"
 import { useAuth } from "@/lib/auth/AuthContext"
 import { useRazorpay } from "@/lib/razorpay/hooks"
