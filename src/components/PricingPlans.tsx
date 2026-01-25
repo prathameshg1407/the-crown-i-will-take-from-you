@@ -19,70 +19,6 @@ const PayPalButton = dynamic(() => import('./PayPalButton'), {
 
 type PaymentMethod = 'razorpay' | 'paypal'
 
-// Loading skeleton that matches server render structure
-function PricingPlansSkeleton() {
-  return (
-    <section id="pricing" className="max-w-7xl mx-auto px-6 md:px-8 py-32 reveal">
-      {/* Header */}
-      <div className="text-center mb-16">
-        <div className="mb-6 inline-flex items-center gap-2 px-5 py-2 border border-amber-900/30 rounded-full bg-amber-950/10 backdrop-blur-sm">
-          <Crown className="w-4 h-4 text-amber-400" />
-          <span className="text-amber-200/60 text-[9px] font-ui tracking-[0.45em] uppercase font-light">
-            Premium Access
-          </span>
-        </div>
-        
-        <h2 className="text-4xl md:text-6xl font-heading text-neutral-100 mb-6 tracking-tight">
-          Unlock the Complete <span className="gradient-text italic">Story</span>
-        </h2>
-        
-        <p className="text-lg md:text-xl text-neutral-400 font-body max-w-2xl mx-auto">
-          One-time payment. Lifetime access. No subscriptions.
-        </p>
-      </div>
-
-      {/* Payment Method Selector Skeleton */}
-      <div className="flex justify-center gap-4 mb-8">
-        <div className="inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5">
-          <div className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-neutral-800/50 animate-pulse">
-            <div className="w-4 h-4 bg-neutral-700 rounded" />
-            <div className="w-24 h-4 bg-neutral-700 rounded" />
-          </div>
-          <div className="flex items-center gap-2 px-5 py-2.5 rounded-lg">
-            <div className="w-4 h-4 bg-neutral-800 rounded" />
-            <div className="w-28 h-4 bg-neutral-800 rounded" />
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs Skeleton */}
-      <div className="flex justify-center gap-4 mb-12">
-        <div className="px-6 py-3 rounded-lg bg-neutral-800/50 animate-pulse w-28 h-12" />
-        <div className="px-6 py-3 rounded-lg bg-neutral-900/40 border border-neutral-800 w-36 h-12" />
-      </div>
-
-      {/* Cards Skeleton */}
-      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-        {[1, 2].map((i) => (
-          <div
-            key={i}
-            className="bg-neutral-900/40 backdrop-blur-sm border border-neutral-800/60 rounded-2xl p-8"
-          >
-            <div className="h-8 bg-neutral-800/50 rounded w-32 mb-4 animate-pulse" />
-            <div className="h-16 bg-neutral-800/50 rounded w-24 mb-6 animate-pulse" />
-            <div className="space-y-3 mb-8">
-              {[1, 2, 3].map((j) => (
-                <div key={j} className="h-4 bg-neutral-800/50 rounded animate-pulse" />
-              ))}
-            </div>
-            <div className="h-12 bg-neutral-800/50 rounded animate-pulse" />
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 export default function PricingPlans() {
   const [mounted, setMounted] = useState(false)
   const { user, isAuthenticated } = useAuth()
@@ -90,7 +26,7 @@ export default function PricingPlans() {
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('razorpay')
 
-  // Handle hydration - only render interactive content after mount
+  // Handle hydration
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -101,23 +37,68 @@ export default function PricingPlans() {
   const ownedChaptersCount = user?.ownedChapters?.length ?? 0
 
   const handleRazorpayPurchase = async () => {
+    if (!isAuthenticated) {
+      alert('Please login to make a purchase')
+      return
+    }
     await initializePayment('complete', { tier: 'complete' })
   }
 
   const handlePaymentSuccess = () => {
-    // Refresh user data or redirect
     window.location.reload()
   }
 
-  // Show skeleton during SSR and initial hydration
+  // Show loading state during hydration
   if (!mounted) {
-    return <PricingPlansSkeleton />
+    return (
+      <section id="pricing" className="w-full max-w-7xl mx-auto px-6 md:px-8 py-20 md:py-32">
+        <div className="text-center mb-16">
+          <div className="mb-6 inline-flex items-center gap-2 px-5 py-2 border border-amber-900/30 rounded-full bg-amber-950/10 backdrop-blur-sm">
+            <Crown className="w-4 h-4 text-amber-400" />
+            <span className="text-amber-200/60 text-[9px] font-ui tracking-[0.45em] uppercase font-light">
+              Premium Access
+            </span>
+          </div>
+          
+          <h2 className="text-4xl md:text-6xl font-heading text-neutral-100 mb-6 tracking-tight">
+            Unlock the Complete <span className="gradient-text italic">Story</span>
+          </h2>
+          
+          <p className="text-lg md:text-xl text-neutral-400 font-body max-w-2xl mx-auto">
+            One-time payment. Lifetime access. No subscriptions.
+          </p>
+        </div>
+
+        {/* Loading skeleton */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              className="bg-neutral-900/40 backdrop-blur-sm border border-neutral-800/60 rounded-2xl p-8"
+            >
+              <div className="h-8 bg-neutral-800/50 rounded w-32 mb-4 animate-pulse" />
+              <div className="h-16 bg-neutral-800/50 rounded w-24 mb-6 animate-pulse" />
+              <div className="space-y-3 mb-8">
+                {[1, 2, 3].map((j) => (
+                  <div key={j} className="h-4 bg-neutral-800/50 rounded animate-pulse" />
+                ))}
+              </div>
+              <div className="h-12 bg-neutral-800/50 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </section>
+    )
   }
 
   return (
-    <section id="pricing" className="max-w-7xl mx-auto px-6 md:px-8 py-32 reveal">
+    <section 
+      id="pricing" 
+      className="w-full max-w-7xl mx-auto px-6 md:px-8 py-20 md:py-32 relative z-10"
+      style={{ opacity: 1, visibility: 'visible' }}
+    >
       {/* Header */}
-      <div className="text-center mb-16">
+      <div className="text-center mb-12 md:mb-16">
         <div className="mb-6 inline-flex items-center gap-2 px-5 py-2 border border-amber-900/30 rounded-full bg-amber-950/10 backdrop-blur-sm">
           <Crown className="w-4 h-4 text-amber-400" />
           <span className="text-amber-200/60 text-[9px] font-ui tracking-[0.45em] uppercase font-light">
@@ -125,11 +106,11 @@ export default function PricingPlans() {
           </span>
         </div>
         
-        <h2 className="text-4xl md:text-6xl font-heading text-neutral-100 mb-6 tracking-tight">
+        <h2 className="text-3xl md:text-5xl lg:text-6xl font-heading text-neutral-100 mb-6 tracking-tight px-4">
           Unlock the Complete <span className="gradient-text italic">Story</span>
         </h2>
         
-        <p className="text-lg md:text-xl text-neutral-400 font-body max-w-2xl mx-auto">
+        <p className="text-base md:text-lg lg:text-xl text-neutral-400 font-body max-w-2xl mx-auto px-4">
           One-time payment. Lifetime access. No subscriptions.
         </p>
 
@@ -154,29 +135,31 @@ export default function PricingPlans() {
       </div>
 
       {/* Payment Method Selector */}
-      <div className="flex justify-center gap-4 mb-8">
-        <div className="inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5">
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5 gap-1">
           <button
             onClick={() => setPaymentMethod('razorpay')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-ui text-sm transition-all ${
+            className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-lg font-ui text-xs md:text-sm transition-all ${
               paymentMethod === 'razorpay'
                 ? 'bg-[#9f1239] text-white shadow-lg'
                 : 'text-neutral-400 hover:text-neutral-200'
             }`}
           >
             <CreditCard className="w-4 h-4" />
-            <span>India (UPI/Cards)</span>
+            <span className="hidden sm:inline">India (UPI/Cards)</span>
+            <span className="sm:hidden">India</span>
           </button>
           <button
             onClick={() => setPaymentMethod('paypal')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-ui text-sm transition-all ${
+            className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-lg font-ui text-xs md:text-sm transition-all ${
               paymentMethod === 'paypal'
                 ? 'bg-[#0070ba] text-white shadow-lg'
                 : 'text-neutral-400 hover:text-neutral-200'
             }`}
           >
             <Globe className="w-4 h-4" />
-            <span>International (PayPal)</span>
+            <span className="hidden sm:inline">International (PayPal)</span>
+            <span className="sm:hidden">PayPal</span>
           </button>
         </div>
       </div>
@@ -184,23 +167,23 @@ export default function PricingPlans() {
       {/* Payment Method Info */}
       <div className="text-center mb-12">
         {paymentMethod === 'razorpay' ? (
-          <p className="text-sm text-neutral-500">
+          <p className="text-xs md:text-sm text-neutral-500">
             Pay with UPI, Credit/Debit Cards, Net Banking • Prices in INR
           </p>
         ) : (
-          <p className="text-sm text-neutral-500">
+          <p className="text-xs md:text-sm text-neutral-500">
             Pay with PayPal, Credit/Debit Cards • Prices in USD
           </p>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="flex justify-center gap-4 mb-12">
+      <div className="flex justify-center gap-3 md:gap-4 mb-12">
         <button
           onClick={() => setActiveTab('packages')}
-          className={`px-6 py-3 rounded-lg font-heading text-sm uppercase tracking-wider transition-all ${
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-heading text-xs md:text-sm uppercase tracking-wider transition-all ${
             activeTab === 'packages'
-              ? 'bg-[#9f1239] text-white'
+              ? 'bg-[#9f1239] text-white shadow-lg'
               : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
           }`}
         >
@@ -208,9 +191,9 @@ export default function PricingPlans() {
         </button>
         <button
           onClick={() => setActiveTab('custom')}
-          className={`px-6 py-3 rounded-lg font-heading text-sm uppercase tracking-wider transition-all ${
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-heading text-xs md:text-sm uppercase tracking-wider transition-all ${
             activeTab === 'custom'
-              ? 'bg-[#9f1239] text-white'
+              ? 'bg-[#9f1239] text-white shadow-lg'
               : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
           }`}
         >
@@ -220,7 +203,7 @@ export default function PricingPlans() {
 
       {/* Packages Tab */}
       {activeTab === 'packages' && (
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
           {pricingPlans.map((plan) => {
             const isPurchased = hasCompletePack && plan.id === 'complete'
             const isFree = plan.id === 'free'
@@ -229,7 +212,7 @@ export default function PricingPlans() {
             return (
               <div
                 key={plan.id}
-                className={`relative bg-neutral-900/40 backdrop-blur-sm border rounded-2xl p-8 transition-all duration-300 ${
+                className={`relative bg-neutral-900/40 backdrop-blur-sm border rounded-2xl p-6 md:p-8 transition-all duration-300 ${
                   isPurchased
                     ? 'border-green-800/60 shadow-xl shadow-green-900/20'
                     : plan.popular
@@ -266,52 +249,52 @@ export default function PricingPlans() {
 
                 {/* Content */}
                 <div className="mb-6 mt-4">
-                  <h3 className="text-2xl md:text-3xl font-heading text-neutral-100 mb-2">
+                  <h3 className="text-xl md:text-2xl lg:text-3xl font-heading text-neutral-100 mb-2">
                     {plan.name}
                   </h3>
-                  <p className="text-neutral-500 text-sm font-body">
+                  <p className="text-neutral-500 text-xs md:text-sm font-body">
                     {plan.chapterRange}
                   </p>
                 </div>
 
-                <div className="mb-8">
+                <div className="mb-6 md:mb-8">
                   <div className="flex items-baseline gap-2 mb-2">
                     {paymentMethod === 'razorpay' ? (
-                      <span className="text-5xl md:text-6xl font-heading text-neutral-100">
+                      <span className="text-4xl md:text-5xl lg:text-6xl font-heading text-neutral-100">
                         {plan.price === 0 ? 'Free' : `₹${plan.price}`}
                       </span>
                     ) : (
-                      <span className="text-5xl md:text-6xl font-heading text-neutral-100">
+                      <span className="text-4xl md:text-5xl lg:text-6xl font-heading text-neutral-100">
                         {plan.price === 0 ? 'Free' : `$${usdPrice}`}
                       </span>
                     )}
                   </div>
                   {plan.pricePerChapter && paymentMethod === 'razorpay' && (
-                    <div className="text-sm text-neutral-500 font-body">
+                    <div className="text-xs md:text-sm text-neutral-500 font-body">
                       ₹{plan.pricePerChapter}/chapter
                     </div>
                   )}
                   {plan.pricePerChapter && paymentMethod === 'paypal' && (
-                    <div className="text-sm text-neutral-500 font-body">
+                    <div className="text-xs md:text-sm text-neutral-500 font-body">
                       ${(plan.pricePerChapter / 83.5).toFixed(2)}/chapter
                     </div>
                   )}
                 </div>
 
                 <div className="mb-6 p-4 bg-gradient-to-br from-[#9f1239]/10 to-transparent border border-[#9f1239]/30 rounded-xl">
-                  <div className="text-3xl font-heading text-[#9f1239] mb-1">
+                  <div className="text-2xl md:text-3xl font-heading text-[#9f1239] mb-1">
                     {plan.chaptersCount}
                   </div>
-                  <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">
+                  <div className="text-[10px] md:text-xs text-neutral-500 font-ui uppercase tracking-wider">
                     Chapters
                   </div>
                 </div>
 
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-6 md:mb-8">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-[#9f1239] flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-neutral-400 font-body">
+                      <Check className="w-4 md:w-5 h-4 md:h-5 text-[#9f1239] flex-shrink-0 mt-0.5" />
+                      <span className="text-xs md:text-sm text-neutral-400 font-body">
                         {feature}
                       </span>
                     </li>
@@ -322,32 +305,41 @@ export default function PricingPlans() {
                 {isFree ? (
                   <Link
                     href="#chapters"
-                    className="block w-full py-3 px-6 bg-neutral-800 text-neutral-300 rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:bg-neutral-700 transition-all text-center"
+                    className="block w-full py-3 px-6 bg-neutral-800 text-neutral-300 rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-neutral-700 transition-all text-center"
                   >
                     Start Reading
                   </Link>
                 ) : isPurchased ? (
                   <button
                     disabled
-                    className="w-full py-3 px-6 bg-green-900/30 text-green-400 border border-green-800/50 rounded-lg font-heading text-sm tracking-[0.2em] uppercase cursor-default"
+                    className="w-full py-3 px-6 bg-green-900/30 text-green-400 border border-green-800/50 rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase cursor-default"
                   >
                     ✓ Purchased
                   </button>
+                ) : !isAuthenticated ? (
+                  <Link
+                    href="/login"
+                    className="block w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 transition-all text-center"
+                  >
+                    Login to Purchase
+                  </Link>
                 ) : paymentMethod === 'razorpay' ? (
                   <button
                     onClick={handleRazorpayPurchase}
                     disabled={isRazorpayProcessing}
-                    className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
                     {isRazorpayProcessing ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Processing...
+                        <span className="hidden sm:inline">Processing...</span>
+                        <span className="sm:hidden">...</span>
                       </>
                     ) : (
                       <>
                         <Zap className="w-4 h-4" />
-                        Pay with Razorpay
+                        <span className="hidden sm:inline">Pay with Razorpay</span>
+                        <span className="sm:hidden">Buy Now</span>
                       </>
                     )}
                   </button>
@@ -366,57 +358,66 @@ export default function PricingPlans() {
       {/* Custom Selection Tab */}
       {activeTab === 'custom' && (
         <div className="max-w-4xl mx-auto">
-          <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-2xl p-8 text-center">
-            <Zap className="w-12 h-12 text-[#9f1239] mx-auto mb-4" />
-            <h3 className="text-2xl font-heading text-neutral-100 mb-3">
+          <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-2xl p-6 md:p-8 text-center">
+            <Zap className="w-10 h-10 md:w-12 md:h-12 text-[#9f1239] mx-auto mb-4" />
+            <h3 className="text-xl md:text-2xl font-heading text-neutral-100 mb-3">
               Custom Chapter Selection
             </h3>
             {paymentMethod === 'razorpay' ? (
               <>
-                <p className="text-neutral-400 font-body mb-6">
+                <p className="text-sm md:text-base text-neutral-400 font-body mb-4 md:mb-6">
                   Pick exactly which chapters you want • ₹{PRICING.CUSTOM_SELECTION.pricePerChapter}/chapter
                 </p>
-                <p className="text-sm text-neutral-500 font-body mb-8">
+                <p className="text-xs md:text-sm text-neutral-500 font-body mb-6 md:mb-8">
                   Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters (₹{PRICING.CUSTOM_SELECTION.minAmount})
                 </p>
               </>
             ) : (
               <>
-                <p className="text-neutral-400 font-body mb-6">
+                <p className="text-sm md:text-base text-neutral-400 font-body mb-4 md:mb-6">
                   Pick exactly which chapters you want • ${(PRICING.CUSTOM_SELECTION.pricePerChapter / 83.5).toFixed(2)}/chapter
                 </p>
-                <p className="text-sm text-neutral-500 font-body mb-8">
+                <p className="text-xs md:text-sm text-neutral-500 font-body mb-6 md:mb-8">
                   Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters (${(PRICING.CUSTOM_SELECTION.minAmount / 83.5).toFixed(2)})
                 </p>
               </>
             )}
-            <Link
-              href={`/custom-selection?payment=${paymentMethod}`}
-              className="inline-block px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all"
-            >
-              Select Chapters
-            </Link>
+            {!isAuthenticated ? (
+              <Link
+                href="/login"
+                className="inline-block px-6 md:px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all"
+              >
+                Login to Select Chapters
+              </Link>
+            ) : (
+              <Link
+                href={`/custom-selection?payment=${paymentMethod}`}
+                className="inline-block px-6 md:px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all"
+              >
+                Select Chapters
+              </Link>
+            )}
           </div>
         </div>
       )}
 
       {/* Trust Badges */}
-      <div className="mt-16 text-center space-y-4">
-        <p className="text-sm text-neutral-500 font-body">
+      <div className="mt-12 md:mt-16 text-center space-y-4">
+        <p className="text-xs md:text-sm text-neutral-500 font-body px-4">
           All purchases are one-time payments with lifetime access. No subscriptions.
         </p>
-        <div className="flex items-center justify-center gap-6 text-xs text-neutral-600">
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-[10px] md:text-xs text-neutral-600 px-4">
           <span className="flex items-center gap-2">
-            <CreditCard className="w-4 h-4" />
+            <CreditCard className="w-3 h-3 md:w-4 md:h-4" />
             Razorpay (India)
           </span>
           <span className="flex items-center gap-2">
-            <Globe className="w-4 h-4" />
+            <Globe className="w-3 h-3 md:w-4 md:h-4" />
             PayPal (International)
           </span>
         </div>
-        <p className="text-xs text-neutral-600 font-body">
-          100% secure and encrypted payments
+        <p className="text-[10px] md:text-xs text-neutral-600 font-body px-4">
+          🔒 100% secure and encrypted payments
         </p>
       </div>
     </section>
