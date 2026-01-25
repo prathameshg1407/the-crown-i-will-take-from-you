@@ -1,573 +1,609 @@
-```html<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Through Darkness, A Flickering Flame</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet" media="print" onload='this.media="all"'><style>
-    /* ============================================
-       CSS Variables
-       ============================================ */
-    :root {
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Through Darkness, A Flickering Flame</title>
+<!-- Self-hosted fonts -->
+    <link rel="stylesheet" href="/fonts/fonts.css">
+
+    <style>
+:root {
       --font-heading: 'Cinzel', serif;
       --font-body: 'Cormorant Garamond', serif;
       --font-ui: 'Lato', sans-serif;
     }
-    
-    /* ============================================
-       Reset & Base
-       ============================================ */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
     html {
-      scroll-behavior: smooth;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    
-    body {
-      background-color: #050505;
-      color: #a3a3a3;
-      font-family: var(--font-body);
-      line-height: 1.75;
-      overflow-x: hidden;
-      padding-bottom: 100px;
-    }
-    
-    ::selection {
-      background-color: #881337;
-      color: #fff;
-    }
-    
-    /* Hide scrollbars */
-    ::-webkit-scrollbar {
-      display: none;
-    }
-    
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    
-    /* ============================================
-       Background
-       ============================================ */
-    .bg-gradient {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
-      z-index: -1;
-      pointer-events: none;
-    }
-    
-    /* ============================================
-       Main Container
-       ============================================ */
-    main {
-      position: relative;
-      min-height: 100vh;
-      padding-bottom: 10rem;
-    }
-    
-    /* ============================================
-       Header
-       ============================================ */
-    header {
-      min-height: 60vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 3rem 1.5rem 2rem;
-      text-align: center;
-      position: relative;
-    }
-    
-    @media (max-width: 768px) {
-      header {
-        min-height: 50vh;
-        padding: 2rem 1rem;
-      }
-    }
-    
-    .chapter-badge {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      padding: 0.25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, 0.5);
-      border-radius: 9999px;
-      background-color: rgba(24, 24, 27, 0.7);
-      backdrop-filter: blur(4px);
-    }
-    
-    .chapter-badge span {
-      color: #fee2e2;
-      font-size: 0.625rem;
-      font-family: var(--font-ui);
-      letter-spacing: 0.4em;
-      text-transform: uppercase;
-    }
-    
-    h1 {
-      font-family: var(--font-heading);
-      font-size: clamp(2.25rem, 7vw, 4rem);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      color: #e5e5e5;
-      margin-bottom: 1.5rem;
-    }
-    
-    .gradient-text {
-      background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-style: italic;
-    }
-    
-    header p {
-      font-family: var(--font-body);
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
-      font-style: italic;
-      max-width: 30rem;
-    }
-    
-    /* ============================================
-       Article Container
-       ============================================ */
-    article {
-      max-width: 42rem;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-    
-    @media (max-width: 768px) {
-      article {
-        padding: 0 1rem;
-      }
-    }
-    
-    /* ============================================
-       ALL Paragraphs - Center by default
-       ============================================ */
-    article p {
-      line-height: 2.1;
-      margin-bottom: 1.5em;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      article p {
-        font-size: 1.1rem;
-        line-height: 2;
-      }
-    }
-    
-    /* Prose paragraphs */
-    .prose p {
-      line-height: 2.1;
-      margin-bottom: 1.75em;
-      font-size: 1.2rem;
-      color: #a3a3a3;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      .prose p {
-        font-size: 1.1rem;
-        line-height: 2;
-        margin-bottom: 1.5em;
-      }
-    }
-    
-    /* ============================================
-       Drop Cap
-       ============================================ */
-    .drop-cap {
-      text-align: left;
-    }
-    
-    .drop-cap::first-letter {
-      font-family: var(--font-heading);
-      float: left;
-      font-size: 4rem;
-      line-height: 0.8;
-      margin-right: 0.75rem;
-      margin-top: 0.15rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
-    }
-    
-    @media (max-width: 640px) {
-      .drop-cap::first-letter {
-        font-size: 3.5rem;
-        margin-right: 0.5rem;
-      }
-    }
-    
-    /* ============================================
-       Dialogue
-       ============================================ */
-    .dialogue {
-      color: #e2e8f0;
-      font-style: normal;
-      position: relative;
-      padding: 1rem 1.5rem;
-      border-left: 2px solid rgba(136, 19, 55, 0.3);
-      text-align: center;
-      display: block;
-      margin: 1.5rem auto;
-      max-width: 90%;
-      line-height: 1.9;
-    }
-    
-    @media (max-width: 480px) {
-      .dialogue {
-        padding: 0.75rem 1rem;
-        max-width: 95%;
-      }
-    }
-    
-    /* ============================================
-       Thought Box
-       ============================================ */
-    .thought {
-      color: #c4b5fd;
-      font-style: italic;
-      border-left: 2px solid rgba(196, 181, 253, 0.3);
-      padding: 1.5rem 2rem;
-      margin: 2rem auto;
-      max-width: 90%;
-      background: rgba(88, 28, 135, 0.05);
-      border-radius: 4px;
-      text-align: center;
-    }
-    
-    .thought p {
-      margin-bottom: 1rem;
-      line-height: 1.8;
-      text-align: center;
-    }
-    
-    .thought p:last-child {
-      margin-bottom: 0;
-    }
-    
-    /* ============================================
-       Reveal containers - center all content
-       ============================================ */
-    .reveal {
-      opacity: 1;
-      transform: translateY(0);
-      text-align: center;
-    }
-    
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    .reveal p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Special Content Boxes
-       ============================================ */
-    .my-20,
-    .my-24 {
-      text-align: center;
-    }
-    
-    .my-20 > p,
-    .my-24 > p {
-      text-align: center;
-    }
-    
-    /* Gradient boxes */
-    [class*="bg-gradient-to"] {
-      text-align: center;
-    }
-    
-    [class*="bg-gradient-to"] p {
-      text-align: center;
-    }
-    
-    /* Border boxes */
-    [class*="border-l-"] {
-      text-align: center;
-    }
-    
-    [class*="border-l-"] p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Scene Elements
-       ============================================ */
-    .scene-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
-      margin: 4rem 0;
-    }
-    
-    .section-divider {
-      font-family: var(--font-heading);
-      text-align: center;
-      color: #525252;
-      font-size: 0.875rem;
-      letter-spacing: 0.3em;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .time-marker {
-      background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
-      border-top: 1px solid rgba(159, 18, 57, 0.3);
-      border-bottom: 1px solid rgba(159, 18, 57, 0.3);
-      padding: 1.5rem 0;
-      margin: 3rem 0;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Action Line & Narrator
-       ============================================ */
-    .action-line {
-      font-style: italic;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      text-align: center;
-      margin: 1.5rem 0;
-    }
-    
-    .narrator {
-      color: #a3a3a3;
-      font-style: italic;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Space-y containers
-       ============================================ */
-    .space-y-4,
-    .space-y-6,
-    .space-y-8 {
-      text-align: center;
-    }
-    
-    .space-y-4 > *,
-    .space-y-6 > *,
-    .space-y-8 > * {
-      text-align: center;
-    }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    /* ============================================
-       Final Box / Ending
-       ============================================ */
-    .final-box,
-    [class*="mt-32"][class*="mb-40"] {
-      margin: 6rem auto 4rem;
-      text-align: center;
-    }
-    
-    [class*="border-t"][class*="border-neutral"] {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Utility Classes
-       ============================================ */
-    .text-center { text-align: center !important; }
-    .italic { font-style: italic; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    .font-body { font-family: var(--font-body); }
-    .font-ui { font-family: var(--font-ui); }
-    
-    /* Text Sizes */
-    .text-sm { font-size: 0.875rem; }
-    .text-base { font-size: 1rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-4xl { font-size: 2.25rem; }
-    .text-6xl { font-size: 3.75rem; }
-    .text-8xl { font-size: 6rem; }
-    .text-9xl { font-size: 8rem; }
-    
-    /* Responsive text */
-    @media (min-width: 768px) {
-      .md\:text-8xl { font-size: 6rem; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:text-9xl { font-size: 8rem; }
-    }
-    
-    /* Margins */
-    .m-0 { margin: 0; }
-    .mb-4 { margin-bottom: 1rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-32 { margin-top: 8rem; }
-    .mb-40 { margin-bottom: 10rem; }
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
-    
-    /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-neutral-600 { color: #525252; }
-    .text-neutral-700 { color: #404040; }
-    .text-neutral-800 { color: #262626; }
-    .text-white { color: #ffffff; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-green-100 { color: #dcfce7; }
-    .text-green-200 { color: #bbf7d0; }
-    .text-green-300 { color: #86efac; }
-    .text-green-700 { color: #15803d; }
-    .text-green-800 { color: #166534; }
-    .text-green-900 { color: #14532d; }
-    .text-rose-200 { color: #fecdd3; }
-    .text-amber-100 { color: #fef3c7; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-red-800 { color: #991b1b; }
-    .text-slate-200 { color: #e2e8f0; }
-    .text-slate-400 { color: #94a3b8; }
-    
-    /* Leading & Tracking */
-    .leading-tight { line-height: 1.25; }
-    .leading-relaxed { line-height: 1.625; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-tighter { letter-spacing: -0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    /* Padding */
-    .p-6 { padding: 1.5rem; }
-    .p-8 { padding: 2rem; }
-    .p-10 { padding: 2.5rem; }
-    .p-12 { padding: 3rem; }
-    .pl-4 { padding-left: 1rem; }
-    .pl-6 { padding-left: 1.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .px-8 { padding-left: 2rem; padding-right: 2rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .pt-16 { padding-top: 4rem; }
-    .pb-40 { padding-bottom: 10rem; }
-    
-    /* Borders */
-    .border { border-width: 1px; border-style: solid; }
-    .border-2 { border-width: 2px; border-style: solid; }
-    .border-t { border-top-width: 1px; border-top-style: solid; }
-    .border-l-2 { border-left-width: 2px; border-left-style: solid; }
-    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
-    .rounded-full { border-radius: 9999px; }
-    
-    .border-neutral-800 { border-color: #262626; }
-    .border-green-500 { border-color: #22c55e; }
-    .border-green-800 { border-color: #166534; }
-    .border-amber-700 { border-color: #b45309; }
-    .border-red-800 { border-color: #991b1b; }
-    .border-purple-800 { border-color: #6b21a8; }
-    
-    /* Flex */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    
-    /* Position */
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .fixed { position: fixed; }
-    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-    .bottom-10 { bottom: 2.5rem; }
-    .z-10 { z-index: 10; }
-    .-z-10 { z-index: -10; }
-    
-    /* Width/Height */
-    .w-2 { width: 0.5rem; }
-    .h-2 { height: 0.5rem; }
-    .h-px { height: 1px; }
-    .w-full { width: 100%; }
-    .h-screen { height: 100vh; }
-    .min-h-screen { min-height: 100vh; }
-    .max-w-2xl { max-width: 42rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    
-    /* Backgrounds */
-    .bg-green-700 { background-color: #15803d; }
-    .bg-green-800 { background-color: #166534; }
-    .bg-green-900 { background-color: #14532d; }
-    .bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
-    .bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
-    .bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
-    .bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
-    
-    /* Backdrop */
-    .backdrop-blur-sm { backdrop-filter: blur(4px); }
-    
-    /* Overflow */
-    .overflow-x-hidden { overflow-x: hidden; }
-    
-    /* Animation */
-    .animate-fade-up {
-      animation: fadeUp 1s ease-out;
-    }
-    
-    .animate-bounce {
-      animation: bounce 1s infinite;
-    }
-    
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes bounce {
-      0%, 100% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-      }
-      50% {
-        transform: translateY(0);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-      }
+      scroll-behavior:smooth;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
 
-  </style></head><body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+    body {
+      background-color:#050505;
+      color:#a3a3a3;
+      font-family:var(--font-body);
+      line-height:1.75;
+      overflow-x:hidden;
+      padding-bottom:100px;
+    }
+
+    ::selection { background-color:#881337; color:#fff; }
+    ::-webkit-scrollbar { display:none; }
+    * { -ms-overflow-style:none; scrollbar-width:none; }
+
+    .bg-gradient {
+      position:fixed;
+      inset:0;
+      background:radial-gradient(ellipse at top, rgba(127,29,29,0.15), transparent 60%);
+      z-index:-1;
+      pointer-events:none;
+    }
+
+    main { position:relative; min-height:100vh; padding-bottom:10rem; }
+
+    header {
+      min-height:60vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      padding:3rem 1.5rem 2rem;
+      text-align:center;
+      position:relative;
+    }
+    @media (max-width:768px){
+      header{min-height:50vh;padding:2rem 1rem;}
+    }
+
+    .chapter-badge{
+      display:inline-block;
+      margin-bottom:1.5rem;
+      padding:0.25rem 1rem;
+      border:1px solid rgba(248,113,113,0.5);
+      border-radius:9999px;
+      background-color:rgba(24,24,27,0.7);
+      backdrop-filter:blur(4px);
+    }
+    .chapter-badge span{
+      color:#fee2e2;
+      font-size:0.625rem;
+      font-family:var(--font-ui);
+      letter-spacing:0.4em;
+      text-transform:uppercase;
+    }
+
+    h1{
+      font-family:var(--font-heading);
+      font-size:clamp(2.25rem,7vw,4rem);
+      line-height:1.1;
+      letter-spacing:-0.02em;
+      color:#e5e5e5;
+      margin-bottom:1.5rem;
+    }
+
+    .gradient-text{
+      background:linear-gradient(180deg,#ef4444 0%,#7f1d1d 80%);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+      font-style:italic;
+    }
+
+    header p{
+      font-family:var(--font-body);
+      font-size:clamp(1rem,3vw,1.25rem);
+      color:#737373;
+      font-style:italic;
+      max-width:30rem;
+    }
+
+    article{
+      max-width:42rem;
+      margin:0 auto;
+      padding:0 1.5rem;
+    }
+    @media (max-width:768px){article{padding:0 1rem;}}
+
+    article p{
+      line-height:2.1;
+      margin-bottom:1.5em;
+      font-size:1.2rem;
+      text-align:center;
+    }
+    @media (max-width:768px){
+      article p{font-size:1.1rem;line-height:2;}
+    }
+
+    .prose p{
+      line-height:2.1;
+      margin-bottom:1.75em;
+      font-size:1.2rem;
+      color:#a3a3a3;
+      text-align:center;
+    }
+    @media (max-width:768px){
+      .prose p{font-size:1.1rem;line-height:2;margin-bottom:1.5em;}
+    }
+
+    .drop-cap{
+      text-align:left;
+    }
+    .drop-cap::first-letter{
+      font-family:var(--font-heading);
+      float:left;
+      font-size:4rem;
+      line-height:0.8;
+      margin-right:0.75rem;
+      margin-top:0.15rem;
+      color:#9f1239;
+      text-shadow:0 0 20px rgba(159,18,57,0.4);
+    }
+    @media (max-width:640px){
+      .drop-cap::first-letter{font-size:3.5rem;margin-right:0.5rem;}
+    }
+
+    .dialogue{
+      color:#e2e8f0;
+      font-style:normal;
+      position:relative;
+      padding:1rem 1.5rem;
+      border-left:2px solid rgba(136,19,55,0.3);
+      text-align:center;
+      display:block;
+      margin:1.5rem auto;
+      max-width:90%;
+      line-height:1.9;
+    }
+    @media (max-width:480px){
+      .dialogue{padding:0.75rem 1rem;max-width:95%;}
+    }
+
+    .thought{
+      color:#c4b5fd;
+      font-style:italic;
+      border-left:2px solid rgba(196,181,253,0.3);
+      padding:1.5rem 2rem;
+      margin:2rem auto;
+      max-width:90%;
+      background:rgba(88,28,135,0.05);
+      border-radius:4px;
+      text-align:center;
+    }
+    .thought p{margin-bottom:1rem;line-height:1.8;text-align:center;}
+    .thought p:last-child{margin-bottom:0;}
+
+    .inner-thought{
+      color:#c4b5fd;
+      font-style:italic;
+      border-left:2px solid rgba(196,181,253,0.3);
+      padding-left:1.5rem;
+      display:block;
+      text-align:center;
+      margin:1.5rem auto;
+      max-width:90%;
+    }
+
+    .reveal{opacity:1;transform:translateY(0);text-align:center;}
+    .reveal.active{opacity:1;transform:translateY(0);}
+    .reveal p{text-align:center;}
+
+    .my-12{margin-top:3rem;margin-bottom:3rem;}
+    .my-16{margin-top:4rem;margin-bottom:4rem;}
+    .my-24{margin-top:6rem;margin-bottom:6rem;}
+    .mt-12{margin-top:3rem;}
+    .mb-16{margin-bottom:4rem;}
+    .mt-32{margin-top:8rem;}
+    .mb-40{margin-bottom:10rem;}
+
+    .text-neutral-300{color:#d4d4d4;}
+    .text-neutral-400{color:#a3a3a3;}
+    .text-neutral-500{color:#737373;}
+    .text-red-200{color:#fecaca;}
+
+    .bg-emerald-box{
+      background-color:rgba(4,47,46,0.2);
+      border-left:4px solid #065f46;
+      padding:2rem;
+      margin:3rem 0;
+      border-radius:0 0.5rem 0.5rem 0;
+    }
+    .bg-slate-box{
+      background-color:rgba(15,23,42,0.3);
+      border-left:4px solid rgba(100,116,139,0.7);
+      padding:2rem;
+      margin:3rem 0;
+      border-radius:0 0.5rem 0.5rem 0;
+    }
+    .bg-blood-gradient{
+      background:linear-gradient(to bottom,rgba(76,5,25,0.4),transparent);
+      border:2px solid rgba(127,29,29,0.5);
+      padding:3rem;
+      border-radius:0.5rem;
+      text-align:center;
+      box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+
+    .final-card{
+      position:relative;
+      margin:6rem auto 4rem;
+      max-width:42rem;
+      text-align:center;
+    }
+    .final-card-glow{
+      position:absolute;
+      inset:-2px;
+      background:linear-gradient(to right,#064e3b,#7f1d1d,#000);
+      border-radius:0.5rem;
+      filter:blur(8px);
+      opacity:0.5;
+      animation:pulse 4s cubic-bezier(.4,0,.6,1) infinite;
+    }
+    .final-card-inner{
+      position:relative;
+      background:#000;
+      border:1px solid rgba(4,120,87,0.5);
+      padding:3rem;
+      border-radius:0.5rem;
+      text-align:center;
+      box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);
+    }
+    .final-card-label{
+      position:absolute;
+      top:0;
+      left:50%;
+      transform:translate(-50%,-50%);
+      background:#000;
+      padding:0 1rem;
+      border:1px solid rgba(4,120,87,0.5);
+      border-radius:0.25rem;
+      font-family:var(--font-ui);
+      font-size:0.75rem;
+      letter-spacing:0.1em;
+      text-transform:uppercase;
+      color:#6ee7b7;
+    }
+    .final-card-title{
+      font-family:var(--font-heading);
+      font-size:clamp(2rem,6vw,3rem);
+      background:linear-gradient(to bottom,#6ee7b7,#047857);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+      text-transform:uppercase;
+      letter-spacing:0.15em;
+      margin-bottom:1.5rem;
+    }
+    .final-card-divider{
+      width:100%;
+      height:1px;
+      background:linear-gradient(to right,transparent,#047857,transparent);
+      margin:2rem 0;
+    }
+    .final-card-quote{
+      color:#64748b;
+      font-family:var(--font-body);
+      font-style:italic;
+      font-size:1.25rem;
+    }
+    .final-card-next{
+      margin-top:2rem;
+      color:#52525b;
+      font-family:var(--font-ui);
+      font-size:0.875rem;
+      letter-spacing:0.1em;
+      text-transform:uppercase;
+    }
+
+    @keyframes pulse{
+      0%,100%{opacity:0.5;}
+      50%{opacity:0.3;}
+    }
+
+    .animate-fade-up{animation:fadeUp 1s ease-out;}
+    @keyframes fadeUp{
+      from{opacity:0;transform:translateY(20px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+    .animate-bounce{animation:bounce 1s infinite;}
+    @keyframes bounce{
+      0%,100%{
+        transform:translateY(-25%);
+        animation-timing-function:cubic-bezier(0.8,0,1,1);
+      }
+      50%{
+        transform:translateY(0);
+        animation-timing-function:cubic-bezier(0,0,0.2,1);
+      }
+    }
+  </style>
+</head>
+<body class="antialiased overflow-x-hidden">
   <div class="bg-gradient"></div>
-<main class="relative min-h-screen pb-40"><div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-950/20 via-black to-black -z-10"></div><header class="h-screen flex flex-col items-center justify-center relative p-6"><div class="animate-fade-up flex flex-col items-center"><div class="mb-6 px-4 py-1 border border-emerald-800/50 rounded-full bg-emerald-950/20 backdrop-blur-sm"><span class="text-emerald-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 104</span></div><h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tighter mb-8">Through Darkness,<br><span class="gradient-text italic pr-2">A Flickering Flame</span></h1><p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">"Some flames refuse to be extinguished, no matter how far they fall."</p></div><div class="absolute bottom-10 animate-bounce text-neutral-600"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div></header><article class="max-w-2xl mx-auto px-8 relative z-10"><div class="mb-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-emerald-800 w-16"></div><span class="mx-4 text-emerald-400 font-ui text-xs tracking-[0.3em] uppercase">Part One</span><div class="h-px bg-emerald-800 w-16"></div></div><h3 class="text-center font-heading text-2xl text-neutral-400 tracking-wide">The Abyss</h3></div><div class="h-[20vh] flex items-center justify-center reveal"><p class="font-heading text-4xl md:text-6xl text-emerald-500 tracking-[0.15em] italic">THUD.</p></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap text-neutral-300">Medea's eyes flickered open only after the dust cloud had settled into an eerie calm.</p><p class="dialogue">"Ha..."</p><p>The sound escaped her lips—half relief at survival, half frustration at the graceless landing. She pushed herself upright, every muscle protesting.</p><p>In the final moment before the wolf had lunged, Medea had driven her poisoned dagger deep into its throat. The momentum had carried them both over the cliff's edge, locked in a deadly embrace.</p><p>Fortune—if it could be called that—had placed dense vegetation along the cliff face. The branches had broken their fall enough that neither she nor the wolf had been pulverized against the valley floor.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="inner-thought">By now, the hunting grounds must be in absolute chaos. They'll have noticed my absence.</p><p>Medea tilted her head back, squinting up at the sheer cliff face from which she'd plummeted. It towered above her—impossibly high, wreathed in shadows.</p><p>To numb the pain radiating through her body from the impact, she fished several pills from a hidden pocket and chewed them dry. The bitter taste shocked her scattered thoughts back into focus.</p><p class="inner-thought">Time is precious. I must move before the search parties arrive.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Wind moaned through the narrow valley, unable to escape the steep walls. The sound was haunting—almost alive.</p><p>Trees pressed in from all sides, their canopy so dense that daylight barely penetrated. Medea surveyed her surroundings with calculating eyes.</p><p>Valdina was a harsh, mountainous realm—famous for its endless forests and untamed wilderness. The land remained so pristine precisely because vast swaths of it had never felt human footprints or witnessed demonic incursions.</p><p>The royal hunting grounds existed as a controlled exception, carved from the wilderness through decades of careful management. Beyond their boundaries, the forest swallowed everything.</p><p class="inner-thought">Perfect. A sanctuary for a few days.</p></div><div class="bg-emerald-950/20 border-l-4 border-emerald-800 p-8 my-12 rounded-r-lg reveal"><div class="prose prose-invert prose-xl"><p>Medea had anticipated her uncle's move. Of course she had.</p><p>She had dismantled every one of his schemes, elevated herself to national hero, and positioned herself as an insurmountable obstacle. The Regent could not afford to let her live.</p><p class="dialogue m-0">"Don't worry, Dea. Trust me. I will keep you safe."</p><p class="inner-thought mt-4">Safe? You mean you'll ensure my death among this manufactured chaos?</p><p class="mt-4">A cold smile touched her lips.</p><p class="dialogue">"House Claudio... this is your gift to me. I shall accept it graciously."</p></div></div><div class="prose prose-invert prose-xl reveal"><p>Her uncle would have no choice but to search desperately for her now. He needed to dispel the suspicion that Samon had murdered the Princess. The irony was exquisite—he would pray fervently for the survival of the very niece he'd just tried to eliminate.</p><p>Medea had resolved not to emerge from these mountains until she'd bled them dry. Every hour her safety remained uncertain would deepen the Queen Dowager's suspicions. Each passing day would stoke her fury against the Claudios to white-hot intensity.</p><p>After carefully erasing any trace of her landing site, Medea set off through the undergrowth, her body protesting every step.</p><p>Soon, her silhouette vanished into the dense foliage.</p><p>The valley fell silent once more, as though nothing had disturbed it at all.</p></div><div class="my-24 text-center reveal"><div class="text-6xl text-neutral-700">✦ ✦ ✦</div></div><div class="mb-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-blood-800 w-16"></div><span class="mx-4 text-blood-400 font-ui text-xs tracking-[0.3em] uppercase">Part Two</span><div class="h-px bg-blood-800 w-16"></div></div><h3 class="text-center font-heading text-2xl text-neutral-400 tracking-wide">Rose Mansion, Second District</h3></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap text-neutral-300">Since the Queen Dowager had assumed her role as official consort, members of Façade had gained more frequent access to the palace grounds.</p><p>Silent as phantoms, they prowled the corridors in search of their leader's salvation—the antidote that might preserve Cesare's life.</p><p class="dialogue">"Still no trace of the Dawn's Droplet. We're proceeding cautiously to avoid palace surveillance."</p><p>Gallo furrowed his brow, dragging his hands down his face in barely contained frustration.</p><p class="dialogue">"You know, it might actually be easier if the Regent staged his rebellion and threw the palace into total chaos...? But suggesting that makes me absolute trash, doesn't it?"</p><p>Silence greeted his words.</p><p class="dialogue">"Hey! Why isn't anyone answering? I'm joking!"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Terence ignored Gallo's ill-timed humor, his attention fixed on their leader.</p><p>Though Cesare maintained his characteristic languid demeanor, Terence could see vitality draining from him like water through cupped hands. The curse's episodes were growing more frequent.</p><p class="inner-thought">Time is running out. Without the Dawn's Droplet, Cesare won't survive much longer.</p><p>Anxiety unfurled in everyone's chest—a creeping dread no one dared voice aloud. To speak it would give shape to the despair waiting to crush them all.</p><p>So they remained silent, channeling every ounce of energy into locating that single, irreplaceable cure.</p><p>Another day slipped away. Another day stolen from a dwindling supply.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Alpha burst through the door with uncharacteristic urgency.</p><p class="dialogue font-bold text-red-200">"Message from Zeta. Princess Medea has vanished."</p><p>The room went deathly still.</p></div><div class="my-24 text-center reveal"><div class="text-6xl text-neutral-700">✦ ✦ ✦</div></div><div class="mb-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-slate-600 w-16"></div><span class="mx-4 text-slate-400 font-ui text-xs tracking-[0.3em] uppercase">Part Three</span><div class="h-px bg-slate-600 w-16"></div></div><h3 class="text-center font-heading text-2xl text-neutral-400 tracking-wide">The Hunt</h3></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap text-neutral-300">Darkness had fallen when Cesare arrived at the zelkova tree where Samon had been discovered.</p><p>The Princess's mare lay nearby, its carcass already beginning to decompose. Blood had pooled and dried into dark, rust-colored stains—silent testimony to the violence that had unfolded here.</p><p class="dialogue">"My lord, the royal investigation team discovered dead horses and wolves near the cliff's edge. All evidence suggests the Princess was pursued to the precipice and... fell."</p><p>Beneath his mask, Cesare's expression remained inscrutable—carved from marble.</p><p class="dialogue">"Her Highness's cape was found torn to shreds. If she was injured and plummeted from such a height... most believe she could not have survived."</p><p class="dialogue font-bold">"Impossible."</p><p>The word emerged low and absolute—a denial that brooked no argument.</p></div><div class="bg-slate-900/30 border-l-4 border-slate-700/50 p-8 my-12 rounded-r-lg reveal"><div class="prose prose-invert prose-xl"><p class="inner-thought m-0">So easily? Medea, of all people?</p><p class="mt-4">Cesare refused to accept it.</p><p>The woman who had methodically dismantled the Regent's schemes, who had laid trap after calculated trap—she would simply surrender her life in a moment of carelessness? Knowing full well that Valdina would fall into her uncle's hands the moment she died?</p><p class="inner-thought mt-4">No. Not her.</p><p class="mt-4">Yet his rational mind whispered uncomfortable truths. Sometimes life ended with shocking abruptness. Even the strongest souls—those who seemed immovable as fortress walls—sometimes made choices utterly contrary to their nature.</p></div></div><div class="my-24 text-center reveal"><blockquote class="font-body text-2xl italic text-red-300/60 leading-relaxed relative inline-block max-w-2xl"><span class="absolute -top-6 -left-4 text-6xl text-red-900/20 font-serif">"</span> Cesare, you are not my son. You are the bastard offspring of my husband and the late Empress. From the moment he cast you into my arms, I have never stopped despising you. <span class="absolute -bottom-10 -right-4 text-6xl text-red-900/20 font-serif">"</span></blockquote></div><div class="prose prose-invert prose-xl reveal"><p>He remembered his own cold response, delivered when he was barely more than a child.</p><p class="dialogue">"Then you must live long enough to watch me die with your own eyes, Your Majesty. Isn't that what you truly desire?"</p><p>Yet that noble, unshakeable woman—who had endured years of silent suffering—had surrendered her life in a single, inexplicable moment.</p><p class="dialogue text-neutral-400">"Cesare... I can endure no longer."</p><p class="dialogue">"No."</p><p>But she had already made her choice.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Cesare's lips curved into the ghost of a smile beneath his mask.</p><p class="dialogue">"The Princess is different. She's nothing like my stepmother—who withered day by day with vacant eyes, fading like a discarded doll."</p><p>He had seen an inextinguishable fire burning in Medea's eyes. She would not rest until those flames had completely consumed her targets, reduced them to ash.</p><p class="dialogue">"She's different from my mother. She's a creature like me."</p><p>Cesare was certain of it.</p><p>Which meant—</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Something glinted faintly beneath the azalea tree.</p><p>Cesare crouched, fingers closing around cold metal.</p><p class="dialogue">"...A needle."</p><p>Not just any needle—the pin from the cat brooch he'd commissioned for Medea. When he'd ordered the piece, he'd instructed the craftsman to mark it with a nearly imperceptible signature: a subtle roughness at the very tip.</p><p>His fingertips traced that telltale mark.</p><p class="inner-thought">Stay alive.</p><p>Relief flooded through him—so unexpected that it drew an involuntary exhale from his lips.</p><p class="inner-thought">Samon walked directly into the Princess's trap.</p><p>Without another word, Cesare moved forward into the darkness.</p></div><div class="my-24 text-center reveal"><div class="text-6xl text-neutral-700">✦ ✦ ✦</div></div><div class="mb-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-blood-800 w-16"></div><span class="mx-4 text-blood-400 font-ui text-xs tracking-[0.3em] uppercase">Part Four</span><div class="h-px bg-blood-800 w-16"></div></div><h3 class="text-center font-heading text-2xl text-neutral-400 tracking-wide">Into the Valley</h3></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap text-neutral-300">Moonlight painted the valley in shades of silver and shadow as Cesare descended deeper into the wilderness.</p><p>Pain lanced through his chest. He stumbled, barely catching himself.</p><p>Crimson veins crawled up his forearms like living things, pulsing with dark magic.</p><p class="dialogue">"...Fuck."</p><p>The crude profanity fell from lips more accustomed to elegant speech.</p><p>Just as his fingertips had begun to darken with necrotic discoloration, the curse's epicenter—his heart—had already turned a hideous, mottled black.</p><p>But he couldn't stop. Cesare spat blood and pressed onward, following the trail deeper into the forest's embrace.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="inner-thought">How could a princess raised in palace luxury venture this deep? How could she survive days alone in wilderness like this, evading predators and beasts?</p><p class="inner-thought">Could this trail I'm following truly belong to her?</p><p>His conviction wavered with each labored step.</p><p>How long had he been walking?</p><p>Suddenly, the trail ended.</p><p>Cesare lifted his gaze. Mountains rose before him, their slopes dotted with small caves—natural shelters from rain and predators.</p><p>Fallen leaves carpeted the entrance to one such cave. He approached, ducking inside.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Remnants of a fire pit. Nothing but cold ash remained—no warmth, no certainty.</p><p>Doubt began to crystallize into despair—</p></div><div class="h-[20vh] flex items-center justify-center reveal"><p class="font-heading text-4xl md:text-6xl text-red-500 tracking-[0.15em] italic">FWIP—!</p></div><div class="prose prose-invert prose-xl reveal"><p>Cesare twisted aside as a crossbow bolt hissed past his neck, missing by a hair's breadth.</p><p>He spun toward the darkness beyond the cave's mouth.</p><p class="dialogue font-bold text-red-200">"Show yourself."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>That voice—achingly familiar. That round face, those delicate features. Small stature, yet unbowed.</p><p>The green-eyed girl he'd been hunting through the darkness stood before him.</p><p>Crossbow leveled. Expression wary.</p><p>A freshly killed rabbit lay at her feet—evidence of her resourcefulness.</p><p>The Princess froze when she recognized the white half-mask.</p><p class="dialogue">"Akares? How is this even—"</p><p>In that instant, something inside Cesare snapped.</p><p>Every shred of reason, every carefully maintained restraint—all of it evaporated the moment he confirmed she was alive.</p><p class="dialogue text-2xl font-heading">"Medea."</p></div><div class="my-24 reveal"><div class="bg-gradient-to-b from-blood-950/40 to-transparent border-2 border-blood-800/30 p-12 rounded-lg text-center shadow-2xl"><p class="font-body text-2xl text-slate-300 italic leading-relaxed mb-8">He crossed the distance between them in three swift strides.</p><p class="font-body text-2xl text-slate-300 italic leading-relaxed">And pulled her into his arms as though he might never let go.</p></div></div><div class="mt-32 mb-40 reveal relative"><div class="absolute -inset-0.5 bg-gradient-to-r from-emerald-900 via-blood-900 to-black rounded-lg blur opacity-50 animate-pulse-slow"></div><div class="relative bg-black border border-emerald-800/50 p-12 rounded-lg text-center shadow-2xl"><div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-emerald-800/50 rounded text-xs tracking-widest text-emerald-400 font-ui uppercase">End Chapter 10</div><h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-emerald-500 to-emerald-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">Through Darkness, A Flickering Flame</h2><div class="w-full h-px bg-gradient-to-r from-transparent via-emerald-800 to-transparent my-8"></div><p class="text-slate-500 font-serif italic text-xl">"Even dying embers can ignite an inferno."</p><p class="mt-8 text-slate-600 text-sm font-ui tracking-widest uppercase">[ Continue to Chapter 11 ]</p></div></div></article></main><script>const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1});document.querySelectorAll(".reveal").forEach(e=>observer.observe(e))</script></body></html>```
+
+  <main class="relative min-h-screen pb-40">
+    <div class="fixed inset-0 -z-10" style="background:radial-gradient(ellipse at top, rgba(6,78,59,0.2), black 70%);"></div>
+
+    <header class="h-screen flex flex-col items-center justify-center relative p-6">
+      <div class="animate-fade-up flex flex-col items-center">
+        <div class="mb-6 px-4 py-1 border border-emerald-800/50 rounded-full" style="background-color:rgba(4,47,46,0.3);backdrop-filter:blur(4px);">
+          <span class="text-sm font-ui tracking-[0.4em]" style="font-size:10px;text-transform:uppercase;color:#d1fae5;">Chapter 104</span>
+        </div>
+        <h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tight mb-8">
+          Through Darkness,<br>
+          <span class="gradient-text pr-2">A Flickering Flame</span>
+        </h1>
+        <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">
+          "Some flames refuse to be extinguished, no matter how far they fall."
+        </p>
+      </div>
+      <div class="absolute bottom-10 animate-bounce" style="color:#525252;">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+      </div>
+    </header>
+
+    <article class="max-w-2xl mx-auto px-8 relative z-10">
+
+      <div class="mb-16 reveal">
+        <div class="flex items-center justify-center py-8">
+          <div class="h-px w-16" style="background:#065f46;"></div>
+          <span class="mx-4 text-xs font-ui tracking-[0.3em]" style="color:#6ee7b7;text-transform:uppercase;">Part One</span>
+          <div class="h-px w-16" style="background:#065f46;"></div>
+        </div>
+        <h3 class="text-center font-heading text-2xl text-neutral-400 tracking-wide">The Abyss</h3>
+      </div>
+
+      <div class="h-[20vh] flex items-center justify-center reveal">
+        <p class="font-heading text-4xl md:text-6xl" style="color:#34d399;letter-spacing:0.15em;font-style:italic;">THUD.</p>
+      </div>
+
+      <div class="prose reveal">
+        <p class="drop-cap text-neutral-300">Medea's eyes flickered open only after the dust cloud had settled into an eerie calm.</p>
+        <p class="dialogue">"Ha..."</p>
+        <p>The sound escaped her lips—half relief at survival, half frustration at the graceless landing. She pushed herself upright, every muscle protesting.</p>
+        <p>In the final moment before the wolf had lunged, Medea had driven her poisoned dagger deep into its throat. The momentum had carried them both over the cliff's edge, locked in a deadly embrace.</p>
+        <p>Fortune—if it could be called that—had placed dense vegetation along the cliff face. The branches had broken their fall enough that neither she nor the wolf had been pulverized against the valley floor.</p>
+      </div>
+
+      <div class="prose mt-12 reveal">
+        <p class="inner-thought">By now, the hunting grounds must be in absolute chaos. They'll have noticed my absence.</p>
+        <p>Medea tilted her head back, squinting up at the sheer cliff face from which she'd plummeted. It towered above her—impossibly high, wreathed in shadows.</p>
+        <p>To numb the pain radiating through her body from the impact, she fished several pills from a hidden pocket and chewed them dry. The bitter taste shocked her scattered thoughts back into focus.</p>
+        <p class="inner-thought">Time is precious. I must move before the search parties arrive.</p>
+      </div>
+
+      <div class="prose mt-12 reveal">
+        <p>Wind moaned through the narrow valley, unable to escape the steep walls. The sound was haunting—almost alive.</p>
+        <p>Trees pressed in from all sides, their canopy so dense that daylight barely penetrated. Medea surveyed her surroundings with calculating eyes.</p>
+        <p>Valdina was a harsh, mountainous realm—famous for its endless forests and untamed wilderness. The land remained so pristine precisely because vast swaths of it had never felt human footprints or witnessed demonic incursions.</p>
+        <p>The royal hunting grounds existed as a controlled exception, carved from the wilderness through decades of careful management. Beyond their boundaries, the forest swallowed everything.</p>
+        <p class="inner-thought">Perfect. A sanctuary for a few days.</p>
+      </div>
+
+      <div class="bg-emerald-box my-12 reveal">
+        <div class="prose">
+          <p>Medea had anticipated her uncle's move. Of course she had.</p>
+          <p>She had dismantled every one of his schemes, elevated herself to national hero, and positioned herself as an insurmountable obstacle. The Regent could not afford to let her live.</p>
+          <p class="dialogue m-0">"Don't worry, Dea. Trust me. I will keep you safe."</p>
+          <p class="inner-thought mt-4">Safe? You mean you'll ensure my death among this manufactured chaos?</p>
+          <p class="mt-4">A cold smile touched her lips.</p>
+          <p class="dialogue">"House Claudio... this is your gift to me. I shall accept it graciously."</p>
+        </div>
+      </div>
+
+      <div class="prose reveal">
+        <p>Her uncle would have no choice but to search desperately for her now. He needed to dispel the suspicion that Samon had murdered the Princess. The irony was exquisite—he would pray fervently for the survival of the very niece he'd just tried to eliminate.</p>
+        <p>Medea had resolved not to emerge from these mountains until she'd bled them dry. Every hour her safety remained uncertain would deepen the Queen Dowager's suspicions. Each passing day would stoke her fury against the Claudios to white-hot intensity.</p>
+        <p>After carefully erasing any trace of her landing site, Medea set off through the undergrowth, her body protesting every step.</p>
+        <p>Soon, her silhouette vanished into the dense foliage.</p>
+        <p>The valley fell silent once more, as though nothing had disturbed it at all.</p>
+      </div>
+
+      <div class="my-24 text-center reveal">
+        <div class="text-6xl text-neutral-700">✦ ✦ ✦</div>
+      </div>
+
+      <div class="mb-16 reveal">
+        <div class="flex items-center justify-center py-8">
+          <div class="h-px w-16" style="background:#7f1d1d;"></div>
+          <span class="mx-4 text-xs font-ui tracking-[0.3em]" style="color:#fca5a5;text-transform:uppercase;">Part Two</span>
+          <div class="h-px w-16" style="background:#7f1d1d;"></div>
+        </div>
+        <h3 class="text-center font-heading text-2xl text-neutral-400 tracking-wide">Rose Mansion, Second District</h3>
+      </div>
+
+      <div class="prose reveal">
+        <p class="drop-cap text-neutral-300">Since the Queen Dowager had assumed her role as official consort, members of Façade had gained more frequent access to the palace grounds.</p>
+        <p>Silent as phantoms, they prowled the corridors in search of their leader's salvation—the antidote that might preserve Cesare's life.</p>
+        <p class="dialogue">"Still no trace of the Dawn's Droplet. We're proceeding cautiously to avoid palace surveillance."</p>
+        <p>Gallo furrowed his brow, dragging his hands down his face in barely contained frustration.</p>
+        <p class="dialogue">"You know, it might actually be easier if the Regent staged his rebellion and threw the palace into total chaos...? But suggesting that makes me absolute trash, doesn't it?"</p>
+        <p>Silence greeted his words.</p>
+        <p class="dialogue">"Hey! Why isn't anyone answering? I'm joking!"</p>
+      </div>
+
+      <div class="prose mt-12 reveal">
+        <p>Terence ignored Gallo's ill-timed humor, his attention fixed on their leader.</p>
+        <p>Though Cesare maintained his characteristic languid demeanor, Terence could see vitality draining from him like water through cupped hands. The curse's episodes were growing more frequent.</p>
+        <p class="inner-thought">Time is running out. Without the Dawn's Droplet, Cesare won't survive much longer.</p>
+        <p>Anxiety unfurled in everyone's chest—a creeping dread no one dared voice aloud. To speak it would give shape to the despair waiting to crush them all.</p>
+        <p>So they remained silent, channeling every ounce of energy into locating that single, irreplaceable cure.</p>
+        <p>Another day slipped away. Another day stolen from a dwindling supply.</p>
+      </div>
+
+      <div class="prose mt-12 reveal">
+        <p>Alpha burst through the door with uncharacteristic urgency.</p>
+        <p class="dialogue font-bold text-red-200">"Message from Zeta. Princess Medea has vanished."</p>
+        <p>The room went deathly still.</p>
+      </div>
+
+      <div class="my-24 text-center reveal">
+        <div class="text-6xl text-neutral-700">✦ ✦ ✦</div>
+      </div>
+
+      <div class="mb-16 reveal">
+        <div class="flex items-center justify-center py-8">
+          <div class="h-px w-16" style="background:#475569;"></div>
+          <span class="mx-4 text-xs font-ui tracking-[0.3em]" style="color:#94a3b8;text-transform:uppercase;">Part Three</span>
+          <div class="h-px w-16" style="background:#475569;"></div>
+        </div>
+        <h3 class="text-center font-heading text-2xl text-neutral-400 tracking-wide">The Hunt</h3>
+      </div>
+
+      <div class="prose reveal">
+        <p class="drop-cap text-neutral-300">Darkness had fallen when Cesare arrived at the zelkova tree where Samon had been discovered.</p>
+        <p>The Princess's mare lay nearby, its carcass already beginning to decompose. Blood had pooled and dried into dark, rust-colored stains—silent testimony to the violence that had unfolded here.</p>
+        <p class="dialogue">"My lord, the royal investigation team discovered dead horses and wolves near the cliff's edge. All evidence suggests the Princess was pursued to the precipice and... fell."</p>
+        <p>Beneath his mask, Cesare's expression remained inscrutable—carved from marble.</p>
+        <p class="dialogue">"Her Highness's cape was found torn to shreds. If she was injured and plummeted from such a height... most believe she could not have survived."</p>
+        <p class="dialogue font-bold">"Impossible."</p>
+        <p>The word emerged low and absolute—a denial that brooked no argument.</p>
+      </div>
+
+      <div class="bg-slate-box my-12 reveal">
+        <div class="prose">
+          <p class="inner-thought m-0">So easily? Medea, of all people?</p>
+          <p class="mt-4">Cesare refused to accept it.</p>
+          <p>The woman who had methodically dismantled the Regent's schemes, who had laid trap after calculated trap—she would simply surrender her life in a moment of carelessness? Knowing full well that Valdina would fall into her uncle's hands the moment she died?</p>
+          <p class="inner-thought mt-4">No. Not her.</p>
+          <p class="mt-4">Yet his rational mind whispered uncomfortable truths. Sometimes life ended with shocking abruptness. Even the strongest souls—those who seemed immovable as fortress walls—sometimes made choices utterly contrary to their nature.</p>
+        </div>
+      </div>
+
+      <div class="my-24 text-center reveal">
+        <blockquote class="font-body text-2xl italic leading-relaxed relative inline-block max-w-2xl" style="color:rgba(252,165,165,0.6);">
+          <span class="absolute -top-6 -left-4 text-6xl font-serif" style="color:rgba(127,29,29,0.2);">"</span>
+          Cesare, you are not my son. You are the bastard offspring of my husband and the late Empress. From the moment he cast you into my arms, I have never stopped despising you.
+          <span class="absolute -bottom-10 -right-4 text-6xl font-serif" style="color:rgba(127,29,29,0.2);">"</span>
+        </blockquote>
+      </div>
+
+      <div class="prose reveal">
+        <p>He remembered his own cold response, delivered when he was barely more than a child.</p>
+        <p class="dialogue">"Then you must live long enough to watch me die with your own eyes, Your Majesty. Isn't that what you truly desire?"</p>
+        <p>Yet that noble, unshakeable woman—who had endured years of silent suffering—had surrendered her life in a single, inexplicable moment.</p>
+        <p class="dialogue text-neutral-400">"Cesare... I can endure no longer."</p>
+        <p class="dialogue">"No."</p>
+        <p>But she had already made her choice.</p>
+      </div>
+
+      <div class="prose mt-12 reveal">
+        <p>Cesare's lips curved into the ghost of a smile beneath his mask.</p>
+        <p class="dialogue">"The Princess is different. She's nothing like my stepmother—who withered day by day with vacant eyes, fading like a discarded doll."</p>
+        <p>He had seen an inextinguishable fire burning in Medea's eyes. She would not rest until those flames had completely consumed her targets, reduced them to ash.</p>
+        <p class="dialogue">"She's different from my mother. She's a creature like me."</p>
+        <p>Cesare was certain of it.</p>
+        <p>Which meant—</p>
+      </div>
+
+      <div class="prose mt-12 reveal">
+        <p>Something glinted faintly beneath the azalea tree.</p>
+        <p>Cesare crouched, fingers closing around cold metal.</p>
+        <p class="dialogue">"...A needle."</p>
+        <p>Not just any needle—the pin from the cat brooch he'd commissioned for Medea. When he'd ordered the piece, he'd instructed the craftsman to mark it with a nearly imperceptible signature: a subtle roughness at the very tip.</p>
+        <p>His fingertips traced that telltale mark.</p>
+        <p class="inner-thought">Stay alive.</p>
+        <p>Relief flooded through him—so unexpected that it drew an involuntary exhale from his lips.</p>
+        <p class="inner-thought">Samon walked directly into the Princess's trap.</p>
+        <p>Without another word, Cesare moved forward into the darkness.</p>
+      </div>
+
+      <div class="my-24 text-center reveal">
+        <div class="text-6xl text-neutral-700">✦ ✦ ✦</div>
+      </div>
+
+      <div class="mb-16 reveal">
+        <div class="flex items-center justify-center py-8">
+          <div class="h-px w-16" style="background:#7f1d1d;"></div>
+          <span class="mx-4 text-xs font-ui tracking-[0.3em]" style="color:#fca5a5;text-transform:uppercase;">Part Four</span>
+          <div class="h-px w-16" style="background:#7f1d1d;"></div>
+        </div>
+        <h3 class="text-center font-heading text-2xl text-neutral-400 tracking-wide">Into the Valley</h3>
+      </div>
+
+      <div class="prose reveal">
+        <p class="drop-cap text-neutral-300">Moonlight painted the valley in shades of silver and shadow as Cesare descended deeper into the wilderness.</p>
+        <p>Pain lanced through his chest. He stumbled, barely catching himself.</p>
+        <p>Crimson veins crawled up his forearms like living things, pulsing with dark magic.</p>
+        <p class="dialogue">"...Fuck."</p>
+        <p>The crude profanity fell from lips more accustomed to elegant speech.</p>
+        <p>Just as his fingertips had begun to darken with necrotic discoloration, the curse's epicenter—his heart—had already turned a hideous, mottled black.</p>
+        <p>But he couldn't stop. Cesare spat blood and pressed onward, following the trail deeper into the forest's embrace.</p>
+      </div>
+
+      <div class="prose mt-12 reveal">
+        <p class="inner-thought">How could a princess raised in palace luxury venture this deep? How could she survive days alone in wilderness like this, evading predators and beasts?</p>
+        <p class="inner-thought">Could this trail I'm following truly belong to her?</p>
+        <p>His conviction wavered with each labored step.</p>
+        <p>How long had he been walking?</p>
+        <p>Suddenly, the trail ended.</p>
+        <p>Cesare lifted his gaze. Mountains rose before him, their slopes dotted with small caves—natural shelters from rain and predators.</p>
+        <p>Fallen leaves carpeted the entrance to one such cave. He approached, ducking inside.</p>
+      </div>
+
+      <div class="prose mt-12 reveal">
+        <p>Remnants of a fire pit. Nothing but cold ash remained—no warmth, no certainty.</p>
+        <p>Doubt began to crystallize into despair—</p>
+      </div>
+
+      <div class="h-[20vh] flex items-center justify-center reveal">
+        <p class="font-heading text-4xl md:text-6xl" style="color:#f87171;letter-spacing:0.15em;font-style:italic;">FWIP—!</p>
+      </div>
+
+      <div class="prose reveal">
+        <p>Cesare twisted aside as a crossbow bolt hissed past his neck, missing by a hair's breadth.</p>
+        <p>He spun toward the darkness beyond the cave's mouth.</p>
+        <p class="dialogue font-bold text-red-200">"Show yourself."</p>
+      </div>
+
+      <div class="prose mt-12 reveal">
+        <p>That voice—achingly familiar. That round face, those delicate features. Small stature, yet unbowed.</p>
+        <p>The green-eyed girl he'd been hunting through the darkness stood before him.</p>
+        <p>Crossbow leveled. Expression wary.</p>
+        <p>A freshly killed rabbit lay at her feet—evidence of her resourcefulness.</p>
+        <p>The Princess froze when she recognized the white half-mask.</p>
+        <p class="dialogue">"Akares? How is this even—"</p>
+        <p>In that instant, something inside Cesare snapped.</p>
+        <p>Every shred of reason, every carefully maintained restraint—all of it evaporated the moment he confirmed she was alive.</p>
+        <p class="dialogue" style="font-size:1.75rem;font-family:var(--font-heading);">"Medea."</p>
+      </div>
+
+      <div class="my-24 reveal">
+        <div class="bg-blood-gradient">
+          <p class="font-body text-2xl text-slate-300 italic leading-relaxed mb-8">
+            He crossed the distance between them in three swift strides.
+          </p>
+          <p class="font-body text-2xl text-slate-300 italic leading-relaxed">
+            And pulled her into his arms as though he might never let go.
+          </p>
+        </div>
+      </div>
+
+      <div class="final-card mt-32 mb-40 reveal">
+        <div class="final-card-glow"></div>
+        <div class="final-card-inner">
+          <div class="final-card-label">End Chapter 104</div>
+          <h2 class="final-card-title">Through Darkness, A Flickering Flame</h2>
+          <div class="final-card-divider"></div>
+          <p class="final-card-quote">"Even dying embers can ignite an inferno."</p>
+          <p class="final-card-next">[ Continue to Chapter 105 ]</p>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script>
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add("active");
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll(".reveal").forEach(e => observer.observe(e));
+  </script>
+</body>
+</html>

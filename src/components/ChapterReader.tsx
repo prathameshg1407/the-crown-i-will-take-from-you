@@ -295,8 +295,7 @@ const ErrorScreen = memo(function ErrorScreen({
             Go Back
           </button>
         </div>
-      </div>
-    </div>
+      </div>    </div>
   )
 })
 

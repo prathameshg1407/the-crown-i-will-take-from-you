@@ -3,8 +3,10 @@ import { SignJWT, jwtVerify, JWTPayload as JoseJWTPayload } from 'jose'
 import { nanoid } from 'nanoid'
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!)
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m'
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d'
+
+// ✅ Increased expiration times for better UX
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30m' // Increased from 15m
+const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d' // Increased from 7d
 
 export interface JWTPayload {
   sub: string
@@ -124,7 +126,7 @@ export function getExpirationSeconds(timeString: string): number {
     case 'm': return value * 60
     case 'h': return value * 60 * 60
     case 'd': return value * 24 * 60 * 60
-    default: return 900
+    default: return 1800 // Default to 30 minutes
   }
 }
 

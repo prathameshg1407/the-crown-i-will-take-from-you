@@ -12,6 +12,9 @@ import {
 import { logger } from '@/lib/logger'
 import { getClientIp, getUserAgent } from '@/lib/request'
 
+// ✅ Grace period for expired sessions (5 minutes)
+const SESSION_GRACE_PERIOD_MS = 5 * 60 * 1000
+
 export async function POST(request: NextRequest) {
   try {
     let refreshToken = request.cookies.get('refresh_token')?.value
@@ -40,11 +43,11 @@ export async function POST(request: NextRequest) {
       return errorResponse('Invalid refresh token', 401, 'INVALID_REFRESH_TOKEN')
     }
     
-    // Get session from database by refresh token
-    const session = await getSessionByRefreshToken(refreshToken)
+    // ✅ Get session from database with grace period
+    const session = await getSessionByRefreshToken(refreshToken, SESSION_GRACE_PERIOD_MS)
     
     if (!session) {
-      logger.warn({ userId: refreshPayload.sub }, 'Session not found or expired')
+      logger.warn({ userId: refreshPayload.sub }, 'Session not found or expired beyond grace period')
       return errorResponse('Session not found or expired', 401, 'SESSION_EXPIRED')
     }
     
@@ -66,23 +69,19 @@ export async function POST(request: NextRequest) {
     }
     
     // Generate new access token
-    // Convert null to undefined for name field
     const accessToken = await generateAccessToken({
       sub: user.id,
       email: user.email,
       tier: user.tier,
-      name: user.name ?? undefined, // ✅ Convert null to undefined
+      name: user.name ?? undefined,
     })
     
-    // Rotate refresh token for security
-    const shouldRotateRefreshToken = true
+    // ✅ Safer refresh token rotation with atomic operation
     let newRefreshToken = refreshToken
+    let newSessionId = session.id
     
-    if (shouldRotateRefreshToken) {
-      // Delete old session
-      await deleteSession(session.id)
-      
-      // Create new session
+    try {
+      // Create new session first (before deleting old one)
       const newSession = await createSession({
         userId: user.id,
         ipAddress: getClientIp(request),
@@ -90,19 +89,41 @@ export async function POST(request: NextRequest) {
       })
       
       newRefreshToken = newSession.refreshToken
+      newSessionId = newSession.sessionId
+      
+      // Only delete old session after new one is created successfully
+      await deleteSession(session.id).catch(err => {
+        // Log but don't fail if old session deletion fails
+        logger.warn({ error: err, sessionId: session.id }, 'Failed to delete old session')
+      })
       
       logger.info({ 
         userId: user.id, 
         oldSessionId: session.id, 
         newSessionId: newSession.sessionId 
       }, 'Refresh token rotated')
+      
+    } catch (rotationError) {
+      // ✅ If rotation fails, keep using the old token
+      logger.error({ error: rotationError }, 'Token rotation failed, using existing token')
+      
+      // Extend the existing session instead
+      await supabaseAdmin
+        .from('sessions')
+        .update({ 
+          last_used_at: new Date().toISOString(),
+          // Extend expiry by 7 days
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        })
+        .eq('id', session.id)
     }
     
     logger.info({ userId: user.id }, 'Token refreshed successfully')
     
     const response = successResponse({
       accessToken,
-      ...(shouldRotateRefreshToken && { refreshToken: newRefreshToken }),
+      refreshToken: newRefreshToken,
+      sessionId: newSessionId,
     })
     
     // Set new HTTP-only cookies

@@ -3,14 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>A Drizzle of Blood</title>
+  <title>Fangs in the Dark</title>
+<!-- Self-hosted fonts -->
+    <link rel="stylesheet" href="/fonts/fonts.css">
+
+    <style>
+
   
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
   
-  <style>
+  
     /* ============================================
        CSS Variables
        ============================================ */
@@ -58,7 +59,10 @@
     }
 
     /* Hide scrollbars */
-    ::-webkit-scrollbar { display: none; }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
     * {
       -ms-overflow-style: none;
       scrollbar-width: none;
@@ -102,7 +106,9 @@
     }
 
     @media (max-width: 768px) {
-      article { padding: 0 1rem; }
+      article {
+        padding: 0 1rem;
+      }
     }
 
     /* ============================================
@@ -609,14 +615,24 @@
     }
 
     @keyframes pulse-slow {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 0.6; }
+      0%, 100% {
+        opacity: 0.3;
+      }
+      50% {
+        opacity: 0.6;
+      }
     }
 
     @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-2px); }
-      75% { transform: translateX(2px); }
+      0%, 100% {
+        transform: translateX(0);
+      }
+      25% {
+        transform: translateX(-2px);
+      }
+      75% {
+        transform: translateX(2px);
+      }
     }
 
     .animate-fade-up {
@@ -642,52 +658,181 @@
     /* ============================================
        Utility Classes
        ============================================ */
-    .text-center { text-align: center; }
-    .italic { font-style: italic; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-6 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-16 { margin-top: 4rem; margin-bottom: 4rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-32 { margin-top: 8rem; margin-bottom: 8rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-12 { margin-top: 3rem; }
-    .mt-16 { margin-top: 4rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mb-16 { margin-bottom: 4rem; }
-    .m-0 { margin: 0; }
+    .text-center {
+      text-align: center;
+    }
+
+    .italic {
+      font-style: italic;
+    }
+
+    .font-semibold {
+      font-weight: 600;
+    }
+
+    .font-heading {
+      font-family: var(--font-heading);
+    }
+
+    .space-y-4 > * + * {
+      margin-top: 1rem;
+    }
+
+    .space-y-6 > * + * {
+      margin-top: 1.5rem;
+    }
+
+    .space-y-8 > * + * {
+      margin-top: 2rem;
+    }
+
+    .my-4 {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .my-6 {
+      margin-top: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .my-8 {
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .my-12 {
+      margin-top: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .my-16 {
+      margin-top: 4rem;
+      margin-bottom: 4rem;
+    }
+
+    .my-20 {
+      margin-top: 5rem;
+      margin-bottom: 5rem;
+    }
+
+    .my-32 {
+      margin-top: 8rem;
+      margin-bottom: 8rem;
+    }
+
+    .mt-4 {
+      margin-top: 1rem;
+    }
+
+    .mt-6 {
+      margin-top: 1.5rem;
+    }
+
+    .mt-8 {
+      margin-top: 2rem;
+    }
+
+    .mt-10 {
+      margin-top: 2.5rem;
+    }
+
+    .mt-12 {
+      margin-top: 3rem;
+    }
+
+    .mt-16 {
+      margin-top: 4rem;
+    }
+
+    .mb-8 {
+      margin-bottom: 2rem;
+    }
+
+    .mb-16 {
+      margin-bottom: 4rem;
+    }
+
+    .m-0 {
+      margin: 0;
+    }
 
     /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-purple-400 { color: #c084fc; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-amber-400 { color: #fbbf24; }
-    .text-emerald-200 { color: #a7f3d0; }
-    .text-emerald-300 { color: #6ee7b7; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-slate-300 { color: #cbd5e1; }
-    .text-slate-400 { color: #94a3b8; }
-    .text-rose-200 { color: #fecdd3; }
+    .text-neutral-300 {
+      color: #d4d4d4;
+    }
+
+    .text-neutral-400 {
+      color: #a3a3a3;
+    }
+
+    .text-neutral-500 {
+      color: #737373;
+    }
+
+    .text-purple-200 {
+      color: #e9d5ff;
+    }
+
+    .text-purple-300 {
+      color: #d8b4fe;
+    }
+
+    .text-purple-400 {
+      color: #c084fc;
+    }
+
+    .text-red-200 {
+      color: #fecaca;
+    }
+
+    .text-red-300 {
+      color: #fca5a5;
+    }
+
+    .text-red-400 {
+      color: #f87171;
+    }
+
+    .text-amber-200 {
+      color: #fde68a;
+    }
+
+    .text-amber-300 {
+      color: #fcd34d;
+    }
+
+    .text-amber-400 {
+      color: #fbbf24;
+    }
+
+    .text-emerald-200 {
+      color: #a7f3d0;
+    }
+
+    .text-emerald-300 {
+      color: #6ee7b7;
+    }
+
+    .text-cyan-200 {
+      color: #a5f3fc;
+    }
+
+    .text-cyan-300 {
+      color: #67e8f9;
+    }
+
+    .text-slate-300 {
+      color: #cbd5e1;
+    }
+
+    .text-slate-400 {
+      color: #94a3b8;
+    }
+
+    .text-rose-200 {
+      color: #fecdd3;
+    }
 
     /* Special text effects */
     .blood-drip {
@@ -733,51 +878,46 @@
         <div class="chapter-badge">
           <span>Chapter 66</span>
         </div>
-        <h1>A Drizzle of<br><span class="gradient-text italic">Blood</span></h1>
+        <h1>Fangs in the<br><span class="gradient-text">Dark</span></h1>
         <p>"Some beasts are raised in cages. Others in human hearts."</p>
-      </div>
-      <div class="scroll-indicator">
-        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-        </svg>
       </div>
     </header>
 
     <article>
       <div class="prose reveal">
         <p class="drop-cap">"I want to kill him too! But what can I do if Father refuses to let me deal with that lunatic myself?"</p>
-        <p>Samon’s voice was tight with frustration.</p>
-        <p class="dialogue">"Etienne should serve as an example—that bastard. Let him be a warning. If anyone lays a hand on me, even my father’s most trusted right-hand man will regret it."</p>
+        <p>Samon's voice was tight with frustration.</p>
+        <p class="dialogue">"Etienne should serve as an example—that bastard. Let him be a warning. If anyone lays a hand on me, even my father's most trusted right-hand man will regret it."</p>
         <p>In the shadows at his feet, the assassin clicked his tongue silently.</p>
         <p class="thought m-0">How can a mere 'Little Duke' speak so casually about slaughtering innocents?</p>
         <p>For all his handsome features, his master was vicious and cowardly in equal measure. Lacking the courage to confront the Minister head-on, he was forever reaching for knives in the dark.</p>
         <p>Still, the shadow did not forget his role. A hound does not judge its master; it only obeys.</p>
         <p class="dialogue">"Yes, my lord."</p>
-        <p class="thought m-0">Otherwise, I’ll be the one thrown into the pot when the hunt is over.</p>
+        <p class="thought m-0">Otherwise, I'll be the one thrown into the pot when the hunt is over.</p>
       </div>
 
-      <!-- Scene: Count Etienne’s Residence · Minister’s Office -->
+      <!-- Scene: Count Etienne's Residence · Minister's Office -->
       <div class="my-32 reveal">
         <div class="scene-divider large">
           <div class="line" style="background: #991b1b;"></div>
           <div class="diamond" style="background: #991b1b;"></div>
           <div class="line" style="background: #991b1b;"></div>
         </div>
-        <p class="scene-label large text-red-300">Count Etienne’s Residence · Minister’s Office</p>
+        <p class="scene-label large text-red-300">Count Etienne's Residence · Minister's Office</p>
       </div>
 
       <div class="prose reveal">
-        <p>On the third floor, in Etienne’s office, Medea and the intruder who had entered before her were locked in silent, brutal struggle. Their bodies rolled across the polished floor, hands and feet striking for any advantage.</p>
+        <p>On the third floor, in Etienne's office, Medea and the intruder who had entered before her were locked in silent, brutal struggle. Their bodies rolled across the polished floor, hands and feet striking for any advantage.</p>
         <p>As they grappled, the magic circle beneath them flared to life in a burst of blue light, swallowing them both.</p>
         <p>A sensation like falling from a cliff seized her body—weightless and crushing at once.</p>
         <p class="text-center text-neutral-300 italic">Clap.</p>
         <p>She hit the ground, hard, this time on something slick and damp. Cold wetness seeped through her clothes. The smell of mud, grass, and stagnant water flooded her nose.</p>
         <p>The circle had transported not only Medea, but also the man entangled with her.</p>
-        <p>There was no time to see where they’d landed.</p>
+        <p>There was no time to see where they'd landed.</p>
       </div>
 
       <div class="prose reveal">
-        <p>She pinned his shoulder beneath her and, using the weight of her entire body, drove the thin dagger still deeper into the wound she’d already made.</p>
+        <p>She pinned his shoulder beneath her and, using the weight of her entire body, drove the thin dagger still deeper into the wound she'd already made.</p>
         <p>He did not flinch.</p>
         <p>With his uninjured arm, he simply tightened his grip around her throat.</p>
         <p>There was no emotion in his eyes.</p>
@@ -797,7 +937,7 @@
       </div>
 
       <div class="content-box neutral reveal">
-        <p class="dialogue text-neutral-300">"It’s been a while, Princess."</p>
+        <p class="dialogue text-neutral-300">"It's been a while, Princess."</p>
         <p class="text-neutral-400 italic mt-4">His voice seeped out from beneath the mask, low and unhurried.</p>
       </div>
 
@@ -808,23 +948,23 @@
       </div>
 
       <div class="prose reveal">
-        <p class="dialogue">"I’ll forgive this of the royal family."</p>
+        <p class="dialogue">"I'll forgive this of the royal family."</p>
         <p>Medea's response was cool, almost bored.</p>
         <p class="dialogue emerald-glow">"How generous."</p>
         <p>Cesare laughed, a low, genuine sound.</p>
         <p class="text-neutral-400 italic">Even cornered, this little Princess shows no hint of fear.</p>
-        <p class="text-neutral-400 italic">He couldn’t tell if that arrogant composure on such a delicate face was infuriating—or strangely appealing.</p>
+        <p class="text-neutral-400 italic">He couldn't tell if that arrogant composure on such a delicate face was infuriating—or strangely appealing.</p>
       </div>
 
       <div class="prose reveal">
         <p>Medea studied him in turn.</p>
-        <p class="thought m-0">The “mercenary” mask wasn’t metal—just plain cloth. So the iron mask from the rumors was a fabrication.</p>
-        <p class="thought m-0">If he isn't hiding burns, then there’s another reason he conceals his face. Is that why he slipped into the Minister’s house in secret?</p>
+        <p class="thought m-0">The "mercenary" mask wasn't metal—just plain cloth. So the iron mask from the rumors was a fabrication.</p>
+        <p class="thought m-0">If he isn't hiding burns, then there's another reason he conceals his face. Is that why he slipped into the Minister's house in secret?</p>
       </div>
 
       <div class="content-box neutral reveal">
-        <p class="dialogue text-neutral-300">"I’m afraid I can’t simply let you walk away."</p>
-        <p class="dialogue text-neutral-300 mt-4">"I’ve never allowed anyone who recognized me to live."</p>
+        <p class="dialogue text-neutral-300">"I'm afraid I can't simply let you walk away."</p>
+        <p class="dialogue text-neutral-300 mt-4">"I've never allowed anyone who recognized me to live."</p>
       </div>
 
       <div class="prose mt-12 reveal">
@@ -834,7 +974,7 @@
 
       <div class="prose reveal">
         <p class="dialogue">"And if I say I have no intention of talking?"</p>
-        <p>Medea’s voice remained indifferent. There was neither anger nor fear in her green eyes.</p>
+        <p>Medea's voice remained indifferent. There was neither anger nor fear in her green eyes.</p>
       </div>
 
       <div class="content-box neutral reveal">
@@ -846,10 +986,10 @@
       </div>
 
       <div class="prose mt-12 reveal">
-        <p>As the Princess of Valdina, she had no intention of letting news of her midnight visit to Etienne’s mansion leak.</p>
+        <p>As the Princess of Valdina, she had no intention of letting news of her midnight visit to Etienne's mansion leak.</p>
         <p class="thought m-0">And whatever brought Cesare here, he clearly wasn't meant to be seen either.</p>
         <p>It was a reasonable argument. As long as they each held something over the other, a deal was possible.</p>
-        <p>Cesare’s eyes narrowed, intrigued despite himself.</p>
+        <p>Cesare's eyes narrowed, intrigued despite himself.</p>
       </div>
 
       <div class="prose reveal">
@@ -865,7 +1005,7 @@
       </div>
 
       <div class="content-box neutral reveal">
-        <p class="dialogue text-neutral-300">"It’ll be troublesome if you treat me the way you treated the Regent, Princess."</p>
+        <p class="dialogue text-neutral-300">"It'll be troublesome if you treat me the way you treated the Regent, Princess."</p>
       </div>
 
       <div class="prose mt-12 reveal">
@@ -874,17 +1014,17 @@
 
       <div class="content-box neutral reveal">
         <p class="dialogue text-neutral-300">"You think no one sees it?"</p>
-        <p class="dialogue text-neutral-300 mt-4">"Pinatelli, the Queen Mother, the Minister—they’re all dancing at the end of your strings."</p>
+        <p class="dialogue text-neutral-300 mt-4">"Pinatelli, the Queen Mother, the Minister—they're all dancing at the end of your strings."</p>
         <p class="dialogue text-neutral-300 mt-4">"You can fool anyone in Valdina, Princess."</p>
         <p class="dialogue text-neutral-300 mt-4">"But not me."</p>
       </div>
 
       <div class="prose reveal">
         <p class="text-neutral-400 italic">His voice oozed arrogance, absolute confidence.</p>
-        <p class="dialogue">"If I die here, everything you’ve done will come to nothing."</p>
+        <p class="dialogue">"If I die here, everything you've done will come to nothing."</p>
         <p>His grip tightened around her throat.</p>
-        <p>Was this truly the end? Medea’s vision began to blur at the edges.</p>
-        <p class="thought m-0">I’m not afraid of dying.</p>
+        <p>Was this truly the end? Medea's vision began to blur at the edges.</p>
+        <p class="thought m-0">I'm not afraid of dying.</p>
         <p class="thought m-0">But—</p>
       </div>
 
@@ -901,7 +1041,7 @@
       <div class="prose reveal">
         <p class="text-neutral-300 italic">Shing—</p>
         <p>Silver light flashed in the dark.</p>
-        <p>The snake’s head flew, black blood splattering across the wet earth. A few drops ran down the length of Cesare’s sword.</p>
+        <p>The snake's head flew, black blood splattering across the wet earth. A few drops ran down the length of Cesare's sword.</p>
         <p>Medea froze.</p>
         <p class="thought m-0">Why did he save me?</p>
         <p>The beast had been aiming for her, not him.</p>
@@ -911,35 +1051,35 @@
         <p>There was no time to dwell on it.</p>
         <p class="text-neutral-300">Squelch.</p>
         <p>From the stump of the severed neck, two new heads burst forth, writhing and hissing.</p>
-        <p>They slid back into the swamp, watching warily with beady black eyes, the memory of Cesare’s strike now burned into whatever passed for their instincts.</p>
+        <p>They slid back into the swamp, watching warily with beady black eyes, the memory of Cesare's strike now burned into whatever passed for their instincts.</p>
         <p>Around them, other shapes stirred.</p>
         <p>One by one, eight more heads rose from the murky water, circling, their killing intent turning the air sharp.</p>
       </div>
 
       <div class="prose reveal">
         <p class="dialogue">"...Hydra."</p>
-        <p>Medea’s whisper barely disturbed the air.</p>
+        <p>Medea's whisper barely disturbed the air.</p>
         <p class="thought m-0">So this is the secret of this space. The reason everyone felt secure entrusting the acceptance letter to Etienne.</p>
         <p class="thought m-0">A legendary demonic beast as a guard dog.</p>
       </div>
 
       <div class="prose reveal">
         <p class="thought m-0">"There is a magic circle in my office that will take you where the report is hidden. But there..."</p>
-        <p>The Minister’s earlier confession resurfaced in her mind.</p>
-        <p class="thought m-0">He’d smuggled in the infant Hydra illegally and raised it, binding it to himself so it answered only to him.</p>
-        <p class="dialogue">"You brought a demonic beast into Valdina," she had snapped at him."Into a land protected by the Philosopher’s Stone. Are you mad?"</p>
-        <p class="dialogue">"I-I know. I know my sins," he’d stammered."It can’t leave this space. The restrictions ensure it will never be released upon Valdina. But without my name, it’s impossible to retrieve what it guards..."</p>
-        <p class="dialogue">"It’s... just difficult."</p>
+        <p>The Minister's earlier confession resurfaced in her mind.</p>
+        <p class="thought m-0">He'd smuggled in the infant Hydra illegally and raised it, binding it to himself so it answered only to him.</p>
+        <p class="dialogue">"You brought a demonic beast into Valdina," she had snapped at him. "Into a land protected by the Philosopher's Stone. Are you mad?"</p>
+        <p class="dialogue">"I-I know. I know my sins," he'd stammered. "It can't leave this space. The restrictions ensure it will never be released upon Valdina. But without my name, it's impossible to retrieve what it guards..."</p>
+        <p class="dialogue">"It's... just difficult."</p>
         <p class="thought m-0">Difficult, he says.</p>
-        <p class="thought m-0">If he weren’t already locked up, I’d be tempted to strangle him myself.</p>
+        <p class="thought m-0">If he weren't already locked up, I'd be tempted to strangle him myself.</p>
       </div>
 
       <div class="prose reveal">
         <p>Beside her, the mercenary let out a short, derisive snort.</p>
-        <p class="dialogue">"Bringing a monster into a sanctuary protected by the Philosopher’s Stone. Impressive."</p>
-        <p>There was no fear in Cesare’s eyes as he regarded the Hydra. Only contempt.</p>
+        <p class="dialogue">"Bringing a monster into a sanctuary protected by the Philosopher's Stone. Impressive."</p>
+        <p>There was no fear in Cesare's eyes as he regarded the Hydra. Only contempt.</p>
         <p class="dialogue">"Pathetic, inside and out."</p>
-        <p class="text-neutral-400 italic">His scorn wasn’t just for Etienne—but for a Valdina so decayed that a mere Minister could pull this off under their noses.</p>
+        <p class="text-neutral-400 italic">His scorn wasn't just for Etienne—but for a Valdina so decayed that a mere Minister could pull this off under their noses.</p>
       </div>
 
       <div class="prose reveal">
@@ -947,9 +1087,9 @@
         <p>A white, luminescent sphere hovered above the swamp, untouched by the foul water below.</p>
         <p>Inside it, she saw the outline of a scroll, perfectly dry, perfectly preserved.</p>
         <p class="thought m-0">There it is.</p>
-        <p>Medea’s green eyes flashed.</p>
-        <p>She shoved Cesare aside, scrambled to her feet, and snatched up the crossbow he’d thrown earlier.</p>
-        <p>Without a second’s hesitation, she sprinted toward the Hydra lurking in the deepest part of the swamp.</p>
+        <p>Medea's green eyes flashed.</p>
+        <p>She shoved Cesare aside, scrambled to her feet, and snatched up the crossbow he'd thrown earlier.</p>
+        <p>Without a second's hesitation, she sprinted toward the Hydra lurking in the deepest part of the swamp.</p>
       </div>
 
       <div class="prose reveal">
@@ -986,7 +1126,9 @@
           entry.target.classList.add('active');
         }
       });
-    }, { threshold: 0.1 });
+    }, {
+      threshold: 0.1
+    });
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   </script>

@@ -54,7 +54,11 @@ export async function createSession({
   }
 }
 
-export async function getSessionByRefreshToken(refreshToken: string) {
+// ✅ Updated to support grace period
+export async function getSessionByRefreshToken(
+  refreshToken: string, 
+  gracePeriodMs: number = 0
+) {
   try {
     const { data, error } = await supabaseAdmin
       .from('sessions')
@@ -66,11 +70,31 @@ export async function getSessionByRefreshToken(refreshToken: string) {
       return null
     }
     
-    if (new Date(data.expires_at) < new Date()) {
+    const expiresAt = new Date(data.expires_at)
+    const now = new Date()
+    const graceDeadline = new Date(expiresAt.getTime() + gracePeriodMs)
+    
+    // ✅ Check if expired beyond grace period
+    if (now > graceDeadline) {
+      logger.warn({ 
+        sessionId: data.id, 
+        expiresAt, 
+        graceDeadline,
+        now 
+      }, 'Session expired beyond grace period')
       await deleteSession(data.id)
       return null
     }
     
+    // ✅ Log if within grace period
+    if (now > expiresAt) {
+      logger.info({ 
+        sessionId: data.id,
+        expiredAgo: now.getTime() - expiresAt.getTime()
+      }, 'Session in grace period - allowing refresh')
+    }
+    
+    // Update last used timestamp
     await supabaseAdmin
       .from('sessions')
       .update({ last_used_at: new Date().toISOString() })
@@ -102,31 +126,80 @@ export async function deleteSession(sessionId: string) {
   }
 }
 
-export async function deleteAllUserSessions(userId: string) {
+export async function deleteAllUserSessions(userId: string, exceptSessionId?: string) {
   try {
-    const { error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from('sessions')
       .delete()
       .eq('user_id', userId)
+    
+    // ✅ Option to keep current session
+    if (exceptSessionId) {
+      query = query.neq('id', exceptSessionId)
+    }
+    
+    const { error } = await query
     
     if (error) {
       logger.error({ error, userId }, 'Failed to delete user sessions')
       throw new Error('Failed to delete sessions')
     }
     
-    logger.info({ userId }, 'All user sessions deleted')
+    logger.info({ userId, exceptSessionId }, 'User sessions deleted')
   } catch (error) {
     logger.error({ error, userId }, 'Error deleting user sessions')
     throw error
   }
 }
 
+// ✅ Extend session expiry
+export async function extendSession(sessionId: string, additionalDays: number = 7) {
+  try {
+    const { data: session, error: fetchError } = await supabaseAdmin
+      .from('sessions')
+      .select('expires_at')
+      .eq('id', sessionId)
+      .single()
+    
+    if (fetchError || !session) {
+      return null
+    }
+    
+    const currentExpiry = new Date(session.expires_at)
+    const now = new Date()
+    const baseDate = currentExpiry > now ? currentExpiry : now
+    const newExpiry = new Date(baseDate.getTime() + additionalDays * 24 * 60 * 60 * 1000)
+    
+    const { error } = await supabaseAdmin
+      .from('sessions')
+      .update({ 
+        expires_at: newExpiry.toISOString(),
+        last_used_at: now.toISOString()
+      })
+      .eq('id', sessionId)
+    
+    if (error) {
+      logger.error({ error, sessionId }, 'Failed to extend session')
+      return null
+    }
+    
+    logger.info({ sessionId, newExpiry }, 'Session extended')
+    return newExpiry
+  } catch (error) {
+    logger.error({ error, sessionId }, 'Error extending session')
+    return null
+  }
+}
+
 export async function cleanExpiredSessions() {
   try {
+    // ✅ Clean sessions that are expired beyond a 1-hour grace period
+    const gracePeriodDeadline = new Date(Date.now() - 60 * 60 * 1000)
+    
     const { error, count } = await supabaseAdmin
       .from('sessions')
       .delete()
-      .lt('expires_at', new Date().toISOString())
+      .lt('expires_at', gracePeriodDeadline.toISOString())
     
     if (error) {
       logger.error({ error }, 'Failed to clean expired sessions')
