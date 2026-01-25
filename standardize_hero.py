@@ -10,42 +10,38 @@ def standardize_file(filepath):
     if filename == REFERENCE_FILE:
         return False
 
-    with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read()
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+    except Exception as e:
+        print(f"Error reading {filename}: {e}")
+        return False
     
     original_content = content
     
     # 1. Update CSS: .hero min-height 100vh -> 80vh
-    # Look for .hero { ... min-height: 100vh ... }
-    # We use a pattern that finds .hero block start, matches until min-height:, then changes 100vh to 80vh
-    # Note: Regex crossing lines needs flags=re.DOTALL
-    
-    # Strategy: Find the exact string if possible, or use a sophisticated regex.
-    # The CSS is usually indented.
-    # Pattern: .hero { ... min-height: 100vh;
-    
-    # This regex looks for .hero definition and captures the content to ensure we are modifying the right class
-    # However, since the files are relatively uniform, we can try to be specific about the context.
-    
-    # Using a callback to ensure we are inside .hero block
+    # Regex: .hero { ... min-height: 100vh;
     def replace_hero_height(match):
         block = match.group(0)
-        return block.replace('min-height: 100vh;', 'min-height: 80vh;')
+        return block.replace('min-height: 100vh;', 'min-height: 80vh;') # Replaces 100vh with 80vh
 
-    # Regex matches: .hero { [anything until closing brace] }
-    # optimized to not be too greedy (using [^}]*)
+    # This regex attempts to find valid CSS blocks for .hero
     css_hero_pattern = re.compile(r'\.hero\s*\{[^}]*\}', re.DOTALL)
-    
     content = css_hero_pattern.sub(replace_hero_height, content)
 
-    # 2. Remove scroll-indicator div
+    # 2. Update HTML Tailwind classes: min-h-[60vh] or min-h-[100vh] -> min-h-[80vh]
+    # Regex looks for min-h-[...vh]
+    # Note: Regex replacement needs to be careful.
+    # We will replace any min-h-[\d+vh] with min-h-[80vh]
+    tailwind_pattern = re.compile(r'min-h-\[\d+vh\]')
+    content = tailwind_pattern.sub('min-h-[80vh]', content)
+    
+    # 3. Remove scroll-indicator div
     # <div class="scroll-indicator"> ... </div>
-    # Using specific pattern:
     scroll_indicator_pattern = re.compile(
         r'\s*<div class="scroll-indicator">\s*<svg.*?</svg>\s*</div>', 
         re.DOTALL
     )
-    
     content = scroll_indicator_pattern.sub('', content)
 
     if content != original_content:
@@ -53,18 +49,17 @@ def standardize_file(filepath):
             f.write(content)
         print(f"Updated: {filename}")
         return True
-    else:
-        # Check if it was already correct or regex failed
-        # print(f"No changes needed: {filename}")
-        return False
+    return False
 
 def main():
     files = glob.glob(os.path.join(CHAPTERS_DIR, "*.html"))
     count = 0
+    updates = 0
     for file in files:
         if standardize_file(file):
-            count += 1
-    print(f"Total files updated: {count}")
+            updates += 1
+        count += 1
+    print(f"Scanned {count} files. Updated {updates} files.")
 
 if __name__ == "__main__":
     main()

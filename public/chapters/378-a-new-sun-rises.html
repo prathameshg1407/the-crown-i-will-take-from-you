@@ -1,32 +1,45 @@
-<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>A New Sun Rises</title>
-<!-- Self-hosted fonts -->
-    <link rel="stylesheet" href="/fonts/fonts.css">
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
 
-    <style>
-/* ============================================
-       CSS Variables
-       ============================================ */
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>A New Sun Rises</title>
+  <!-- Self-hosted fonts -->
+  <link rel="stylesheet" href="/fonts/fonts.css">
+
+  <style>
     :root {
       --font-heading: 'Cinzel', serif;
       --font-body: 'Cormorant Garamond', serif;
       --font-ui: 'Lato', sans-serif;
+      
+      /* Enhanced color palette */
+      --gold-light: #fef9c3;
+      --gold-medium: #facc15;
+      --gold-dark: #b45309;
+      --emerald-light: #a7f3d0;
+      --emerald-medium: #22c55e;
+      --emerald-dark: #047857;
+      
+      /* Glow effects */
+      --glow-gold: rgba(250, 204, 21, 0.4);
+      --glow-emerald: rgba(34, 197, 94, 0.3);
+      --glow-rose: rgba(251, 113, 133, 0.3);
     }
-    
-    /* ============================================
-       Reset & Base
-       ============================================ */
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     html {
       scroll-behavior: smooth;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    
+
     body {
       background-color: #050505;
       color: #a3a3a3;
@@ -35,546 +48,807 @@
       overflow-x: hidden;
       padding-bottom: 100px;
     }
-    
+
     ::selection {
-      background-color: #881337;
+      background-color: #b45309;
       color: #fff;
     }
-    
-    /* Hide scrollbars */
+
+    /* Custom scrollbar */
     ::-webkit-scrollbar {
-      display: none;
+      width: 8px;
     }
-    
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+
+    ::-webkit-scrollbar-track {
+      background: #0a0a0a;
     }
-    
-    /* ============================================
-       Background
-       ============================================ */
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--gold-dark), var(--gold-medium));
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--gold-medium);
+    }
+
+    /* Enhanced background with animated gradients */
     .bg-gradient {
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
+      background: 
+        radial-gradient(ellipse at 50% 0%, rgba(250, 204, 21, 0.06), transparent 50%),
+        radial-gradient(ellipse at 0% 100%, rgba(34, 197, 94, 0.04), transparent 50%),
+        radial-gradient(ellipse at 100% 100%, rgba(251, 113, 133, 0.03), transparent 50%);
       z-index: -1;
       pointer-events: none;
     }
-    
-    /* ============================================
-       Main Container
-       ============================================ */
+
+    /* Animated grain texture */
+    .bg-gradient::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.5;
+      animation: grain 8s steps(10) infinite;
+    }
+
+    @keyframes grain {
+      0%, 100% { transform: translate(0, 0); }
+      10% { transform: translate(-5%, -10%); }
+      30% { transform: translate(3%, -15%); }
+      50% { transform: translate(12%, 9%); }
+      70% { transform: translate(9%, 4%); }
+      90% { transform: translate(-1%, 7%); }
+    }
+
     main {
       position: relative;
       min-height: 100vh;
       padding-bottom: 10rem;
     }
-    
-    /* ============================================
-       Header
-       ============================================ */
-    header {
-      min-height: 60vh;
+
+    /* ================= Enhanced Hero ================= */
+
+    header.hero {
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem 1.5rem 2rem;
+      padding: 4rem 1.5rem 2rem;
       text-align: center;
       position: relative;
     }
-    
+
     @media (max-width: 768px) {
-      header {
-        min-height: 50vh;
-        padding: 2rem 1rem;
+      header.hero {
+        min-height: 85vh;
+        padding: 3rem 1.25rem 2rem;
       }
     }
-    
+
     .chapter-badge {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      padding: 0.25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, 0.5);
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .35rem;
+      margin-bottom: 2rem;
+      padding: .45rem 1.75rem .5rem;
       border-radius: 9999px;
-      background-color: rgba(24, 24, 27, 0.7);
-      backdrop-filter: blur(4px);
+      background: linear-gradient(135deg, rgba(23, 23, 23, 0.9), rgba(69, 26, 3, 0.5));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(234, 179, 8, 0.5);
+      box-shadow: 
+        0 0 20px var(--glow-gold),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
     }
-    
+
+    .chapter-badge:hover {
+      border-color: rgba(234, 179, 8, 0.8);
+      box-shadow: 
+        0 0 30px var(--glow-gold),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
     .chapter-badge span {
-      color: #fee2e2;
-      font-size: 0.625rem;
       font-family: var(--font-ui);
-      letter-spacing: 0.4em;
+      font-size: 10px;
       text-transform: uppercase;
+      letter-spacing: .4em;
     }
-    
-    h1 {
-      font-family: var(--font-heading);
-      font-size: clamp(2.25rem, 7vw, 4rem);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
+
+    .chapter-badge span.badge-main {
+      color: #fef9c3;
+      text-shadow: 0 0 10px var(--glow-gold);
+    }
+
+    .chapter-badge span.badge-sub {
       color: #e5e5e5;
-      margin-bottom: 1.5rem;
+      opacity: .8;
     }
-    
+
+    h1.hero-title {
+      font-family: var(--font-heading);
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: #f5f5f5;
+      margin-bottom: 1.75rem;
+      text-shadow: 0 4px 40px rgba(0, 0, 0, 0.8);
+    }
+
     .gradient-text {
-      background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+      background: linear-gradient(180deg, #facc15 0%, #f59e0b 40%, #b45309 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       font-style: italic;
+      filter: drop-shadow(0 0 20px var(--glow-gold));
+      animation: subtle-glow 4s ease-in-out infinite;
     }
-    
-    header p {
+
+    @keyframes subtle-glow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.9; }
+    }
+
+    header.hero p.hero-quote {
       font-family: var(--font-body);
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
+      font-size: clamp(1.15rem, 3vw, 1.4rem);
+      color: #8c8c8c;
       font-style: italic;
-      max-width: 30rem;
+      max-width: 34rem;
+      line-height: 1.6;
     }
-    
-    /* ============================================
-       Article Container
-       ============================================ */
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2.5rem;
+      color: #525252;
+      animation: gentle-bounce 2.5s ease-in-out infinite;
+    }
+
+    @keyframes gentle-bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-12px);
+      }
+    }
+
+    /* =============== Enhanced Article / Prose =============== */
+
     article {
       max-width: 42rem;
       margin: 0 auto;
       padding: 0 1.5rem;
     }
-    
+
     @media (max-width: 768px) {
       article {
-        padding: 0 1rem;
+        padding: 0 1.25rem;
       }
     }
-    
-    /* ============================================
-       ALL Paragraphs - Center by default
-       ============================================ */
+
     article p {
-      line-height: 2.1;
-      margin-bottom: 1.5em;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      article p {
-        font-size: 1.1rem;
-        line-height: 2;
-      }
-    }
-    
-    /* Prose paragraphs */
-    .prose p {
-      line-height: 2.1;
+      line-height: 2.2;
       margin-bottom: 1.75em;
-      font-size: 1.2rem;
-      color: #a3a3a3;
+      font-size: 1.25rem;
       text-align: center;
+      transition: color 0.3s ease;
     }
-    
+
+    .prose p {
+      color: #a3a3a3;
+    }
+
     @media (max-width: 768px) {
+      article p,
       .prose p {
-        font-size: 1.1rem;
+        font-size: 1.15rem;
         line-height: 2;
         margin-bottom: 1.5em;
       }
     }
-    
-    /* ============================================
-       Drop Cap
-       ============================================ */
+
+    /* Enhanced drop cap */
     .drop-cap {
       text-align: left;
     }
-    
+
     .drop-cap::first-letter {
       font-family: var(--font-heading);
       float: left;
-      font-size: 4rem;
-      line-height: 0.8;
-      margin-right: 0.75rem;
-      margin-top: 0.15rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+      font-size: 4.5rem;
+      line-height: .75;
+      margin-right: .85rem;
+      margin-top: .2rem;
+      color: #facc15;
+      text-shadow: 
+        0 0 20px var(--glow-gold),
+        0 0 40px var(--glow-gold),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+      animation: gentle-pulse 3s ease-in-out infinite;
     }
-    
-    @media (max-width: 640px) {
-      .drop-cap::first-letter {
-        font-size: 3.5rem;
-        margin-right: 0.5rem;
+
+    @keyframes gentle-pulse {
+      0%, 100% { 
+        text-shadow: 
+          0 0 20px var(--glow-gold),
+          0 0 40px var(--glow-gold),
+          2px 2px 4px rgba(0, 0, 0, 0.8);
+      }
+      50% { 
+        text-shadow: 
+          0 0 30px var(--glow-gold),
+          0 0 60px var(--glow-gold),
+          2px 2px 4px rgba(0, 0, 0, 0.8);
       }
     }
-    
-    /* ============================================
-       Dialogue
-       ============================================ */
+
+    @media (max-width: 640px) {
+      .drop-cap::first-letter {
+        font-size: 3.75rem;
+        margin-right: .65rem;
+      }
+    }
+
+    /* =============== Enhanced Dialogue / Thoughts =============== */
+
     .dialogue {
       color: #e2e8f0;
-      font-style: normal;
       position: relative;
-      padding: 1rem 1.5rem;
-      border-left: 2px solid rgba(136, 19, 55, 0.3);
-      text-align: center;
+      padding: 1.25rem 2rem;
+      border-left: 3px solid rgba(234, 179, 8, 0.4);
       display: block;
-      margin: 1.5rem auto;
+      margin: 2rem auto;
       max-width: 90%;
-      line-height: 1.9;
+      line-height: 2;
+      text-align: center;
+      background: linear-gradient(90deg, rgba(234, 179, 8, 0.05), transparent);
+      transition: all 0.3s ease;
     }
-    
+
+    .dialogue:hover {
+      border-left-color: rgba(234, 179, 8, 0.6);
+      background: linear-gradient(90deg, rgba(234, 179, 8, 0.08), transparent);
+      transform: translateX(4px);
+    }
+
     @media (max-width: 480px) {
       .dialogue {
-        padding: 0.75rem 1rem;
+        padding: 1rem 1.25rem;
         max-width: 95%;
       }
     }
-    
-    /* ============================================
-       Thought Box
-       ============================================ */
+
     .thought {
-      color: #c4b5fd;
+      color: #fef9c3;
       font-style: italic;
-      border-left: 2px solid rgba(196, 181, 253, 0.3);
-      padding: 1.5rem 2rem;
-      margin: 2rem auto;
+      border-left: 3px solid rgba(250, 250, 170, 0.4);
+      padding: 2rem 2.5rem;
+      margin: 3rem auto;
       max-width: 90%;
-      background: rgba(88, 28, 135, 0.05);
-      border-radius: 4px;
+      background: linear-gradient(135deg, rgba(133, 77, 14, 0.12), rgba(133, 77, 14, 0.05));
+      border-radius: 8px;
       text-align: center;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 20px rgba(133, 77, 14, 0.2);
+      transition: all 0.3s ease;
     }
-    
+
+    .thought:hover {
+      border-left-color: rgba(250, 250, 170, 0.6);
+      box-shadow: 0 8px 30px rgba(133, 77, 14, 0.3);
+      transform: translateY(-2px);
+    }
+
     .thought p {
       margin-bottom: 1rem;
-      line-height: 1.8;
-      text-align: center;
+      line-height: 2;
     }
-    
+
     .thought p:last-child {
       margin-bottom: 0;
     }
-    
-    /* ============================================
-       Reveal containers - center all content
-       ============================================ */
-    .reveal {
-      opacity: 1;
-      transform: translateY(0);
-      text-align: center;
+
+    /* =============== Enhanced Dividers / Markers =============== */
+
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 0;
+      gap: 1.25rem;
     }
-    
+
+    .divider-line {
+      height: 2px;
+      width: 7rem;
+      background: linear-gradient(90deg, transparent, var(--gold-medium), transparent);
+      box-shadow: 0 0 10px var(--glow-gold);
+    }
+
+    .divider-diamond {
+      width: .7rem;
+      height: .7rem;
+      background-color: #fbbf24;
+      transform: rotate(45deg);
+      box-shadow: 0 0 15px var(--glow-gold);
+      animation: diamond-spin 8s linear infinite;
+    }
+
+    @keyframes diamond-spin {
+      0%, 100% { transform: rotate(45deg) scale(1); }
+      50% { transform: rotate(225deg) scale(1.1); }
+    }
+
+    .time-marker {
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(22, 101, 52, 0.12) 20%, 
+        rgba(22, 101, 52, 0.18) 50%, 
+        rgba(22, 101, 52, 0.12) 80%, 
+        transparent
+      );
+      border-top: 1px solid rgba(22, 101, 52, 0.5);
+      border-bottom: 1px solid rgba(22, 101, 52, 0.5);
+      padding: 2rem 0;
+      margin: 4rem 0;
+      text-align: center;
+      box-shadow: 
+        0 4px 20px rgba(22, 101, 52, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .section-divider {
+      font-family: var(--font-heading);
+      color: #bbf7d0;
+      font-size: .9rem;
+      letter-spacing: .4em;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px var(--glow-emerald);
+    }
+
+    /* =============== Enhanced Framed Boxes =============== */
+
+    .frame-yellow {
+      background: linear-gradient(135deg, 
+        rgba(133, 77, 14, 0.5), 
+        rgba(69, 26, 3, 0.4),
+        rgba(0, 0, 0, 0.9)
+      );
+      border: 2px solid rgba(202, 138, 4, 0.7);
+      padding: 3.5rem;
+      border-radius: 1rem;
+      position: relative;
+      box-shadow: 
+        0 8px 32px rgba(202, 138, 4, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .frame-yellow:hover {
+      box-shadow: 
+        0 12px 40px rgba(202, 138, 4, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transform: translateY(-4px);
+    }
+
+    .frame-yellow-label {
+      position: absolute;
+      top: -1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #000, rgba(69, 26, 3, 0.8));
+      padding: 0.35rem 1.25rem;
+      border-radius: .35rem;
+      border: 1px solid rgba(234, 179, 8, 0.7);
+      font-family: var(--font-ui);
+      font-size: .75rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: #fde68a;
+      box-shadow: 0 4px 12px var(--glow-gold);
+      text-shadow: 0 0 8px var(--glow-gold);
+    }
+
+    .frame-emerald {
+      background: linear-gradient(135deg,
+        rgba(5, 46, 22, 0.6),
+        rgba(2, 44, 34, 0.4),
+        rgba(0, 0, 0, 0.95)
+      );
+      border: 2px solid rgba(22, 163, 74, 0.7);
+      padding: 3.5rem;
+      border-radius: 1rem;
+      position: relative;
+      box-shadow: 
+        0 8px 32px rgba(22, 163, 74, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .frame-emerald:hover {
+      box-shadow: 
+        0 12px 40px rgba(22, 163, 74, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transform: translateY(-4px);
+    }
+
+    .frame-emerald-label {
+      position: absolute;
+      top: -1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #000, rgba(2, 44, 34, 0.8));
+      padding: 0.35rem 1.25rem;
+      border-radius: .35rem;
+      border: 1px solid rgba(22, 163, 74, 0.7);
+      font-family: var(--font-ui);
+      font-size: .75rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: #6ee7b7;
+      box-shadow: 0 4px 12px var(--glow-emerald);
+      text-shadow: 0 0 8px var(--glow-emerald);
+    }
+
+    /* =============== Enhanced Reveal Animation =============== */
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                  transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
     .reveal.active {
       opacity: 1;
       transform: translateY(0);
     }
-    
-    .reveal p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Special Content Boxes
-       ============================================ */
-    .my-20,
-    .my-24 {
-      text-align: center;
-    }
-    
-    .my-20 > p,
-    .my-24 > p {
-      text-align: center;
-    }
-    
-    /* Gradient boxes */
-    [class*="bg-gradient-to"] {
-      text-align: center;
-    }
-    
-    [class*="bg-gradient-to"] p {
-      text-align: center;
-    }
-    
-    /* Border boxes */
-    [class*="border-l-"] {
-      text-align: center;
-    }
-    
-    [class*="border-l-"] p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Scene Elements
-       ============================================ */
-    .scene-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
-      margin: 4rem 0;
-    }
-    
-    .section-divider {
-      font-family: var(--font-heading);
-      text-align: center;
-      color: #525252;
-      font-size: 0.875rem;
-      letter-spacing: 0.3em;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .time-marker {
-      background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
-      border-top: 1px solid rgba(159, 18, 57, 0.3);
-      border-bottom: 1px solid rgba(159, 18, 57, 0.3);
-      padding: 1.5rem 0;
-      margin: 3rem 0;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Action Line & Narrator
-       ============================================ */
-    .action-line {
-      font-style: italic;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      text-align: center;
-      margin: 1.5rem 0;
-    }
-    
-    .narrator {
-      color: #a3a3a3;
-      font-style: italic;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Space-y containers
-       ============================================ */
-    .space-y-4,
-    .space-y-6,
-    .space-y-8 {
-      text-align: center;
-    }
-    
-    .space-y-4 > *,
-    .space-y-6 > *,
-    .space-y-8 > * {
-      text-align: center;
-    }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    /* ============================================
-       Final Box / Ending
-       ============================================ */
-    .final-box,
-    [class*="mt-32"][class*="mb-40"] {
-      margin: 6rem auto 4rem;
-      text-align: center;
-    }
-    
-    [class*="border-t"][class*="border-neutral"] {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Utility Classes
-       ============================================ */
-    .text-center { text-align: center !important; }
-    .italic { font-style: italic; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    .font-body { font-family: var(--font-body); }
-    .font-ui { font-family: var(--font-ui); }
-    
-    /* Text Sizes */
-    .text-sm { font-size: 0.875rem; }
-    .text-base { font-size: 1rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-4xl { font-size: 2.25rem; }
-    .text-6xl { font-size: 3.75rem; }
-    .text-8xl { font-size: 6rem; }
-    .text-9xl { font-size: 8rem; }
-    
-    /* Responsive text */
-    @media (min-width: 768px) {
-      .md\:text-8xl { font-size: 6rem; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:text-9xl { font-size: 8rem; }
-    }
-    
-    /* Margins */
-    .m-0 { margin: 0; }
-    .mb-4 { margin-bottom: 1rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-32 { margin-top: 8rem; }
-    .mb-40 { margin-bottom: 10rem; }
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
-    
-    /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-neutral-600 { color: #525252; }
-    .text-neutral-700 { color: #404040; }
-    .text-neutral-800 { color: #262626; }
-    .text-white { color: #ffffff; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-green-100 { color: #dcfce7; }
-    .text-green-200 { color: #bbf7d0; }
-    .text-green-300 { color: #86efac; }
-    .text-green-700 { color: #15803d; }
-    .text-green-800 { color: #166534; }
-    .text-green-900 { color: #14532d; }
-    .text-rose-200 { color: #fecdd3; }
-    .text-amber-100 { color: #fef3c7; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-red-800 { color: #991b1b; }
-    .text-slate-200 { color: #e2e8f0; }
-    .text-slate-400 { color: #94a3b8; }
-    
-    /* Leading & Tracking */
-    .leading-tight { line-height: 1.25; }
-    .leading-relaxed { line-height: 1.625; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-tighter { letter-spacing: -0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    /* Padding */
-    .p-6 { padding: 1.5rem; }
-    .p-8 { padding: 2rem; }
-    .p-10 { padding: 2.5rem; }
-    .p-12 { padding: 3rem; }
-    .pl-4 { padding-left: 1rem; }
-    .pl-6 { padding-left: 1.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .px-8 { padding-left: 2rem; padding-right: 2rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .pt-16 { padding-top: 4rem; }
-    .pb-40 { padding-bottom: 10rem; }
-    
-    /* Borders */
-    .border { border-width: 1px; border-style: solid; }
-    .border-2 { border-width: 2px; border-style: solid; }
-    .border-t { border-top-width: 1px; border-top-style: solid; }
-    .border-l-2 { border-left-width: 2px; border-left-style: solid; }
-    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
-    .rounded-full { border-radius: 9999px; }
-    
-    .border-neutral-800 { border-color: #262626; }
-    .border-green-500 { border-color: #22c55e; }
-    .border-green-800 { border-color: #166534; }
-    .border-amber-700 { border-color: #b45309; }
-    .border-red-800 { border-color: #991b1b; }
-    .border-purple-800 { border-color: #6b21a8; }
-    
-    /* Flex */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    
-    /* Position */
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .fixed { position: fixed; }
-    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-    .bottom-10 { bottom: 2.5rem; }
-    .z-10 { z-index: 10; }
-    .-z-10 { z-index: -10; }
-    
-    /* Width/Height */
-    .w-2 { width: 0.5rem; }
-    .h-2 { height: 0.5rem; }
-    .h-px { height: 1px; }
-    .w-full { width: 100%; }
-    .h-screen { height: 100vh; }
-    .min-h-screen { min-height: 100vh; }
-    .max-w-2xl { max-width: 42rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    
-    /* Backgrounds */
-    .bg-green-700 { background-color: #15803d; }
-    .bg-green-800 { background-color: #166534; }
-    .bg-green-900 { background-color: #14532d; }
-    .bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
-    .bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
-    .bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
-    .bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
-    
-    /* Backdrop */
-    .backdrop-blur-sm { backdrop-filter: blur(4px); }
-    
-    /* Overflow */
-    .overflow-x-hidden { overflow-x: hidden; }
-    
-    /* Animation */
+
+    /* Stagger reveals */
+    .reveal:nth-child(2) { transition-delay: 0.1s; }
+    .reveal:nth-child(3) { transition-delay: 0.2s; }
+    .reveal:nth-child(4) { transition-delay: 0.3s; }
+
     .animate-fade-up {
-      animation: fadeUp 1s ease-out;
+      animation: fadeUp 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
-    
-    .animate-bounce {
-      animation: bounce 1s infinite;
-    }
-    
+
     @keyframes fadeUp {
       from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(35px);
       }
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
-    
-    @keyframes bounce {
-      0%, 100% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-      }
-      50% {
-        transform: translateY(0);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+
+    /* =============== Enhanced Utilities =============== */
+
+    .text-center { text-align: center; }
+    .italic { font-style: italic; }
+    .font-heading { font-family: var(--font-heading); }
+    .font-ui { font-family: var(--font-ui); }
+    .font-bold { font-weight: 700; }
+    .font-semibold { font-weight: 600; }
+
+    .mt-12 { margin-top: 3rem; }
+    .mt-16 { margin-top: 4rem; }
+    .my-24 { margin: 6rem 0; }
+    .my-32 { margin: 8rem 0; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-6 { margin-bottom: 1.5rem; }
+
+    .text-yellow-100 { color: #fef9c3; }
+    .text-yellow-200 { color: #fef08a; }
+    .text-yellow-300 { color: #fde68a; }
+    .text-yellow-400 { color: #facc15; }
+    .text-emerald-200 { color: #a7f3d0; }
+    .text-emerald-300 { color: #6ee7b7; }
+    .text-rose-200 { color: #fecdd3; }
+    .text-neutral-300 { color: #d4d4d4; }
+    .text-neutral-400 { color: #a3a3a3; }
+
+    .text-xl { font-size: 1.25rem; }
+    .text-2xl { font-size: 1.5rem; }
+    .text-3xl { font-size: 1.875rem; }
+    .text-5xl { font-size: 3rem; }
+
+    .text-yellow-300\/80 { color: rgba(253, 230, 138, 0.8); }
+    .text-yellow-400\/80 { color: rgba(250, 204, 21, 0.8); }
+
+    .leading-relaxed { line-height: 1.625; }
+
+    .tracking-widest { letter-spacing: 0.1em; }
+
+    .uppercase { text-transform: uppercase; }
+
+    /* Responsive frames */
+    @media (max-width: 640px) {
+      .frame-yellow,
+      .frame-emerald {
+        padding: 2.5rem 2rem;
       }
     }
 
+    /* Enhanced focus states */
+    a:focus, button:focus {
+      outline: 2px solid var(--gold-medium);
+      outline-offset: 2px;
+    }
+
+    /* Smooth transitions for interactive elements */
+    a, button, .dialogue, .thought, .chapter-badge, .frame-yellow, .frame-emerald {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
   </style>
-</head><body class="antialiased overflow-x-hidden selection:bg-yellow-900 selection:text-white">
+</head>
+
+<body class="antialiased overflow-x-hidden">
   <div class="bg-gradient"></div>
-<main class="relative min-h-screen pb-40"><div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-950/10 via-black to-black -z-10"></div><header class="h-screen flex flex-col items-center justify-center relative p-6"><div class="animate-fade-up flex flex-col items-center"><div class="mb-6 px-4 py-1 border border-yellow-700/50 rounded-full bg-yellow-950/20 backdrop-blur-sm">
-          <div class="mb-6 px-4 py-1 border border-neutral-700/50 rounded-full bg-neutral-900/50 backdrop-blur-sm"><span class="text-neutral-200 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 378</span></div>
-<span class="text-yellow-100 text-[10px] font-ui tracking-[0.4em] uppercase">Final Epilogue</span></div><h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tight mb-8">A New Sun<br><span class="gradient-text italic">Rises</span></h1><p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-2xl text-center">"From the ashes of vengeance, hope blooms eternal."</p></div><div class="absolute bottom-10 animate-bounce text-neutral-600"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div></header><article class="max-w-2xl mx-auto px-8 relative z-10"><div class="prose prose-invert prose-xl reveal"><p class="drop-cap text-neutral-300">Even though Medea's visit to Valdina hadn't yet been scheduled, Peleus was already preparing a nursery for his niece in the palace.</p><p>It had taken three or four months to arrange everything—from cushions to curtains, even the bed frills—all in Beatrice's favorite color: a warm, cheerful carrot-orange.</p><p class="dialogue italic text-neutral-400">"Wake up from your dream! Would Her Majesty Medea send her beloved daughter to this distant land? You'd have better luck if she gave you the entire Katzen Empire instead!"</p><p>Silence.</p><p class="dialogue font-bold">"And stop making wooden dolls in the office! Why is there sawdust in the sacred Emperor's chambers?!"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>D'Angel threw his hands up in exasperation.</p><p>The young Emperor, who'd been carving wooden dolls by hand while missing his younger sister, now whittled adorable toys while waiting for his niece.</p><p class="dialogue">"Sissair, go outside and spar with D'Angel. D'Angel, try not to get injured."</p><p>In the end, Peleus decided to escape the confrontation entirely.</p><p class="dialogue italic text-neutral-400">"You're throwing yourself to the wolves and running away?!"</p><p>Sissair shook his head, his face a portrait of betrayal.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Just as Peleus was about to leave, he paused at the door.</p><p>Sissair looked at his lord with one last shred of hope—which promptly evaporated.</p><p class="dialogue">"Oh, D'Angel—don't forget to bring gifts for Dea and Via!"</p><p>These days, Peleus's thoughts revolved solely around his sister and niece.</p><p class="dialogue">"The sword and miniature brooch I commissioned from the dwarves have arrived. You must bring them. How precious Via will look wearing them at the coronation!"</p><p class="dialogue">"Of course! I'm presenting them to Her Majesty myself—how could I be careless?"</p><p>D'Angel's massive hand clapped Sissair's shoulder like a friendly boulder.</p><p class="dialogue">"Come on, Sissair! Let's rebuild that withered lily-like body into a sturdy oak!"</p><p>A fresh breeze swept through the open window, carrying their voices away.</p></div><div class="my-24 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-yellow-700 w-32"></div><div class="w-3 h-3 bg-yellow-600 rotate-45 mx-6"></div><div class="h-px bg-yellow-700 w-32"></div></div><p class="text-center font-heading text-3xl text-yellow-300/80 italic">The Coronation Day</p><div class="flex items-center justify-center py-8"><div class="h-px bg-yellow-700 w-32"></div><div class="w-3 h-3 bg-yellow-600 rotate-45 mx-6"></div><div class="h-px bg-yellow-700 w-32"></div></div></div><div class="prose prose-invert prose-xl reveal"><p class="text-2xl font-heading text-yellow-300 mb-4">Katzen Capital, Persepolis</p><p>The day of the coronation dawned bright and clear.</p><p>The newly rebuilt cathedral stood larger and more majestic than ever before.</p><p>Brilliant stained glass illuminated the widened corridors and grand entrance—so radiant that not a single shadow could hide.</p><p class="dialogue divine-light text-rose-400 text-xl italic">"Kaaaha!"</p><p>A child's bright, infectious laughter filled the air.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The baby princess, cradled in Neriel's arms, played gleefully with Gallo and Tom's pale hair, clutching the strands in both tiny fists.</p><p>The young monk—who'd inherited the surnames of Saya and Eratosthenes—would hand her a wooden toy whenever she reached out her chubby hands.</p><p class="dialogue italic text-neutral-400">"Beeh..."</p><p class="dialogue">"Your Highness, you must rest now."</p><p>The baby princess, momentarily distracted, flailed her arms excitedly as Terence whispered an enchantment, sending tiny magical butterflies fluttering around her. Her plump arms and rosy cheeks were utterly adorable.</p><p class="italic text-divine-500 text-xl text-center my-8">DONG...</p><p>The grand bell tolled, signaling the coronation's commencement.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Those assembled in the cathedral drew a collective breath, welcoming the momentous occasion.</p><p>From the Holy Nation came Pope Anastasia and Grand Master Theo. From Valdina arrived D'Angel, Madame Pinatelli, the Imperial Lady-in-Waiting, and the Marquis of Gillifort.</p><p class="dialogue divine-light text-yellow-300 text-xl font-heading">"For the eternal prosperity of the glorious Katzen Empire, I hereby proclaim the ascension of His Imperial Majesty."</p></div><div class="my-24 reveal"><div class="bg-gradient-to-b from-yellow-950/40 to-black border-2 border-yellow-600/60 p-12 rounded-lg shadow-2xl relative animate-shimmer"><div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-black px-4 border border-yellow-600/60 rounded text-xs tracking-widest text-yellow-300 font-ui uppercase">The Coronation</div><div class="prose prose-invert prose-xl"><p>At last, Medea stood in the place where emperors were crowned.</p><p>Now she was not merely his companion, but the sole representative of the divine on this continent.</p><p class="dialogue divine-light text-yellow-200 text-2xl font-heading text-center my-6">"Cesare Dweisler Katzen."</p><p>Cesare, clad in black velvet robes with the Katzen Imperial crest gleaming on both shoulders, knelt before her.</p><p class="dialogue">"Do you swear to protect the peace and order of this empire? Will you rule justly, never turning a blind eye to the suffering of your subjects?"</p></div></div></div><div class="prose prose-invert prose-xl reveal"><p>He gazed up at Medea.</p><p class="italic text-neutral-400">Though he still held no faith in any deity, he could at least now understand the reverence so many across the continent felt for the goddess.</p><p>Slowly, he bowed his head.</p><p>Then, with utmost gentleness, he pressed his lips to the back of Medea's hand.</p><p>Reverence emanated from every line of his posture—an attitude of perfect submission.</p><p class="italic text-yellow-200">It was far too loyal for someone destined to become master of this vast empire.</p><p class="italic text-yellow-100 text-xl">Because it was dedicated solely to Medea—not to the goddess, not to the empire.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Cesare raised his head.</p><p class="dialogue divine-light text-yellow-300 text-xl">"...I swear."</p><p>Those clear golden eyes—visible only to Medea—would never change.</p><p>Not until his reign ended, his body returned to dust, and the eternal oath he'd made was fulfilled.</p><p>A white hand lifted the crown.</p><p>Pure light flowed along its golden edges like liquid sunshine.</p><p class="dialogue font-heading text-2xl text-yellow-200 text-center my-6">"With this, a new sun rises over Katzen."</p><p>Medea slowly lowered the crown onto Cesare's head.</p></div><div class="h-[50vh] flex items-center justify-center my-24 reveal"><div class="text-center"><p class="text-5xl md:text-7xl font-heading divine-light text-yellow-400 animate-shimmer mb-8">"LONG LIVE THE EMPEROR!"</p><p class="text-2xl text-yellow-200 italic">A thunderous cheer shook the cathedral to its foundations.</p></div></div><div class="prose prose-invert prose-xl reveal"><p class="italic text-yellow-300">BOOM! BOOM!</p><p>Celebratory cannons exploded outside, their vibrations traveling through the marble floor.</p><p>The cathedral doors swung wide.</p><p>The cheering crowd hurled flower petals and golden confetti, which swirled on the wind and danced through the air like blessing made visible.</p><p>After the ceremony, banquets and festivals erupted throughout the palace and across the imperial capital.</p><p>Flags hung from every street. Celebratory cannons fired from each gate, multiplying the joy.</p></div><div class="prose prose-invert prose-xl mt-16 reveal"><p>As everyone raised their glasses to toast the new empire—</p><p class="dialogue">"Where did Their Majesties go?"</p><p class="dialogue">"Her Highness the Princess isn't here either!"</p><p>The courtiers looked around in confusion.</p><p>But the day's true protagonists were nowhere to be found.</p></div><div class="my-24 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-emerald-700 w-32"></div><div class="w-3 h-3 bg-emerald-600 rotate-45 mx-6"></div><div class="h-px bg-emerald-700 w-32"></div></div></div><div class="prose prose-invert prose-xl reveal"><p>While everyone feasted and celebrated, the Emperor they sought stood on a green hilltop.</p><p>In his arms, he held the world's smallest—and most precious—treasure.</p><p>A golden, sun-warmed breeze swept across the verdant hills.</p><p class="dialogue divine-light text-rose-400 font-bold">"Cheche!"</p><p class="dialogue">"Stop that."</p><p>Cesare tapped Beatrice's tiny nose with mock sternness.</p><p>Instantly, the child's face puffed up like rising bread dough.</p><p class="dialogue italic text-neutral-400">"Boo..."</p><p class="dialogue">"Say 'Papa.' Papa."</p><p>Before he could finish—</p><p class="dialogue text-rose-400 font-bold">"Whoa! Cheche!"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Cesare drew a deep breath.</p><p class="italic text-neutral-400">Though her mouth wasn't fully developed for speech yet, the fact that she could somehow pronounce her father's nickname was remarkable.</p><p class="dialogue text-rose-400">"Boo! Boo!"</p><p>Enraged at her father's audacity in correcting her, Beatrice pummeled his shoulder with her tiny fist.</p><p class="dialogue">"No. Only your mother can call me that."</p><p>Though he refused firmly, Cesare couldn't resist kissing her plump, soft cheek.</p><p class="dialogue italic text-neutral-300">"Let's wait quietly until Mom comes back, yes?"</p><p>He raised his head, shifting his gaze.</p><p>To Medea, standing on the cliff's edge overlooking the endless horizon.</p></div><div class="prose prose-invert prose-xl mt-16 reveal"><p>Medea stood on the sun-drenched clifftop.</p><p>The place where she'd once sent her eldest child, Lian.</p><p>Where warm starlight shone and cool sea breezes blew.</p><p class="dialogue italic text-emerald-200">"Lian."</p><p>A peaceful azure horizon greeted her.</p><p>White foam from the emerald sea crashed gently against the cliffs below.</p><p class="dialogue">"...Mom took too long, didn't she?"</p><p>The faded crown fragment slipped from her fingers, tumbling down the cliff face.</p></div><div class="my-24 reveal"><div class="bg-black border-2 border-emerald-700/50 p-12 rounded-lg shadow-2xl relative"><div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-black px-4 border border-emerald-700/50 rounded text-xs tracking-widest text-emerald-400 font-ui uppercase">Final Farewell</div><div class="prose prose-invert prose-xl"><p class="italic text-emerald-200">She knew there would always be a place in her heart for them.</p><p>But now it was truly time to let them go.</p><p class="dialogue text-emerald-300 text-xl">"Sleep peacefully now."</p><p>A soft breeze caressed her cheeks as though offering comfort.</p><p class="dialogue italic">"And if someday—even years from now—you think of your mother..."</p><p>Her voice dispersed gently, mingling with the sound of waves.</p><p class="dialogue text-xl font-semibold text-emerald-200">"Just once more. Even in my dreams. Anytime."</p></div></div></div><div class="prose prose-invert prose-xl reveal"><p>If there remained one small regret in Medea's heart—now that everything had been resolved—it was this.</p><p>And if given the miraculous chance to speak it aloud, she would hold those little ones in her arms and tell them:</p><p class="dialogue divine-light text-emerald-300 text-2xl text-center my-8">"Lian, Leah—I will always love you. I will always miss you."</p><p>Medea cast the last remnants of her grief into the sea and turned away.</p><p>A gentle wind swept past her back, as though bidding her farewell.</p></div><div class="prose prose-invert prose-xl mt-16 reveal"><p class="dialogue divine-light text-rose-400 text-xl">"Maa!"</p><p>Beatrice, spotting her mother, wriggled excitedly.</p><p>The carrot-colored doll she'd been clutching was unceremoniously hurled to the ground at Cesare's feet.</p><p>Medea burst out laughing.</p><p class="dialogue">"What am I going to do when your temper's already this fierce?"</p><p class="dialogue">"What do you mean? She'll follow in her father's footsteps and become Empress of this troublesome Katzen, of course."</p><p>Cesare smiled and kissed Medea's temple tenderly.</p><p>He held their child in one arm and drew Medea close with the other.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue text-yellow-200">"And we'll grow old in peace in the land our Via rules."</p><p>Kisses rained ceaselessly upon her cheeks and jawline.</p><p class="dialogue text-rose-400">"Beeee!"</p><p>Beatrice's eyes sparkled as she flailed her short arms, as though demanding she not be left out.</p><p>Cesare laughed and planted a kiss on the child's cheek.</p><p class="dialogue divine-light text-rose-400 text-xl">"Gyaaaa!"</p><p>The child's innocent laughter soared across the blue sky.</p></div><div class="prose prose-invert prose-xl mt-16 reveal"><p>Medea took Cesare's hand.</p><p>Together, they walked forward, Beatrice cradled between them.</p><p class="text-yellow-200 text-2xl text-center my-12 italic divine-light animate-float">Sunlight bathed the family of three as they descended the green hillside.</p></div><div class="my-32 reveal"><div class="bg-gradient-to-b from-yellow-950/40 to-black border-2 border-yellow-700/60 p-16 rounded-lg shadow-2xl relative"><div class="prose prose-invert prose-xl text-center"><p class="text-5xl font-heading divine-light text-yellow-300 mb-8 animate-shimmer">A Drizzle of Blood</p><p class="text-3xl font-heading text-yellow-400/80 italic">The Crown I Will Take From You</p><p class="text-xl text-neutral-400 mt-12 font-ui tracking-widest uppercase">— End —</p></div></div></div><div class="mt-24 mb-40 reveal"><div class="bg-black/50 border border-neutral-800 p-12 rounded-lg"><p class="text-center text-neutral-400 italic text-lg leading-relaxed">From vengeance born of blood and betrayal,<br>through divine power and eternal oaths,<br>to peace found in love and new life—<br>this is Medea's story.<br><br><span class="text-yellow-500">The End</span></p></div></div></article></main><script>const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1});document.querySelectorAll(".reveal").forEach(e=>observer.observe(e))</script></body></html>
+
+  <main>
+    <!-- Hero -->
+    <header class="hero">
+      <div class="animate-fade-up" style="display:flex;flex-direction:column;align-items:center">
+        <div class="chapter-badge">
+          <span class="badge-main">CHAPTER 378</span>
+        </div>
+        
+        <h1 class="hero-title">
+          A New Sun<br>
+          <span class="gradient-text">Rises</span>
+        </h1>
+        
+        <p class="hero-quote">"From the ashes of vengeance, hope blooms eternal."</p>
+      </div>
+      
+      <div class="scroll-indicator">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+      </div>
+    </header>
+
+    <article>
+      <!-- Peleus & Nursery -->
+      <section class="prose reveal">
+        <p class="drop-cap text-neutral-300">
+          Even though Medea's visit to Valdina hadn't yet been scheduled, Peleus was already preparing a nursery for his niece in the palace.
+        </p>
+        <p>It had taken three or four months to arrange everything—from cushions to curtains, even the bed frills—all in Beatrice's favorite color: a warm, cheerful carrot-orange.</p>
+        <p class="dialogue italic text-neutral-400">
+          "Wake up from your dream! Would Her Majesty Medea send her beloved daughter to this distant land? You'd have better luck if she gave you the entire Katzen Empire instead!"
+        </p>
+        <p>Silence.</p>
+        <p class="dialogue font-bold">
+          "And stop making wooden dolls in the office! Why is there sawdust in the sacred Emperor's chambers?!"
+        </p>
+      </section>
+
+      <section class="prose mt-12 reveal">
+        <p>D'Angel threw his hands up in exasperation.</p>
+        <p>The young Emperor, who'd been carving wooden dolls by hand while missing his younger sister, now whittled adorable toys while waiting for his niece.</p>
+        <p class="dialogue">
+          "Sissair, go outside and spar with D'Angel. D'Angel, try not to get injured."
+        </p>
+        <p>In the end, Peleus decided to escape the confrontation entirely.</p>
+        <p class="dialogue italic text-neutral-400">
+          "You're throwing yourself to the wolves and running away?!"
+        </p>
+        <p>Sissair shook his head, his face a portrait of betrayal.</p>
+      </section>
+
+      <section class="prose mt-12 reveal">
+        <p>Just as Peleus was about to leave, he paused at the door.</p>
+        <p>Sissair looked at his lord with one last shred of hope—which promptly evaporated.</p>
+        <p class="dialogue">
+          "Oh, D'Angel—don't forget to bring gifts for Dea and Via!"
+        </p>
+        <p>These days, Peleus's thoughts revolved solely around his sister and niece.</p>
+        <p class="dialogue">
+          "The sword and miniature brooch I commissioned from the dwarves have arrived. You must bring them. How precious Via will look wearing them at the coronation!"
+        </p>
+        <p class="dialogue">
+          "Of course! I'm presenting them to Her Majesty myself—how could I be careless?"
+        </p>
+        <p>D'Angel's massive hand clapped Sissair's shoulder like a friendly boulder.</p>
+        <p class="dialogue">
+          "Come on, Sissair! Let's rebuild that withered lily-like body into a sturdy oak!"
+        </p>
+        <p>A fresh breeze swept through the open window, carrying their voices away.</p>
+      </section>
+
+      <!-- Coronation Heading -->
+      <div class="my-24 reveal">
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-diamond"></div>
+          <div class="divider-line"></div>
+        </div>
+        <p class="text-center font-heading text-3xl text-yellow-300/80 italic">
+          The Coronation Day
+        </p>
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-diamond"></div>
+          <div class="divider-line"></div>
+        </div>
+      </div>
+
+      <!-- Coronation: Cathedral -->
+      <section class="prose reveal">
+        <p class="text-2xl font-heading text-yellow-300 mb-4">Katzen Capital, Persepolis</p>
+        <p>The day of the coronation dawned bright and clear.</p>
+        <p>The newly rebuilt cathedral stood larger and more majestic than ever before.</p>
+        <p>Brilliant stained glass illuminated the widened corridors and grand entrance—so radiant that not a single shadow could hide.</p>
+        <p class="dialogue text-rose-200 text-xl italic">"Kaaaha!"</p>
+        <p>A child's bright, infectious laughter filled the air.</p>
+      </section>
+
+      <section class="prose mt-12 reveal">
+        <p>The baby princess, cradled in Neriel's arms, played gleefully with Gallo and Tom's pale hair, clutching the strands in both tiny fists.</p>
+        <p>The young monk—who'd inherited the surnames of Saya and Eratosthenes—would hand her a wooden toy whenever she reached out her chubby hands.</p>
+        <p class="dialogue italic text-neutral-400">"Beeh..."</p>
+        <p class="dialogue">"Your Highness, you must rest now."</p>
+        <p>The baby princess, momentarily distracted, flailed her arms excitedly as Terence whispered an enchantment, sending tiny magical butterflies fluttering around her. Her plump arms and rosy cheeks were utterly adorable.</p>
+        <p class="text-yellow-200 text-xl italic">DONG...</p>
+        <p>The grand bell tolled, signaling the coronation's commencement.</p>
+      </section>
+
+      <section class="prose mt-12 reveal">
+        <p>Those assembled in the cathedral drew a collective breath, welcoming the momentous occasion.</p>
+        <p>From the Holy Nation came Pope Anastasia and Grand Master Theo. From Valdina arrived D'Angel, Madame Pinatelli, the Imperial Lady-in-Waiting, and the Marquis of Gillifort.</p>
+        <p class="dialogue text-yellow-300 text-xl font-heading">
+          "For the eternal prosperity of the glorious Katzen Empire, I hereby proclaim the ascension of His Imperial Majesty."
+        </p>
+      </section>
+
+      <!-- Medea Crowns Cesare -->
+      <div class="my-24 reveal">
+        <div class="frame-yellow">
+          <div class="frame-yellow-label">The Coronation</div>
+          <div class="prose">
+            <p>At last, Medea stood in the place where emperors were crowned.</p>
+            <p>Now she was not merely his companion, but the sole representative of the divine on this continent.</p>
+            <p class="dialogue text-yellow-200 text-2xl font-heading text-center my-6">
+              "Cesare Dweisler Katzen."
+            </p>
+            <p>Cesare, clad in black velvet robes with the Katzen Imperial crest gleaming on both shoulders, knelt before her.</p>
+            <p class="dialogue">
+              "Do you swear to protect the peace and order of this empire? Will you rule justly, never turning a blind eye to the suffering of your subjects?"
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <section class="prose reveal">
+        <p>He gazed up at Medea.</p>
+        <p class="italic text-neutral-400">
+          Though he still held no faith in any deity, he could at least now understand the reverence so many across the continent felt for the goddess.
+        </p>
+        <p>Slowly, he bowed his head.</p>
+        <p>Then, with utmost gentleness, he pressed his lips to the back of Medea's hand.</p>
+        <p>Reverence emanated from every line of his posture—an attitude of perfect submission.</p>
+        <p class="italic text-yellow-200">It was far too loyal for someone destined to become master of this vast empire.</p>
+        <p class="italic text-yellow-100 text-xl">
+          Because it was dedicated solely to Medea—not to the goddess, not to the empire.
+        </p>
+      </section>
+
+      <section class="prose mt-12 reveal">
+        <p>Cesare raised his head.</p>
+        <p class="dialogue text-yellow-300 text-xl">"...I swear."</p>
+        <p>Those clear golden eyes—visible only to Medea—would never change.</p>
+        <p>Not until his reign ended, his body returned to dust, and the eternal oath he'd made was fulfilled.</p>
+        <p>A white hand lifted the crown.</p>
+        <p>Pure light flowed along its golden edges like liquid sunshine.</p>
+        <p class="dialogue font-heading text-2xl text-yellow-200 text-center my-6">
+          "With this, a new sun rises over Katzen."
+        </p>
+        <p>Medea slowly lowered the crown onto Cesare's head.</p>
+      </section>
+
+      <div class="my-24 reveal" style="min-height:40vh;display:flex;align-items:center;justify-content:center;">
+        <div class="text-center">
+          <p class="text-5xl font-heading text-yellow-400 mb-6">
+            "LONG LIVE THE EMPEROR!"
+          </p>
+          <p class="text-2xl text-yellow-200 italic">
+            A thunderous cheer shook the cathedral to its foundations.
+          </p>
+        </div>
+      </div>
+
+      <section class="prose reveal">
+        <p class="italic text-yellow-300">BOOM! BOOM!</p>
+        <p>Celebratory cannons exploded outside, their vibrations traveling through the marble floor.</p>
+        <p>The cathedral doors swung wide.</p>
+        <p>The cheering crowd hurled flower petals and golden confetti, which swirled on the wind and danced through the air like blessing made visible.</p>
+        <p>After the ceremony, banquets and festivals erupted throughout the palace and across the imperial capital.</p>
+        <p>Flags hung from every street. Celebratory cannons fired from each gate, multiplying the joy.</p>
+      </section>
+
+      <section class="prose mt-16 reveal">
+        <p>As everyone raised their glasses to toast the new empire—</p>
+        <p class="dialogue">"Where did Their Majesties go?"</p>
+        <p class="dialogue">"Her Highness the Princess isn't here either!"</p>
+        <p>The courtiers looked around in confusion.</p>
+        <p>But the day's true protagonists were nowhere to be found.</p>
+      </section>
+
+      <div class="divider my-24 reveal">
+        <div class="divider-line" style="background: linear-gradient(90deg, transparent, #059669, transparent);"></div>
+        <div class="divider-diamond" style="background-color:#22c55e;box-shadow:0 0 15px var(--glow-emerald);"></div>
+        <div class="divider-line" style="background: linear-gradient(90deg, transparent, #059669, transparent);"></div>
+      </div>
+
+      <!-- Hilltop Scene -->
+      <section class="prose reveal">
+        <p>While everyone feasted and celebrated, the Emperor they sought stood on a green hilltop.</p>
+        <p>In his arms, he held the world's smallest—and most precious—treasure.</p>
+        <p>A golden, sun-warmed breeze swept across the verdant hills.</p>
+        <p class="dialogue text-rose-200 font-bold">"Cheche!"</p>
+        <p class="dialogue">"Stop that."</p>
+        <p>Cesare tapped Beatrice's tiny nose with mock sternness.</p>
+        <p>Instantly, the child's face puffed up like rising bread dough.</p>
+        <p class="dialogue italic text-neutral-400">"Boo..."</p>
+        <p class="dialogue">"Say 'Papa.' Papa."</p>
+        <p>Before he could finish—</p>
+        <p class="dialogue text-rose-200 font-bold">"Whoa! Cheche!"</p>
+      </section>
+
+      <section class="prose mt-12 reveal">
+        <p>Cesare drew a deep breath.</p>
+        <p class="italic text-neutral-400">
+          Though her mouth wasn't fully developed for speech yet, the fact that she could somehow pronounce her father's nickname was remarkable.
+        </p>
+        <p class="dialogue text-rose-200">"Boo! Boo!"</p>
+        <p>Enraged at her father's audacity in correcting her, Beatrice pummeled his shoulder with her tiny fist.</p>
+        <p class="dialogue">"No. Only your mother can call me that."</p>
+        <p>Though he refused firmly, Cesare couldn't resist kissing her plump, soft cheek.</p>
+        <p class="dialogue italic text-neutral-300">
+          "Let's wait quietly until Mom comes back, yes?"
+        </p>
+        <p>He raised his head, shifting his gaze.</p>
+        <p>To Medea, standing on the cliff's edge overlooking the endless horizon.</p>
+      </section>
+
+      <!-- Medea's Farewell -->
+      <section class="prose mt-16 reveal">
+        <p>Medea stood on the sun-drenched clifftop.</p>
+        <p>The place where she'd once sent her eldest child, Lian.</p>
+        <p>Where warm starlight shone and cool sea breezes blew.</p>
+        <p class="dialogue italic text-emerald-200">"Lian."</p>
+        <p>A peaceful azure horizon greeted her.</p>
+        <p>White foam from the emerald sea crashed gently against the cliffs below.</p>
+        <p class="dialogue">"...Mom took too long, didn't she?"</p>
+        <p>The faded crown fragment slipped from her fingers, tumbling down the cliff face.</p>
+      </section>
+
+      <div class="my-24 reveal">
+        <div class="frame-emerald">
+          <div class="frame-emerald-label">Final Farewell</div>
+          <div class="prose">
+            <p class="italic text-emerald-200">She knew there would always be a place in her heart for them.</p>
+            <p>But now it was truly time to let them go.</p>
+            <p class="dialogue text-emerald-300 text-xl">
+              "Sleep peacefully now."
+            </p>
+            <p>A soft breeze caressed her cheeks as though offering comfort.</p>
+            <p class="dialogue italic">
+              "And if someday—even years from now—you think of your mother..."
+            </p>
+            <p>Her voice dispersed gently, mingling with the sound of waves.</p>
+            <p class="dialogue text-xl font-semibold text-emerald-200">
+              "Just once more. Even in my dreams. 

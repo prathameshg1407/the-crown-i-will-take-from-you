@@ -1,578 +1,1325 @@
-<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Toad Unleashed</title>
-<!-- Self-hosted fonts -->
-    <link rel="stylesheet" href="/fonts/fonts.css">
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Toad Unleashed</title>
+<link rel="stylesheet" href="/fonts/fonts.css">
 
-    <style>
+<style>
 /* ============================================
-       CSS Variables
-       ============================================ */
-    :root {
-      --font-heading: 'Cinzel', serif;
-      --font-body: 'Cormorant Garamond', serif;
-      --font-ui: 'Lato', sans-serif;
-    }
-    
-    /* ============================================
-       Reset & Base
-       ============================================ */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    html {
-      scroll-behavior: smooth;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    
-    body {
-      background-color: #050505;
-      color: #a3a3a3;
-      font-family: var(--font-body);
-      line-height: 1.75;
-      overflow-x: hidden;
-      padding-bottom: 100px;
-    }
-    
-    ::selection {
-      background-color: #881337;
-      color: #fff;
-    }
-    
-    /* Hide scrollbars */
-    ::-webkit-scrollbar {
-      display: none;
-    }
-    
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    
-    /* ============================================
-       Background
-       ============================================ */
-    .bg-gradient {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
-      z-index: -1;
-      pointer-events: none;
-    }
-    
-    /* ============================================
-       Main Container
-       ============================================ */
-    main {
-      position: relative;
-      min-height: 100vh;
-      padding-bottom: 10rem;
-    }
-    
-    /* ============================================
-       Header
-       ============================================ */
-    header {
-      min-height: 60vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 3rem 1.5rem 2rem;
-      text-align: center;
-      position: relative;
-    }
-    
-    @media (max-width: 768px) {
-      header {
-        min-height: 50vh;
-        padding: 2rem 1rem;
-      }
-    }
-    
-    .chapter-badge {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      padding: 0.25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, 0.5);
-      border-radius: 9999px;
-      background-color: rgba(24, 24, 27, 0.7);
-      backdrop-filter: blur(4px);
-    }
-    
-    .chapter-badge span {
-      color: #fee2e2;
-      font-size: 0.625rem;
-      font-family: var(--font-ui);
-      letter-spacing: 0.4em;
-      text-transform: uppercase;
-    }
-    
-    h1 {
-      font-family: var(--font-heading);
-      font-size: clamp(2.25rem, 7vw, 4rem);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      color: #e5e5e5;
-      margin-bottom: 1.5rem;
-    }
-    
-    .gradient-text {
-      background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-style: italic;
-    }
-    
-    header p {
-      font-family: var(--font-body);
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
-      font-style: italic;
-      max-width: 30rem;
-    }
-    
-    /* ============================================
-       Article Container
-       ============================================ */
-    article {
-      max-width: 42rem;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-    
-    @media (max-width: 768px) {
-      article {
-        padding: 0 1rem;
-      }
-    }
-    
-    /* ============================================
-       ALL Paragraphs - Center by default
-       ============================================ */
-    article p {
-      line-height: 2.1;
-      margin-bottom: 1.5em;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      article p {
-        font-size: 1.1rem;
-        line-height: 2;
-      }
-    }
-    
-    /* Prose paragraphs */
-    .prose p {
-      line-height: 2.1;
-      margin-bottom: 1.75em;
-      font-size: 1.2rem;
-      color: #a3a3a3;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      .prose p {
-        font-size: 1.1rem;
-        line-height: 2;
-        margin-bottom: 1.5em;
-      }
-    }
-    
-    /* ============================================
-       Drop Cap
-       ============================================ */
-    .drop-cap {
-      text-align: left;
-    }
-    
-    .drop-cap::first-letter {
-      font-family: var(--font-heading);
-      float: left;
-      font-size: 4rem;
-      line-height: 0.8;
-      margin-right: 0.75rem;
-      margin-top: 0.15rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
-    }
-    
-    @media (max-width: 640px) {
-      .drop-cap::first-letter {
-        font-size: 3.5rem;
-        margin-right: 0.5rem;
-      }
-    }
-    
-    /* ============================================
-       Dialogue
-       ============================================ */
-    .dialogue {
-      color: #e2e8f0;
-      font-style: normal;
-      position: relative;
-      padding: 1rem 1.5rem;
-      border-left: 2px solid rgba(136, 19, 55, 0.3);
-      text-align: center;
-      display: block;
-      margin: 1.5rem auto;
-      max-width: 90%;
-      line-height: 1.9;
-    }
-    
-    @media (max-width: 480px) {
-      .dialogue {
-        padding: 0.75rem 1rem;
-        max-width: 95%;
-      }
-    }
-    
-    /* ============================================
-       Thought Box
-       ============================================ */
-    .thought {
-      color: #c4b5fd;
-      font-style: italic;
-      border-left: 2px solid rgba(196, 181, 253, 0.3);
-      padding: 1.5rem 2rem;
-      margin: 2rem auto;
-      max-width: 90%;
-      background: rgba(88, 28, 135, 0.05);
-      border-radius: 4px;
-      text-align: center;
-    }
-    
-    .thought p {
-      margin-bottom: 1rem;
-      line-height: 1.8;
-      text-align: center;
-    }
-    
-    .thought p:last-child {
-      margin-bottom: 0;
-    }
-    
-    /* ============================================
-       Reveal containers - center all content
-       ============================================ */
-    .reveal {
-      opacity: 1;
-      transform: translateY(0);
-      text-align: center;
-    }
-    
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    .reveal p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Special Content Boxes
-       ============================================ */
-    .my-20,
-    .my-24 {
-      text-align: center;
-    }
-    
-    .my-20 > p,
-    .my-24 > p {
-      text-align: center;
-    }
-    
-    /* Gradient boxes */
-    [class*="bg-gradient-to"] {
-      text-align: center;
-    }
-    
-    [class*="bg-gradient-to"] p {
-      text-align: center;
-    }
-    
-    /* Border boxes */
-    [class*="border-l-"] {
-      text-align: center;
-    }
-    
-    [class*="border-l-"] p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Scene Elements
-       ============================================ */
-    .scene-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
-      margin: 4rem 0;
-    }
-    
-    .section-divider {
-      font-family: var(--font-heading);
-      text-align: center;
-      color: #525252;
-      font-size: 0.875rem;
-      letter-spacing: 0.3em;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .time-marker {
-      background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
-      border-top: 1px solid rgba(159, 18, 57, 0.3);
-      border-bottom: 1px solid rgba(159, 18, 57, 0.3);
-      padding: 1.5rem 0;
-      margin: 3rem 0;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Action Line & Narrator
-       ============================================ */
-    .action-line {
-      font-style: italic;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      text-align: center;
-      margin: 1.5rem 0;
-    }
-    
-    .narrator {
-      color: #a3a3a3;
-      font-style: italic;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Space-y containers
-       ============================================ */
-    .space-y-4,
-    .space-y-6,
-    .space-y-8 {
-      text-align: center;
-    }
-    
-    .space-y-4 > *,
-    .space-y-6 > *,
-    .space-y-8 > * {
-      text-align: center;
-    }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    /* ============================================
-       Final Box / Ending
-       ============================================ */
-    .final-box,
-    [class*="mt-32"][class*="mb-40"] {
-      margin: 6rem auto 4rem;
-      text-align: center;
-    }
-    
-    [class*="border-t"][class*="border-neutral"] {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Utility Classes
-       ============================================ */
-    .text-center { text-align: center !important; }
-    .italic { font-style: italic; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    .font-body { font-family: var(--font-body); }
-    .font-ui { font-family: var(--font-ui); }
-    
-    /* Text Sizes */
-    .text-sm { font-size: 0.875rem; }
-    .text-base { font-size: 1rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-4xl { font-size: 2.25rem; }
-    .text-6xl { font-size: 3.75rem; }
-    .text-8xl { font-size: 6rem; }
-    .text-9xl { font-size: 8rem; }
-    
-    /* Responsive text */
-    @media (min-width: 768px) {
-      .md\:text-8xl { font-size: 6rem; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:text-9xl { font-size: 8rem; }
-    }
-    
-    /* Margins */
-    .m-0 { margin: 0; }
-    .mb-4 { margin-bottom: 1rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-32 { margin-top: 8rem; }
-    .mb-40 { margin-bottom: 10rem; }
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
-    
-    /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-neutral-600 { color: #525252; }
-    .text-neutral-700 { color: #404040; }
-    .text-neutral-800 { color: #262626; }
-    .text-white { color: #ffffff; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-green-100 { color: #dcfce7; }
-    .text-green-200 { color: #bbf7d0; }
-    .text-green-300 { color: #86efac; }
-    .text-green-700 { color: #15803d; }
-    .text-green-800 { color: #166534; }
-    .text-green-900 { color: #14532d; }
-    .text-rose-200 { color: #fecdd3; }
-    .text-amber-100 { color: #fef3c7; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-red-800 { color: #991b1b; }
-    .text-slate-200 { color: #e2e8f0; }
-    .text-slate-400 { color: #94a3b8; }
-    
-    /* Leading & Tracking */
-    .leading-tight { line-height: 1.25; }
-    .leading-relaxed { line-height: 1.625; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-tighter { letter-spacing: -0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    /* Padding */
-    .p-6 { padding: 1.5rem; }
-    .p-8 { padding: 2rem; }
-    .p-10 { padding: 2.5rem; }
-    .p-12 { padding: 3rem; }
-    .pl-4 { padding-left: 1rem; }
-    .pl-6 { padding-left: 1.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .px-8 { padding-left: 2rem; padding-right: 2rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .pt-16 { padding-top: 4rem; }
-    .pb-40 { padding-bottom: 10rem; }
-    
-    /* Borders */
-    .border { border-width: 1px; border-style: solid; }
-    .border-2 { border-width: 2px; border-style: solid; }
-    .border-t { border-top-width: 1px; border-top-style: solid; }
-    .border-l-2 { border-left-width: 2px; border-left-style: solid; }
-    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
-    .rounded-full { border-radius: 9999px; }
-    
-    .border-neutral-800 { border-color: #262626; }
-    .border-green-500 { border-color: #22c55e; }
-    .border-green-800 { border-color: #166534; }
-    .border-amber-700 { border-color: #b45309; }
-    .border-red-800 { border-color: #991b1b; }
-    .border-purple-800 { border-color: #6b21a8; }
-    
-    /* Flex */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    
-    /* Position */
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .fixed { position: fixed; }
-    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-    .bottom-10 { bottom: 2.5rem; }
-    .z-10 { z-index: 10; }
-    .-z-10 { z-index: -10; }
-    
-    /* Width/Height */
-    .w-2 { width: 0.5rem; }
-    .h-2 { height: 0.5rem; }
-    .h-px { height: 1px; }
-    .w-full { width: 100%; }
-    .h-screen { height: 100vh; }
-    .min-h-screen { min-height: 100vh; }
-    .max-w-2xl { max-width: 42rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    
-    /* Backgrounds */
-    .bg-green-700 { background-color: #15803d; }
-    .bg-green-800 { background-color: #166534; }
-    .bg-green-900 { background-color: #14532d; }
-    .bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
-    .bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
-    .bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
-    .bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
-    
-    /* Backdrop */
-    .backdrop-blur-sm { backdrop-filter: blur(4px); }
-    
-    /* Overflow */
-    .overflow-x-hidden { overflow-x: hidden; }
-    
-    /* Animation */
-    .animate-fade-up {
-      animation: fadeUp 1s ease-out;
-    }
-    
-    .animate-bounce {
-      animation: bounce 1s infinite;
-    }
-    
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes bounce {
-      0%, 100% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-      }
-      50% {
-        transform: translateY(0);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-      }
-    }
+   CSS Variables
+   ============================================ */
+:root {
+  --font-heading: 'Cinzel', serif;
+  --font-body: 'Cormorant Garamond', serif;
+  --font-ui: 'Lato', sans-serif;
+  
+  /* Enhanced Color Palette */
+  --blood-dark: #450a0a;
+  --blood-medium: #7f1d1d;
+  --blood-light: #991b1b;
+  --text-primary: #e5e5e5;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #737373;
+  --text-muted: #525252;
+  
+  /* Glow effects */
+  --glow-red: rgba(239, 68, 68, 0.3);
+  --glow-purple: rgba(168, 85, 247, 0.3);
+  --glow-emerald: rgba(16, 185, 129, 0.3);
+}
 
-  </style>
-</head><body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
+/* ============================================
+   Reset & Base
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: #050505;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  line-height: 1.75;
+  overflow-x: hidden;
+  padding-bottom: 100px;
+}
+
+::selection {
+  background-color: var(--blood-medium);
+  color: #fff;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--blood-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--blood-medium);
+}
+
+/* ============================================
+   Enhanced Background
+   ============================================ */
+.bg-gradient {
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at 50% 0%, rgba(127, 29, 29, 0.15), transparent 50%),
+    radial-gradient(ellipse at 0% 100%, rgba(88, 28, 135, 0.08), transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(16, 185, 129, 0.05), transparent 50%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Animated grain texture */
+.bg-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.5;
+  animation: grain 8s steps(10) infinite;
+}
+
+@keyframes grain {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-5%, -10%); }
+  30% { transform: translate(3%, -15%); }
+  50% { transform: translate(12%, 9%); }
+  70% { transform: translate(9%, 4%); }
+  90% { transform: translate(-1%, 7%); }
+}
+
+/* ============================================
+   Main Container
+   ============================================ */
+main {
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: 10rem;
+}
+
+/* ============================================
+   Enhanced Header
+   ============================================ */
+header {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem 2rem;
+  text-align: center;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  header {
+    min-height: 80vh;
+    padding: 2rem 1rem;
+  }
+}
+
+.chapter-badge {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  padding: 0.35rem 1.25rem;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(69, 10, 10, 0.4));
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 20px var(--glow-red);
+  transition: all 0.3s ease;
+}
+
+.chapter-badge:hover {
+  border-color: rgba(248, 113, 113, 0.8);
+  box-shadow: 0 0 30px var(--glow-red);
+  transform: translateY(-2px);
+}
+
+.chapter-badge span {
+  color: #fee2e2;
+  font-size: 0.625rem;
+  font-family: var(--font-ui);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--glow-red);
+}
+
+h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.8);
+}
+
+.gradient-text {
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 50%, #7f1d1d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-style: italic;
+  filter: drop-shadow(0 0 20px var(--glow-red));
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+header > div > p {
+  font-family: var(--font-body);
+  font-size: clamp(1.1rem, 3vw, 1.35rem);
+  color: var(--text-tertiary);
+  font-style: italic;
+  max-width: 32rem;
+  line-height: 1.6;
+}
+
+/* ============================================
+   Article Container
+   ============================================ */
+article {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+@media (max-width: 768px) {
+  article {
+    padding: 0 1rem;
+  }
+}
+
+/* ============================================
+   Enhanced Typography
+   ============================================ */
+article p {
+  line-height: 2.2;
+  margin-bottom: 1.75em;
+  font-size: 1.25rem;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  article p {
+    font-size: 1.15rem;
+    line-height: 2;
+  }
+}
+
+.prose p {
+  line-height: 2.2;
+  margin-bottom: 2em;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .prose p {
+    font-size: 1.15rem;
+    line-height: 2;
+    margin-bottom: 1.5em;
+  }
+}
+
+/* ============================================
+   Enhanced Drop Cap
+   ============================================ */
+.drop-cap {
+  text-align: left;
+}
+
+.drop-cap::first-letter {
+  font-family: var(--font-heading);
+  float: left;
+  font-size: 4.5rem;
+  line-height: 0.75;
+  margin-right: 0.75rem;
+  margin-top: 0.2rem;
+  color: #dc2626;
+  text-shadow: 
+    0 0 20px var(--glow-red),
+    0 0 40px var(--glow-red),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+  animation: drop-cap-glow 4s ease-in-out infinite;
+}
+
+@keyframes drop-cap-glow {
+  0%, 100% { 
+    text-shadow: 
+      0 0 20px var(--glow-red),
+      0 0 40px var(--glow-red),
+      2px 2px 4px rgba(0, 0, 0, 0.8);
+  }
+  50% { 
+    text-shadow: 
+      0 0 30px var(--glow-red),
+      0 0 60px var(--glow-red),
+      2px 2px 4px rgba(0, 0, 0, 0.8);
+  }
+}
+
+@media (max-width: 640px) {
+  .drop-cap::first-letter {
+    font-size: 3.75rem;
+    margin-right: 0.5rem;
+  }
+}
+
+/* ============================================
+   Enhanced Dialogue
+   ============================================ */
+.dialogue {
+  color: #e2e8f0;
+  font-style: normal;
+  position: relative;
+  padding: 1.25rem 2rem;
+  border-left: 3px solid rgba(136, 19, 55, 0.4);
+  text-align: center;
+  display: block;
+  margin: 2rem auto;
+  max-width: 90%;
+  line-height: 2;
+  background: linear-gradient(90deg, rgba(136, 19, 55, 0.05), transparent);
+  transition: all 0.3s ease;
+}
+
+.dialogue:hover {
+  border-left-color: rgba(136, 19, 55, 0.6);
+  background: linear-gradient(90deg, rgba(136, 19, 55, 0.08), transparent);
+  transform: translateX(4px);
+}
+
+@media (max-width: 480px) {
+  .dialogue {
+    padding: 1rem 1.25rem;
+    max-width: 95%;
+  }
+}
+
+/* Rage dialogue variant */
+.rage-text {
+  color: #fca5a5 !important;
+  font-weight: 600;
+  border-left-color: rgba(220, 38, 38, 0.6) !important;
+  background: linear-gradient(90deg, rgba(220, 38, 38, 0.1), transparent) !important;
+  text-shadow: 0 0 10px var(--glow-red);
+  animation: rage-pulse 2s ease-in-out infinite;
+}
+
+@keyframes rage-pulse {
+  0%, 100% { 
+    border-left-width: 3px;
+    opacity: 1;
+  }
+  50% { 
+    border-left-width: 4px;
+    opacity: 0.9;
+  }
+}
+
+/* ============================================
+   Enhanced Thought Box
+   ============================================ */
+.thought {
+  color: #c4b5fd;
+  font-style: italic;
+  border-left: 3px solid rgba(196, 181, 253, 0.4);
+  padding: 1.75rem 2.25rem;
+  margin: 2.5rem auto;
+  max-width: 90%;
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.08), rgba(88, 28, 135, 0.02));
+  border-radius: 8px;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 20px rgba(88, 28, 135, 0.15);
+  transition: all 0.3s ease;
+}
+
+.thought:hover {
+  border-left-color: rgba(196, 181, 253, 0.6);
+  box-shadow: 0 8px 30px rgba(88, 28, 135, 0.25);
+  transform: translateY(-2px);
+}
+
+.thought p {
+  margin-bottom: 1rem;
+  line-height: 1.9;
+  text-align: center;
+}
+
+.thought p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   Enhanced Reveal Animation
+   ============================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-align: center;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal p {
+  text-align: center;
+}
+
+/* Stagger animation for multiple reveals */
+.reveal:nth-child(2) { transition-delay: 0.1s; }
+.reveal:nth-child(3) { transition-delay: 0.2s; }
+.reveal:nth-child(4) { transition-delay: 0.3s; }
+
+/* ============================================
+   Enhanced Scene Elements
+   ============================================ */
+.scene-divider {
+  height: 2px;
+  background: linear-gradient(
+    to right, 
+    transparent, 
+    rgba(71, 85, 105, 0.3) 20%,
+    rgba(71, 85, 105, 0.8) 50%,
+    rgba(71, 85, 105, 0.3) 80%,
+    transparent
+  );
+  margin: 5rem 0;
+  box-shadow: 0 0 10px rgba(71, 85, 105, 0.3);
+}
+
+.section-divider {
+  font-family: var(--font-heading);
+  text-align: center;
+  color: #737373;
+  font-size: 0.875rem;
+  letter-spacing: 0.35em;
+  margin: 0;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(115, 115, 115, 0.5);
+}
+
+.time-marker {
+  background: linear-gradient(
+    90deg, 
+    transparent,
+    rgba(159, 18, 57, 0.08) 20%,
+    rgba(159, 18, 57, 0.12) 50%,
+    rgba(159, 18, 57, 0.08) 80%,
+    transparent
+  );
+  border-top: 1px solid rgba(159, 18, 57, 0.4);
+  border-bottom: 1px solid rgba(159, 18, 57, 0.4);
+  padding: 2rem 0;
+  margin: 4rem 0;
+  text-align: center;
+  box-shadow: 
+    0 4px 20px rgba(159, 18, 57, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================
+   Enhanced Action Elements
+   ============================================ */
+.action-line {
+  font-style: italic;
+  color: #94a3b8;
+  font-size: 1.15rem;
+  text-align: center;
+  margin: 2rem 0;
+  opacity: 0.9;
+}
+
+.narrator {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 1.15rem;
+  text-align: center;
+  opacity: 0.95;
+}
+
+/* ============================================
+   Enhanced Space-y containers
+   ============================================ */
+.space-y-4,
+.space-y-6,
+.space-y-8 {
+  text-align: center;
+}
+
+.space-y-4 > *,
+.space-y-6 > *,
+.space-y-8 > * {
+  text-align: center;
+}
+
+.space-y-4 > * + * { margin-top: 1rem; }
+.space-y-6 > * + * { margin-top: 1.5rem; }
+.space-y-8 > * + * { margin-top: 2rem; }
+
+/* ============================================
+   Enhanced Special Boxes
+   ============================================ */
+.my-20,
+.my-24 {
+  text-align: center;
+}
+
+.my-20 > p,
+.my-24 > p {
+  text-align: center;
+}
+
+/* Enhanced gradient boxes */
+[class*="bg-gradient-to"] {
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+[class*="bg-gradient-to"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.03), transparent 70%);
+  pointer-events: none;
+}
+
+[class*="bg-gradient-to"] p {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Enhanced border boxes */
+[class*="border-l-"] {
+  text-align: center;
+  position: relative;
+}
+
+[class*="border-l-"] p {
+  text-align: center;
+}
+
+/* ============================================
+   Crash Effect
+   ============================================ */
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+.text-center { text-align: center !important; }
+.italic { font-style: italic; }
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-heading { font-family: var(--font-heading); }
+.font-body { font-family: var(--font-body); }
+.font-ui { font-family: var(--font-ui); }
+
+/* Text Sizes */
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.text-4xl { font-size: 2.25rem; }
+.text-6xl { font-size: 3.75rem; }
+.text-7xl { font-size: 4.5rem; }
+.text-8xl { font-size: 6rem; }
+.text-9xl { font-size: 8rem; }
+
+/* Responsive text */
+@media (min-width: 768px) {
+  .md\:text-8xl { font-size: 6rem; }
+}
+@media (min-width: 1024px) {
+  .lg\:text-9xl { font-size: 8rem; }
+}
+
+/* Margins */
+.m-0 { margin: 0; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 2rem; }
+.mt-10 { margin-top: 2.5rem; }
+.mt-32 { margin-top: 8rem; }
+.mb-40 { margin-bottom: 10rem; }
+.my-4 { margin-top: 1rem; margin-bottom: 1rem; }
+.my-8 { margin-top: 2rem; margin-bottom: 2rem; }
+.my-12 { margin-top: 3rem; margin-bottom: 3rem; }
+.my-16 { margin-top: 4rem; margin-bottom: 4rem; }
+.my-20 { margin-top: 5rem; margin-bottom: 5rem; }
+.my-24 { margin-top: 6rem; margin-bottom: 6rem; }
+
+/* Text Colors */
+.text-neutral-300 { color: #d4d4d4; }
+.text-neutral-400 { color: #a3a3a3; }
+.text-neutral-500 { color: #737373; }
+.text-neutral-600 { color: #525252; }
+.text-neutral-700 { color: #404040; }
+.text-neutral-800 { color: #262626; }
+.text-white { color: #ffffff; }
+.text-purple-200 { color: #e9d5ff; }
+.text-purple-300 { color: #d8b4fe; }
+.text-blue-200 { color: #bfdbfe; }
+.text-blue-300 { color: #93c5fd; }
+.text-cyan-200 { color: #a5f3fc; }
+.text-cyan-300 { color: #67e8f9; }
+.text-emerald-200 { color: #a7f3d0; }
+.text-emerald-300 { color: #6ee7b7; }
+.text-emerald-700 { color: #047857; }
+.text-green-100 { color: #dcfce7; }
+.text-green-200 { color: #bbf7d0; }
+.text-green-300 { color: #86efac; }
+.text-green-700 { color: #15803d; }
+.text-green-800 { color: #166534; }
+.text-green-900 { color: #14532d; }
+.text-rose-200 { color: #fecdd3; }
+.text-amber-100 { color: #fef3c7; }
+.text-amber-200 { color: #fde68a; }
+.text-amber-300 { color: #fcd34d; }
+.text-red-200 { color: #fecaca; }
+.text-red-300 { color: #fca5a5; }
+.text-red-400 { color: #f87171; }
+.text-red-500 { color: #ef4444; }
+.text-red-800 { color: #991b1b; }
+.text-slate-200 { color: #e2e8f0; }
+.text-slate-300 { color: #cbd5e1; }
+.text-slate-400 { color: #94a3b8; }
+
+/* Leading & Tracking */
+.leading-tight { line-height: 1.25; }
+.leading-relaxed { line-height: 1.625; }
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-tighter { letter-spacing: -0.05em; }
+.tracking-wider { letter-spacing: 0.05em; }
+.tracking-widest { letter-spacing: 0.1em; }
+
+/* Padding */
+.p-6 { padding: 1.5rem; }
+.p-8 { padding: 2rem; }
+.p-10 { padding: 2.5rem; }
+.p-12 { padding: 3rem; }
+.pl-4 { padding-left: 1rem; }
+.pl-6 { padding-left: 1.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.px-8 { padding-left: 2rem; padding-right: 2rem; }
+.py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+.pt-16 { padding-top: 4rem; }
+.pb-40 { padding-bottom: 10rem; }
+
+/* Borders */
+.border { border-width: 1px; border-style: solid; }
+.border-2 { border-width: 2px; border-style: solid; }
+.border-t { border-top-width: 1px; border-top-style: solid; }
+.border-l-2 { border-left-width: 2px; border-left-style: solid; }
+.border-l-4 { border-left-width: 4px; border-left-style: solid; }
+.rounded-lg { border-radius: 0.5rem; }
+.rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
+.rounded-full { border-radius: 9999px; }
+
+.border-neutral-800 { border-color: #262626; }
+.border-green-500 { border-color: #22c55e; }
+.border-green-800 { border-color: #166534; }
+.border-emerald-700 { border-color: #047857; }
+.border-amber-700 { border-color: #b45309; }
+.border-red-800 { border-color: #991b1b; }
+.border-purple-800 { border-color: #6b21a8; }
+.border-slate-600 { border-color: #475569; }
+
+/* Flex */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.gap-2 { gap: 0.5rem; }
+
+/* Position */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+.bottom-10 { bottom: 2.5rem; }
+.z-10 { z-index: 10; }
+.-z-10 { z-index: -10; }
+
+/* Width/Height */
+.w-2 { width: 0.5rem; }
+.h-2 { height: 0.5rem; }
+.h-px { height: 1px; }
+.w-full { width: 100%; }
+.h-screen { height: 100vh; }
+.h-\[30vh\] { height: 30vh; }
+.min-h-screen { min-height: 100vh; }
+.max-w-2xl { max-width: 42rem; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* Backgrounds */
+.bg-green-700 { background-color: #15803d; }
+.bg-green-800 { background-color: #166534; }
+.bg-green-900 { background-color: #14532d; }
+.bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
+.bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
+.bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
+.bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
+
+/* Backdrop */
+.backdrop-blur-sm { backdrop-filter: blur(4px); }
+
+/* Overflow */
+.overflow-x-hidden { overflow-x: hidden; }
+
+/* ============================================
+   Enhanced Animations
+   ============================================ */
+.animate-fade-up {
+  animation: fadeUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-bounce {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+/* ============================================
+   Enhanced Content Containers
+   ============================================ */
+.bg-gradient-to-br {
+  background: linear-gradient(to bottom right, var(--from), var(--to));
+}
+
+.from-slate-950\/40 { --from: rgba(2, 6, 23, 0.4); }
+.to-transparent { --to: transparent; }
+.from-red-950\/40 { --from: rgba(69, 10, 10, 0.4); }
+.to-black { --to: #000000; }
+.from-purple-950\/40 { --from: rgba(46, 16, 101, 0.4); }
+.bg-emerald-950\/30 { background-color: rgba(2, 44, 34, 0.3); }
+
+/* ============================================
+   Final Enhancements
+   ============================================ */
+.antialiased {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth transitions for interactive elements */
+a, button, .dialogue, .thought, .chapter-badge {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus states for accessibility */
+a:focus, button:focus {
+  outline: 2px solid var(--blood-light);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .bg-gradient,
+  .animate-bounce,
+  header svg {
+    display: none;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+}
+</style>
+</head>
+
+<body class="antialiased overflow-x-hidden">
   <div class="bg-gradient"></div>
-<main class="relative min-h-screen pb-40"><div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/20 via-black to-black -z-10"></div><header class="h-screen flex flex-col items-center justify-center relative p-6"><div class="animate-fade-up flex flex-col items-center"><div class="mb-6 px-4 py-1 border border-red-800/50 rounded-full bg-red-950/20 backdrop-blur-sm"><span class="text-red-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 49</span></div><h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">The <span class="gradient-text italic">Toad</span><br><span class="text-neutral-500">Unleashed</span></h1><p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-2xl text-center">"Every monster reveals itself eventually."</p></div><div class="absolute bottom-10 animate-bounce text-neutral-600"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div></header><article class="max-w-2xl mx-auto px-8 relative z-10"><div class="prose prose-invert prose-xl reveal"><p class="drop-cap text-neutral-300">Soon, Etienne burst into laughter—as though he'd finally understood a joke.</p><div class="my-8 space-y-4"><p class="dialogue">"It seems someone's been filling your head with marketplace gossip. You know, young people can be more old-fashioned than folks in their eighties. You're desperately trying to find fault where there is none—"</p></div><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"Minister."</p></div><p>Medea raised her hand.</p><p>She cut him off decisively, as though there were no need to waste time on useless words.</p><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"I asked you a question."</p></div><p>The smile gradually faded from the Minister's jovial face.</p><p>The young Princess who'd once been so easy to interrupt—so eager to please—had vanished.</p></div><div class="my-24 bg-gradient-to-br from-slate-950/40 to-transparent border-l-4 border-slate-600 p-10 rounded-r-lg reveal"><div class="space-y-6"><p class="dialogue text-slate-200 text-xl leading-relaxed">"Your Highness, I handle all the difficult, complicated work. There's no need for you to worry."</p><p class="text-neutral-300 mt-6">Dark eyes between drooping lids flashed like those of a poisonous toad.</p><p class="dialogue text-slate-200 text-xl leading-relaxed mt-6">"You just need to enjoy yourself every day. Read books. Draw pictures. Attend parties like this with your maids. Just as you always have."</p></div></div><div class="prose prose-invert prose-xl reveal"><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"Is that your answer?"</p></div><p>Medea's lips curved upward.</p><p class="text-neutral-400 italic">They pretend to serve her, but in reality, they're rudely dismissing the Princess entirely.</p><div class="my-8 space-y-4"><p class="dialogue">"Yes. You don't need to concern yourself at all. Everything is proceeding naturally and according to proper procedure."</p></div><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"Then please bring me the budget and expenditure report for today's banquet by tomorrow morning. Since you followed proper procedure, there shouldn't be any issues."</p></div><p>The Minister's expression stiffened considerably.</p><p class="text-red-300 italic text-center my-8">She'd tolerated his rudeness up to this point—but what was she saying now?</p><div class="my-8 space-y-4"><p class="dialogue">"There are no problems, so why would you want to see them? It's just tedious number-crunching."</p></div><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"Wouldn't Sir Siseo be curious? About how this massive banquet—which neither he nor I approved—came to be held in this palace?"</p></div><p>The hand holding his champagne glass froze.</p><p>Angry, wide eyes darted around, scanning both inside and outside the banquet hall.</p><p>A smile returned to his face as he identified a suitable location.</p><p class="text-neutral-400 italic">He needed to put this upstart Princess in her place—somewhere people couldn't see.</p></div><div class="time-marker reveal"><p class="section-divider">The Private Chamber</p></div><div class="prose prose-invert prose-xl reveal"><div class="my-8 space-y-4"><p class="dialogue">"Just a moment... perhaps we could sit somewhere more private and discuss this?"</p></div><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"Of course."</p></div><p>Etienne led the Princess to a small room at the end of the banquet hall.</p><p>The door closed behind them.</p><p>Etienne's servant delivered his drink and withdrew, shutting the door.</p><p class="text-red-300 font-semibold text-center my-8">Only Medea and the Minister remained in the enclosed space.</p><div class="my-8 space-y-4"><p class="dialogue">"Whew, Your Highness..."</p><p class="text-neutral-500 text-base italic pl-4">Etienne let out a slow breath as he loosened the cravat strangling his thick neck.</p></div><p>He seemed quite angry.</p><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"Are you going to give me your answer now? If not, I'll ask my grandmother instead."</p></div><p>Etienne approached Medea, running his hand through his hair.</p><div class="my-8 space-y-4"><p class="dialogue">"Oh, Your Highness. Do you truly not understand the situation?"</p></div><p>He looked down at the Princess with beady eyes, exuding the menace of a hunter threatening a young prey.</p></div><div class="my-24 bg-gradient-to-br from-red-950/40 to-black border-2 border-red-800 p-10 rounded-lg reveal"><div class="space-y-6"><p class="dialogue text-red-200 text-xl leading-relaxed">"Who in this vast palace will truly be on your side? What's it worth? The Queen Dowager? If I so much as lift a finger, do you think Your Highness will have a peaceful night?"</p><p class="text-neutral-300 mt-6">His voice dripped with mockery.</p><p class="dialogue text-red-200 text-xl leading-relaxed mt-6">"The only people beside you are servants. The nobles despise your lineage. If some... accident were to befall you, who would truly wish to protect you?"</p></div></div><div class="prose prose-invert prose-xl reveal"><p>A clear threat. Oppressive presence. An ominous voice.</p><p>The sight of an old man threatening a very young girl was truly reprehensible.</p><p>After setting down the cup she'd been holding on the railing, Medea smiled and crossed her arms.</p></div><div class="my-20 reveal"><div class="thought"><p class="m-0 text-purple-200">"I'm sorry, but thanks to my war-torn past life, your threats are worthless to me."</p></div></div><div class="prose prose-invert prose-xl reveal"><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"That remains to be seen. But do you know something? Quiggin said the exact same thing."</p></div><p>Etienne stiffened.</p><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"Power is as light as flipping one's palm. Your position could vanish overnight. Just like it did for that maid."</p></div><p>Etienne glared at her, unable to contain his rage.</p><p class="text-red-300 italic text-center my-8">Was she putting him—the Minister of the Interior of an entire kingdom—on the same level as a head maid who'd foolishly attacked her and disappeared into dust long ago?</p><p class="text-neutral-400 italic">Did she think his power was comparable to that of a mere head maid?</p><div class="my-8 space-y-4"><p class="dialogue rage-text">"Am I the same as that woman? Will Your Highness survive in this palace without my help? An idiot thinks everything's fine as long as they keep their mouth shut."</p></div><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"Is that so? I will definitely remember your words."</p></div><div class="my-8 space-y-4"><p class="dialogue">"Good. I hope you keep them in mind."</p></div><p>The Princess smiled at what sounded like his final stand.</p><p>But she still had a second dose of poison to administer to the toad.</p></div><div class="my-24 bg-gradient-to-br from-purple-950/40 to-black border border-purple-800/40 p-10 rounded-lg reveal"><div class="space-y-6"><p class="dialogue text-purple-200 text-xl leading-relaxed">"Speaking of which, Quiggin said something strange to me before she died."</p><p class="text-neutral-300 mt-6">Though the Minister felt uncomfortable, he asked without hesitation.</p><p class="dialogue text-slate-200 mt-6">"What nonsense did that shameless woman spout?"</p><p class="dialogue text-purple-200 text-xl leading-relaxed mt-6">"She said there are maggots in the palace—creatures dirtier and more foul-smelling than her. She told me I must root them out for the palace to function properly."</p></div></div><div class="prose prose-invert prose-xl reveal"><p>His thick hands trembled as he struggled to control his fury.</p><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"But these maggots? They were so ugly they couldn't even mate properly. They were eliminated from the species altogether—let alone find partners."</p></div><p>She paused, looking concerned.</p><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"So, in order to rebuild their shattered pride, they torture weak, defenseless creatures. Minister, are you all right? Your face is very red."</p></div><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"The room... perhaps it's too warm inside. Please, continue."</p></div><p>The Minister's chin trembled as he forced a smile.</p></div><div class="my-20 reveal"><div class="thought"><p class="m-0 text-red-300 italic">"I should have slaughtered her before she died."</p></div><p class="text-neutral-300 m-0 mt-6">He never imagined Quiggin had been spouting such vile slander behind his back.</p></div><div class="prose prose-invert prose-xl reveal"><p>His eyes landed on a nearby glass.</p><p>Without further thought, the Minister grabbed it and drained it in one gulp.</p><p>As the cold liquid slid down his throat, the heat inside seemed to abate slightly.</p><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"But I truly wonder—the Minister has been in this palace for so long. Can you guess who Quiggin was referring to?"</p></div><div class="my-8 space-y-4"><p class="dialogue">"Well... I don't know either..."</p><p class="text-neutral-500 text-base italic pl-4">He said slowly, dragging out his words.</p></div><p>He stared at the Princess standing before him.</p><p class="text-neutral-400 italic">That girl. What does she actually know? Why is she talking like this?</p><p>There was no cloudiness in her clear eyes, so Etienne couldn't be certain how much the Princess truly understood.</p><div class="my-8 space-y-4"><p class="dialogue">"I will make certain to remember and investigate Your Highness's concerns. Managing the palace is my sacred duty."</p></div><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"Of course. I'll trust in the Minister's diligence."</p></div><p>Medea smiled graciously.</p><div class="my-8 space-y-4"><p class="dialogue text-purple-200">"If that's settled, I'll take my leave..."</p></div></div><div class="time-marker reveal"><p class="section-divider">The Corridor</p></div><div class="prose prose-invert prose-xl reveal"><p>The Minister stormed out of the room and strode away from the banquet hall with furious steps.</p><p>With each footfall, steam seemed to rise from his head.</p><p>Only when he reached a small antechamber in the hallway—hidden from prying eyes—did he unleash his belated rage.</p><div class="my-8 space-y-4"><p class="dialogue rage-text text-2xl">"Damn her!"</p></div></div><div class="h-[30vh] flex items-center justify-center my-16 reveal"><div class="relative"><p class="font-heading text-7xl text-red-500 tracking-wider animate-shake">CRASH!</p></div></div><div class="my-24 bg-gradient-to-br from-red-950/40 to-black border-2 border-red-800 p-10 rounded-lg reveal"><div class="space-y-6"><p class="dialogue rage-text text-xl">"If she weren't royalty, I'd bite her throat out right here! How dare she spout such nonsense! Maggots? MAGGOTS?!"</p><p class="text-neutral-300 mt-6">The Minister, huffing and puffing, snatched the bottle of liquor from his attending servant's hand and swallowed it in one savage gulp.</p><p class="dialogue rage-text mt-6">"It's lukewarm! You stupid bastard! You incompetent fool! Can't even get the temperature right?!"</p></div></div><div class="prose prose-invert prose-xl reveal"><p>Rough, unreasonable outbursts of anger poured forth.</p><div class="my-8 space-y-4"><p class="dialogue text-slate-300">"I'm sorry, Master. Please forgive me."</p><p class="text-neutral-500 text-base italic pl-4">Umberto murmured, head bowed.</p></div><p>The Minister wheezed, holding the bottle upside down to his mouth as though blowing a trumpet.</p><p>Only as the pungent alcohol burned down his throat did the rising heat seem to subside somewhat.</p></div><div class="my-24 bg-emerald-950/30 border-l-4 border-emerald-700 p-10 rounded-r-lg reveal"><p class="text-neutral-300 m-0">Meanwhile, Umberto—who'd collapsed helplessly from Etienne's kick—cleaned up the debris his master had left behind.</p><p class="text-neutral-400 m-0 mt-6 leading-relaxed">He recalled the mysterious instructions he'd received days ago.</p><div class="my-8 space-y-4"><p class="dialogue text-emerald-300 m-0 italic">[When the time comes, release the toad... onto the market.]</p></div><div class="thought"><p class="m-0 mt-8 text-emerald-200">"The market? When?"</p></div><p class="text-neutral-300 m-0 mt-6">Umberto had sent another message seeking clarification, but contact had been lost after that.</p><p class="text-emerald-200 m-0 mt-8 font-semibold">Only now did Umberto realize—the day the note referenced was tonight.</p></div><div class="prose prose-invert prose-xl reveal"><p>A small medicine vial rattled in his pocket.</p><p>The note had also instructed him to mix it with alcohol and have Etienne consume it during the banquet.</p><p>The vial contained ingredients designed to maximize the effects of the scented candles.</p><p>Umberto, unaware of this detail, had faithfully carried out the instructions.</p></div><div class="my-20 reveal"><div class="thought"><p class="m-0 text-emerald-200">"By 'market,' they meant this banquet hall—where everyone can see."</p></div></div><div class="prose prose-invert prose-xl reveal"><p>Umberto glanced at the Minister, who was guzzling drinks like a madman.</p></div><div class="my-20 reveal"><div class="thought"><p class="m-0 text-slate-300 italic">"He used to control his filthy nature in public."</p><p class="m-0 mt-6 text-slate-300 italic">"But today, after meeting the Princess, he got completely drunk and seems to have forgotten where he is."</p><p class="m-0 mt-8 text-emerald-300">"Is this the aftereffect of those scented candles?"</p></div></div><div class="prose prose-invert prose-xl reveal"><p>Though Umberto had served at his side for several years, Etienne had never succumbed to even the slightest provocation before.</p><p class="text-emerald-200 font-semibold">It seemed whoever was behind that mysterious note truly intended to destroy Etienne completely.</p></div><div class="my-20 reveal"><div class="thought"><p class="m-0 text-purple-200">"If he acts like this in front of so many people..."</p><p class="m-0 mt-6 text-red-300 font-semibold text-xl">Social annihilation. His reputation—everything—will be destroyed.</p></div></div><div class="prose prose-invert prose-xl reveal"><div class="my-8 space-y-4"><p class="dialogue rage-text">"What are you doing, still standing there?! We're out of alcohol! Bring more, you bastard!"</p></div><p>The Minister hurled a stone statue at him.</p><p class="text-neutral-400 italic">He shouldn't have wasted concern on a creature like this.</p><p>Umberto decided to stop thinking about his master's welfare.</p><div class="my-8 space-y-4"><p class="dialogue text-slate-300">"Yes, of course, Master. I'll go down to the kitchen immediately and order cold drinks and sweet refreshments."</p></div><p>He bowed obsequiously until the very last moment before leaving.</p><p class="text-green-300 font-semibold">And instead of closing the door properly, he left it slightly ajar.</p><p class="text-green-200 italic text-center my-8">So the toad could be released at any moment.</p><p>As Umberto walked down the cold corridor, he couldn't hide his sense of anticipation.</p><p class="text-neutral-400 italic">How dirty and enraged he'd felt serving this filthy bastard.</p></div><div class="time-marker reveal"><p class="section-divider">The Oak Tree — Outside</p></div><div class="prose prose-invert prose-xl reveal"><div class="my-8 space-y-4"><p class="dialogue">"Ha..."</p></div><p>As the Princess departed, a hidden observer who'd been watching the scene from a tree outside the banquet hall finally exhaled.</p><div class="my-8 space-y-4"><p class="dialogue">"Is she really like that? The Princess of Valdina is truly fearless. She's so small—how does she not flinch even once?"</p><p class="text-neutral-500 text-base italic pl-4">Gallo whispered.</p></div><p>Cesare said nothing.</p><div class="my-8 space-y-4"><p class="dialogue">"Anyway, Valdina's court discipline is absolute shit. The Regent, the Minister—they're all just thinking about devouring the Princess together."</p></div><div class="my-8 space-y-4"><p class="dialogue text-cyan-200">"Shh."</p></div><p>As Gallo continued talking, Cesare raised his index finger to his lips.</p></div><div class="mt-32 mb-40 reveal"><div class="border-t border-neutral-800 pt-16"><div class="space-y-8 text-center"><p class="text-red-300 text-xl font-body italic">The toad drinks poison.</p><p class="text-emerald-300 text-xl font-body italic">The door stands open.</p><p class="text-cyan-300 text-xl font-body italic">And the watcher in the tree sees everything.</p><div class="my-12"><div class="flex items-center justify-center"><div class="h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent w-full"></div><div class="px-8"><svg width="40" height="40" viewBox="0 0 40 40" class="text-neutral-700"><circle cx="20" cy="20" r="3" fill="currentColor"/><circle cx="20" cy="20" r="8" fill="none" stroke="currentColor" stroke-width="0.5"/></svg></div><div class="h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent w-full"></div></div></div><p class="text-neutral-600 font-ui text-sm tracking-widest uppercase">To Be Continued</p><div class="flex justify-center gap-2"><div class="w-2 h-2 bg-red-900 rounded-full"></div><div class="w-2 h-2 bg-red-800 rounded-full"></div><div class="w-2 h-2 bg-red-700 rounded-full"></div></div></div></div></div></article></main><script>const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1});document.querySelectorAll(".reveal").forEach(e=>observer.observe(e))</script></body></html>
+
+  <main class="relative min-h-screen pb-40">
+    <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/20 via-black to-black -z-10"></div>
+
+    <!-- Header -->
+    <header class="h-screen flex flex-col items-center justify-center relative p-6">
+      <div class="animate-fade-up flex flex-col items-center">
+        <div class="chapter-badge mb-6 px-4 py-1">
+          <span class="text-red-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 49</span>
+        </div>
+        
+        <h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">
+          The <span class="gradient-text italic">Toad</span><br>
+          <span class="text-neutral-500">Unleashed</span>
+        </h1>
+        
+        <p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-2xl text-center">
+          "Every monster reveals itself eventually."
+        </p>
+      </div>
+
+      <div class="absolute bottom-10 animate-bounce text-neutral-600">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <article class="max-w-2xl mx-auto px-8 relative z-10">
+      
+      <!-- Opening -->
+      <div class="prose prose-invert prose-xl reveal">
+        <p class="drop-cap text-neutral-300">Soon, Etienne burst into laughter—as though he'd finally understood a joke.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"It seems someone's been filling your head with marketplace gossip. You know, young people can be more old-fashioned than folks in their eighties. You're desperately trying to find fault where there is none—"</p>
+        </div>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"Minister."</p>
+        </div>
+
+        <p>Medea raised her hand.</p>
+
+        <p>She cut him off decisively, as though there were no need to waste time on useless words.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"I asked you a question."</p>
+        </div>
+
+        <p>The smile gradually faded from the Minister's jovial face.</p>
+
+        <p>The young Princess who'd once been so easy to interrupt—so eager to please—had vanished.</p>
+      </div>
+
+      <!-- Toad Eyes Box -->
+      <div class="my-24 bg-gradient-to-br from-slate-950/40 to-transparent border-l-4 border-slate-600 p-10 rounded-r-lg reveal">
+        <div class="space-y-6">
+          <p class="dialogue text-slate-200 text-xl leading-relaxed">"Your Highness, I handle all the difficult, complicated work. There's no need for you to worry."</p>
+          
+          <p class="text-neutral-300 mt-6">Dark eyes between drooping lids flashed like those of a poisonous toad.</p>
+          
+          <p class="dialogue text-slate-200 text-xl leading-relaxed mt-6">"You just need to enjoy yourself every day. Read books. Draw pictures. Attend parties like this with your maids. Just as you always have."</p>
+        </div>
+      </div>
+
+      <!-- Confrontation -->
+      <div class="prose prose-invert prose-xl reveal">
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"Is that your answer?"</p>
+        </div>
+
+        <p>Medea's lips curved upward.</p>
+
+        <p class="text-neutral-400 italic">They pretend to serve her, but in reality, they're rudely dismissing the Princess entirely.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Yes. You don't need to concern yourself at all. Everything is proceeding naturally and according to proper procedure."</p>
+        </div>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"Then please bring me the budget and expenditure report for today's banquet by tomorrow morning. Since you followed proper procedure, there shouldn't be any issues."</p>
+        </div>
+
+        <p>The Minister's expression stiffened considerably.</p>
+
+        <p class="text-red-300 italic text-center my-8">She'd tolerated his rudeness up to this point—but what was she saying now?</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"There are no problems, so why would you want to see them? It's just tedious number-crunching."</p>
+        </div>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"Wouldn't Sir Siseo be curious? About how this massive banquet—which neither he nor I approved—came to be held in this palace?"</p>
+        </div>
+
+        <p>The hand holding his champagne glass froze.</p>
+
+        <p>Angry, wide eyes darted around, scanning both inside and outside the banquet hall.</p>
+
+        <p>A smile returned to his face as he identified a suitable location.</p>
+
+        <p class="text-neutral-400 italic">He needed to put this upstart Princess in her place—somewhere people couldn't see.</p>
+      </div>
+
+      <!-- Scene Transition -->
+      <div class="time-marker reveal">
+        <p class="section-divider">The Private Chamber</p>
+      </div>
+
+      <!-- Private Room -->
+      <div class="prose prose-invert prose-xl reveal">
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Just a moment... perhaps we could sit somewhere more private and discuss this?"</p>
+        </div>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"Of course."</p>
+        </div>
+
+        <p>Etienne led the Princess to a small room at the end of the banquet hall.</p>
+
+        <p>The door closed behind them.</p>
+
+        <p>Etienne's servant delivered his drink and withdrew, shutting the door.</p>
+
+        <p class="text-red-300 font-semibold text-center my-8">Only Medea and the Minister remained in the enclosed space.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Whew, Your Highness..."</p>
+          <p class="text-neutral-500 text-base italic pl-4">Etienne let out a slow breath as he loosened the cravat strangling his thick neck.</p>
+        </div>
+
+        <p>He seemed quite angry.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"Are you going to give me your answer now? If not, I'll ask my grandmother instead."</p>
+        </div>
+
+        <p>Etienne approached Medea, running his hand through his hair.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Oh, Your Highness. Do you truly not understand the situation?"</p>
+        </div>
+
+        <p>He looked down at the Princess with beady eyes, exuding the menace of a hunter threatening a young prey.</p>
+      </div>
+
+      <!-- Threat Box -->
+      <div class="my-24 bg-gradient-to-br from-red-950/40 to-black border-2 border-red-800 p-10 rounded-lg reveal">
+        <div class="space-y-6">
+          <p class="dialogue text-red-200 text-xl leading-relaxed">"Who in this vast palace will truly be on your side? What's it worth? The Queen Dowager? If I so much as lift a finger, do you think Your Highness will have a peaceful night?"</p>
+          
+          <p class="text-neutral-300 mt-6">His voice dripped with mockery.</p>
+          
+          <p class="dialogue text-red-200 text-xl leading-relaxed mt-6">"The only people beside you are servants. The nobles despise your lineage. If some... accident were to befall you, who would truly wish to protect you?"</p>
+        </div>
+      </div>
+
+      <!-- Medea's Response -->
+      <div class="prose prose-invert prose-xl reveal">
+        <p>A clear threat. Oppressive presence. An ominous voice.</p>
+
+        <p>The sight of an old man threatening a very young girl was truly reprehensible.</p>
+
+        <p>After setting down the cup she'd been holding on the railing, Medea smiled and crossed her arms.</p>
+      </div>
+
+      <div class="my-20 reveal">
+        <div class="thought">
+          <p class="m-0 text-purple-200">"I'm sorry, but thanks to my war-torn past life, your threats are worthless to me."</p>
+        </div>
+      </div>
+
+      <!-- Power Comparison -->
+      <div class="prose prose-invert prose-xl reveal">
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"That remains to be seen. But do you know something? Quiggin said the exact same thing."</p>
+        </div>
+
+        <p>Etienne stiffened.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"Power is as light as flipping one's palm. Your position could vanish overnight. Just like it did for that maid."</p>
+        </div>
+
+        <p>Etienne glared at her, unable to contain his rage.</p>
+
+        <p class="text-red-300 italic text-center my-8">Was she putting him—the Minister of the Interior of an entire kingdom—on the same level as a head maid who'd foolishly attacked her and disappeared into dust long ago?</p>
+
+        <p class="text-neutral-400 italic">Did she think his power was comparable to that of a mere head maid?</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue rage-text">"Am I the same as that woman? Will Your Highness survive in this palace without my help? An idiot thinks everything's fine as long as they keep their mouth shut."</p>
+        </div>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"Is that so? I will definitely remember your words."</p>
+        </div>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Good. I hope you keep them in mind."</p>
+        </div>
+
+        <p>The Princess smiled at what sounded like his final stand.</p>
+
+        <p>But she still had a second dose of poison to administer to the toad.</p>
+      </div>
+
+      <!-- Maggots Revelation -->
+      <div class="my-24 bg-gradient-to-br from-purple-950/40 to-black border border-purple-800/40 p-10 rounded-lg reveal">
+        <div class="space-y-6">
+          <p class="dialogue text-purple-200 text-xl leading-relaxed">"Speaking of which, Quiggin said something strange to me before she died."</p>
+          
+          <p class="text-neutral-300 mt-6">Though the Minister felt uncomfortable, he asked without hesitation.</p>
+          
+          <p class="dialogue text-slate-200 mt-6">"What nonsense did that shameless woman spout?"</p>
+          
+          <p class="dialogue text-purple-200 text-xl leading-relaxed mt-6">"She said there are maggots in the palace—creatures dirtier and more foul-smelling than her. She told me I must root them out for the palace to function properly."</p>
+        </div>
+      </div>
+
+      <!-- Insult Delivered -->
+      <div class="prose prose-invert prose-xl reveal">
+        <p>His thick hands trembled as he struggled to control his fury.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"But these maggots? They were so ugly they couldn't even mate properly. They were eliminated from the species altogether—let alone find partners."</p>
+        </div>
+
+        <p>She paused, looking concerned.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"So, in order to rebuild their shattered pride, they torture weak, defenseless creatures. Minister, are you all right? Your face is very red."</p>
+        </div>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"The room... perhaps it's too warm inside. Please, continue."</p>
+        </div>
+
+        <p>The Minister's chin trembled as he forced a smile.</p>
+      </div>
+
+      <div class="my-20 reveal">
+        <div class="thought">
+          <p class="m-0 text-red-300 italic">"I should have slaughtered her before she died."</p>
+        </div>
+        <p class="text-neutral-300 m-0 mt-6">He never imagined Quiggin had been spouting such vile slander behind his back.</p>
+      </div>
+
+      <!-- The Poison Drink -->
+      <div class="prose prose-invert prose-xl reveal">
+        <p>His eyes landed on a nearby glass.</p>
+
+        <p>Without further thought, the Minister grabbed it and drained it in one gulp.</p>
+
+        <p>As the cold liquid slid down his throat, the heat inside seemed to abate slightly.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"But I truly wonder—the Minister has been in this palace for so long. Can you guess who Quiggin was referring to?"</p>
+        </div>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Well... I don't know either..."</p>
+          <p class="text-neutral-500 text-base italic pl-4">He said slowly, dragging out his words.</p>
+        </div>
+
+        <p>He stared at the Princess standing before him.</p>
+
+        <p class="text-neutral-400 italic">That girl. What does she actually know? Why is she talking like this?</p>
+
+        <p>There was no cloudiness in her clear eyes, so Etienne couldn't be certain how much the Princess truly understood.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"I will make certain to remember and investigate Your Highness's concerns. Managing the palace is my sacred duty."</p>
+        </div>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"Of course. I'll trust in the Minister's diligence."</p>
+        </div>
+
+        <p>Medea smiled graciously.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-purple-200">"If that's settled, I'll take my leave..."</p>
+        </div>
+      </div>
+
+      <!-- Corridor Rage -->
+      <div class="time-marker reveal">
+        <p class="section-divider">The Corridor</p>
+      </div>
+
+      <div class="prose prose-invert prose-xl reveal">
+        <p>The Minister stormed out of the room and strode away from the banquet hall with furious steps.</p>
+
+        <p>With each footfall, steam seemed to rise from his head.</p>
+
+        <p>Only when he reached a small antechamber in the hallway—hidden from prying eyes—did he unleash his belated rage.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue rage-text text-2xl">"Damn her!"</p>
+        </div>
+      </div>
+
+      <!-- Crash -->
+      <div class="h-[30vh] flex items-center justify-center my-16 reveal">
+        <div class="relative">
+          <p class="font-heading text-7xl text-red-500 tracking-wider animate-shake">CRASH!</p>
+        </div>
+      </div>
+
+      <!-- Minister's Outburst -->
+      <div class="my-24 bg-gradient-to-br from-red-950/40 to-black border-2 border-red-800 p-10 rounded-lg reveal">
+        <div class="space-y-6">
+          <p class="dialogue rage-text text-xl">"If she weren't royalty, I'd bite her throat out right here! How dare she spout such nonsense! Maggots? MAGGOTS?!"</p>
+          
+          <p class="text-neutral-300 mt-6">The Minister, huffing and puffing, snatched the bottle of liquor from his attending servant's hand and swallowed it in one savage gulp.</p>
+          
+          <p class="dialogue rage-text mt-6">"It's lukewarm! You stupid bastard! You incompetent fool! Can't even get the temperature right?!"</p>
+        </div>
+      </div>
+
+      <!-- Umberto's Perspective -->
+      <div class="prose prose-invert prose-xl reveal">
+        <p>Rough, unreasonable outbursts of anger poured forth.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-slate-300">"I'm sorry, Master. Please forgive me."</p>
+          <p class="text-neutral-500 text-base italic pl-4">Umberto murmured, head bowed.</p>
+        </div>
+
+        <p>The Minister wheezed, holding the bottle upside down to his mouth as though blowing a trumpet.</p>
+
+        <p>Only as the pungent alcohol burned down his throat did the rising heat seem to subside somewhat.</p>
+      </div>
+
+      <!-- Umberto's Plan -->
+      <div class="my-24 bg-emerald-950/30 border-l-4 border-emerald-700 p-10 rounded-r-lg reveal">
+        <p class="text-neutral-300 m-0">Meanwhile, Umberto—who'd collapsed helplessly from Etienne's kick—cleaned up the debris his master had left behind.</p>
+        
+        <p class="text-neutral-400 m-0 mt-6 leading-relaxed">He recalled the mysterious instructions he'd received days ago.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-emerald-300 m-0 italic">[When the time comes, release the toad... onto the market.]</p>
+        </div>
+
+        <div class="thought">
+          <p class="m-0 mt-8 text-emerald-200">"The market? When?"</p>
+        </div>
+
+        <p class="text-neutral-300 m-0 mt-6">Umberto had sent another message seeking clarification, but contact had been lost after that.</p>
+
+        <p class="text-emerald-200 m-0 mt-8 font-semibold">Only now did Umberto realize—the day the note referenced was tonight.</p>
+      </div>
+
+      <!-- The Medicine -->
+      <div class="prose prose-invert prose-xl reveal">
+        <p>A small medicine vial rattled in his pocket.</p>
+
+        <p>The note had also instructed him to mix it with alcohol and have Etienne consume it during the banquet.</p>
+
+        <p>The vial contained ingredients designed to maximize the effects of the scented candles.</p>
+
+        <p>Umberto, unaware of this detail, had faithfully carried out the instructions.</p>
+      </div>
+
+      <div class="my-20 reveal">
+        <div class="thought">
+          <p class="m-0 text-emerald-200">"By 'market,' they meant this banquet hall—where everyone can see."</p>
+        </div>
+      </div>
+
+      <!-- Realization -->
+      <div class="prose prose-invert prose-xl reveal">
+        <p>Umberto glanced at the Minister, who was guzzling drinks like a madman.</p>
+      </div>
+
+      <div class="my-20 reveal">
+        <div class="thought">
+          <p class="m-0 text-slate-300 italic">"He used to control his filthy nature in public."</p>
+          <p class="m-0 mt-6 text-slate-300 italic">"But today, after meeting the Princess, he got completely drunk and seems to have forgotten where he is."</p>
+          <p class="m-0 mt-8 text-emerald-300">"Is this the aftereffect of those scented candles?"</p>
+        </div>
+      </div>
+
+      <!-- Social Destruction -->
+      <div class="prose prose-invert prose-xl reveal">
+        <p>Though Umberto had served at his side for several years, Etienne had never succumbed to even the slightest provocation before.</p>
+
+        <p class="text-emerald-200 font-semibold">It seemed whoever was behind that mysterious note truly intended to destroy Etienne completely.</p>
+      </div>
+
+      <div class="my-20 reveal">
+        <div class="thought">
+          <p class="m-0 text-purple-200">"If he acts like this in front of so many people..."</p>
+          <p class="m-0 mt-6 text-red-300 font-semibold text-xl">Social annihilation. His reputation—everything—will be destroyed.</p>
+        </div>
+      </div>
+
+      <!-- Umberto's Decision -->
+      <div class="prose prose-invert prose-xl reveal">
+        <div class="my-8 space-y-4">
+          <p class="dialogue rage-text">"What are you doing, still standing there?! We're out of alcohol! Bring more, you bastard!"</p>
+        </div>
+
+        <p>The Minister hurled a stone statue at him.</p>
+
+        <p class="text-neutral-400 italic">He shouldn't have wasted concern on a creature like this.</p>
+
+        <p>Umberto decided to stop thinking about his master's welfare.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-slate-300">"Yes, of course, Master. I'll go down to the kitchen immediately and order cold drinks and sweet refreshments."</p>
+        </div>
+
+        <p>He bowed obsequiously until the very last moment before leaving.</p>
+
+        <p class="text-green-300 font-semibold">And instead of closing the door properly, he left it slightly ajar.</p>
+
+        <p class="text-green-200 italic text-center my-8">So the toad could be released at any moment.</p>
+
+        <p>As Umberto walked down the cold corridor, he couldn't hide his sense of anticipation.</p>
+
+        <p class="text-neutral-400 italic">How dirty and enraged he'd felt serving this filthy bastard.</p>
+      </div>
+
+      <!-- Outside Observer -->
+      <div class="time-marker reveal">
+        <p class="section-divider">The Oak Tree — Outside</p>
+      </div>
+
+      <div class="prose prose-invert prose-xl reveal">
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Ha..."</p>
+        </div>
+
+        <p>As the Princess departed, a hidden observer who'd been watching the scene from a tree outside the banquet hall finally exhaled.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Is she really like that? The Princess of Valdina is truly fearless. She's so small—how does she not flinch even once?"</p>
+          <p class="text-neutral-500 text-base italic pl-4">Gallo whispered.</p>
+        </div>
+
+        <p>Cesare said nothing.</p>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue">"Anyway, Valdina's court discipline is absolute shit. The Regent, the Minister—they're all just thinking about devouring the Princess together."</p>
+        </div>
+
+        <div class="my-8 space-y-4">
+          <p class="dialogue text-cyan-200">"Shh."</p>
+        </div>
+
+        <p>As Gallo continued talking, Cesare raised his index finger to his lips.</p>
+      </div>
+
+      <!-- Ending -->
+      <div class="mt-32 mb-40 reveal">
+        <div class="border-t border-neutral-800 pt-16">
+          <div class="space-y-8 text-center">
+            <p class="text-red-300 text-xl font-body italic">The toad drinks poison.</p>
+            <p class="text-emerald-300 text-xl font-body italic">The door stands open.</p>
+            <p class="text-cyan-300 text-xl font-body italic">And the watcher in the tree sees everything.</p>
+
+            <div class="my-12">
+              <div class="flex items-center justify-center">
+                <div class="h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent w-full"></div>
+                <div class="px-8">
+                  <svg width="40" height="40" viewBox="0 0 40 40" class="text-neutral-700">
+                    <circle cx="20" cy="20" r="3" fill="currentColor"/>
+                    <circle cx="20" cy="20" r="8" fill="none" stroke="currentColor" stroke-width="0.5"/>
+                  </svg>
+                </div>
+                <div class="h-px bg-gradient-to-r from-transparent via-neutral-700 to-transparent w-full"></div>
+              </div>
+            </div>
+
+            <p class="text-neutral-600 font-ui text-sm tracking-widest uppercase">To Be Continued</p>
+
+            <div class="flex justify-center gap-2">
+              <div class="w-2 h-2 bg-red-900 rounded-full"></div>
+              <div class="w-2 h-2 bg-red-800 rounded-full"></div>
+              <div class="w-2 h-2 bg-red-700 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </article>
+  </main>
+
+  <script>
+    // Enhanced intersection observer with staggered reveals
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            entry.target.classList.add('active');
+          }, index * 50); // Stagger by 50ms
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
