@@ -4,12 +4,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Chapter 17: The Sword Reclaimed</title>
-<!-- Self-hosted fonts -->
+    <title>Chapter Seventeen: The Sword Reclaimed</title>
+    <!-- Self-hosted fonts -->
     <link rel="stylesheet" href="/fonts/fonts.css">
 
     <style>
-*,
+        *,
         ::after,
         ::before {
             box-sizing: border-box;
@@ -49,7 +49,7 @@
             font-family: Lato, sans-serif
         }
 
-        .gradient-text {
+        .gradient-text-blue {
             background: linear-gradient(180deg, #60a5fa 0, #1e40af 80%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -65,7 +65,7 @@
         .bg-gradient {
             position: fixed;
             inset: 0;
-            background: radial-gradient(ellipse at top, rgba(30, 41, 59, .2), #000, #000);
+            background: radial-gradient(ellipse at top, rgba(30, 41, 59, .2), #000 60%, #000);
             z-index: -1;
             pointer-events: none
         }
@@ -125,10 +125,6 @@
             margin-bottom: 2em
         }
 
-        .prose-light p {
-            color: #d4d4d4
-        }
-
         .drop-cap::first-letter {
             font-family: Cinzel, serif;
             float: left;
@@ -173,25 +169,39 @@
             color: #d1d5db
         }
 
-        .divider {
+        .scene-break {
+            position: relative;
+            height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem 0;
-            gap: 1rem
+            margin: 3rem 0
         }
 
-        .divider-line {
+        .scene-break::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
             height: 1px;
-            width: 6rem;
-            background-color: #475569
+            background: linear-gradient(90deg, transparent, rgba(100, 116, 139, .3), transparent)
         }
 
-        .divider-diamond {
-            width: .5rem;
-            height: .5rem;
-            background-color: #475569;
-            transform: rotate(45deg)
+        .scene-break-label {
+            background-color: #050505;
+            padding: .5rem 1.5rem;
+            border: 1px solid;
+            border-radius: 9999px;
+            position: relative;
+            z-index: 1
+        }
+
+        .scene-break-label span {
+            font-family: Cinzel, serif;
+            font-size: .7rem;
+            letter-spacing: .2em;
+            text-transform: uppercase
         }
 
         .highlight-box {
@@ -213,7 +223,7 @@
         }
 
         .highlight-box-amber {
-            background-color: rgba(120, 53, 15, .2);
+            background-color: rgba(120, 53, 15, .25);
             border-left-color: #f59e0b
         }
 
@@ -239,12 +249,8 @@
         }
 
         @keyframes pulse {
-            0%, 100% {
-                opacity: .5
-            }
-            50% {
-                opacity: .3
-            }
+            0%, 100% { opacity: .5 }
+            50% { opacity: .3 }
         }
 
         .end-card-content {
@@ -324,142 +330,66 @@
         }
 
         @keyframes fadeUp {
-            0% {
-                opacity: 0;
-                transform: translateY(40px)
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0)
-            }
+            0% { opacity: 0; transform: translateY(40px) }
+            100% { opacity: 1; transform: translateY(0) }
         }
 
         @media (max-width:640px) {
-            .container {
-                padding: 0 1.5rem
-            }
-            .prose p {
-                font-size: 1.125rem
-            }
-            .drop-cap::first-letter {
-                font-size: 3.5rem
-            }
+            .container { padding: 0 1.5rem }
+            .prose p { font-size: 1.125rem }
+            .drop-cap::first-letter { font-size: 3.5rem }
         }
 
-        .text-center {
-            text-align: center
-        }
+        .text-center { text-align: center }
+        .italic { font-style: italic }
+        .font-bold { font-weight: 700 }
+        .font-semibold { font-weight: 600 }
+        .mt-12 { margin-top: 3rem }
+        .my-12 { margin-top: 3rem; margin-bottom: 3rem }
+        .my-16 { margin-top: 4rem; margin-bottom: 4rem }
+        .my-24 { margin-top: 6rem; margin-bottom: 6rem }
+        .mb-6 { margin-bottom: 1.5rem }
 
-        .italic {
-            font-style: italic
-        }
+        .text-neutral-300 { color: #d4d4d4 }
+        .text-neutral-400 { color: #a3a3a3 }
+        .text-neutral-500 { color: #737373 }
+        .text-blue-200 { color: #bfdbfe }
+        .text-blue-300 { color: #93c5fd }
+        .text-emerald-200 { color: #a7f3d0 }
+        .text-amber-200 { color: #fde68a }
 
-        .font-bold {
-            font-weight: 700
-        }
+        .text-lg { font-size: 1.125rem }
+        .text-xl { font-size: 1.25rem }
+        .text-2xl { font-size: 1.5rem }
+        .text-3xl { font-size: 1.875rem }
+        .text-6xl { font-size: 3.75rem }
 
-        .font-semibold {
-            font-weight: 600
-        }
-
-        .mt-12 {
-            margin-top: 3rem
-        }
-
-        .mt-16 {
-            margin-top: 4rem
-        }
-
-        .my-12 {
-            margin-top: 3rem;
-            margin-bottom: 3rem
-        }
-
-        .my-16 {
-            margin-top: 4rem;
-            margin-bottom: 4rem
-        }
-
-        .my-24 {
-            margin-top: 6rem;
-            margin-bottom: 6rem
-        }
-
-        .mb-6 {
-            margin-bottom: 1.5rem
-        }
-
-        .text-neutral-300 {
-            color: #d4d4d4
-        }
-
-        .text-neutral-400 {
-            color: #a3a3a3
-        }
-
-        .text-neutral-500 {
-            color: #737373
-        }
-
-        .text-blue-200 {
-            color: #bfdbfe
-        }
-
-        .text-blue-300 {
-            color: #93c5fd
-        }
-
-        .text-emerald-200 {
-            color: #a7f3d0
-        }
-
-        .text-amber-200 {
-            color: #fde68a
-        }
-
-        .text-lg {
-            font-size: 1.125rem
-        }
-
-        .text-xl {
-            font-size: 1.25rem
-        }
-
-        .text-2xl {
-            font-size: 1.5rem
-        }
-
-        .text-3xl {
-            font-size: 1.875rem
-        }
-
-        .text-6xl {
-            font-size: 3.75rem
-        }
-
-        ::-webkit-scrollbar {
-            display: none
-        }
-
-        * {
-            -ms-overflow-style: none;
-            scrollbar-width: none
-        }
+        ::-webkit-scrollbar { display: none }
+        * { -ms-overflow-style: none; scrollbar-width: none }
     </style>
 </head>
 
-<body>
+<body class="antialiased overflow-x-hidden">
     <div class="bg-gradient"></div>
-    <main style="position:relative;min-height:100vh;padding-bottom:6rem">
+
+    <main class="relative min-h-screen" style="padding-bottom:6rem">
         <header class="hero">
             <div class="animate-fade-up" style="display:flex;flex-direction:column;align-items:center">
                 <div class="chapter-badge"><span>Chapter 17</span></div>
-                <h1 class="hero-title">The Sword<br><span class="gradient-text italic">Reclaimed</span></h1>
+                <h1 class="hero-title">The Sword<br><span class="gradient-text-blue italic">Reclaimed</span></h1>
                 <p class="hero-quote">"You were always stubborn. You threw it down and left, just as I commanded."</p>
             </div>
         </header>
 
         <article class="container">
+
+            <!-- Scene Break - After the Marquis -->
+            <div class="scene-break reveal">
+                <div class="scene-break-label" style="border-color:rgba(100,116,139,.4)">
+                    <span style="color:#e5e7eb">— After the Marquis —</span>
+                </div>
+            </div>
+
             <!-- Medea's Success -->
             <section class="prose reveal">
                 <p class="drop-cap text-neutral-300">Neril's eyes widened with surprise.</p>
@@ -483,13 +413,14 @@
                 <p class="dialogue dialogue-neril text-blue-200">"He doesn't want to see me. And we must return to the palace before dinner."</p>
             </section>
 
-            <div class="divider my-16 reveal">
-                <div class="divider-line"></div>
-                <div class="divider-diamond"></div>
-                <div class="divider-line"></div>
+            <!-- Scene Break - The Courtyard -->
+            <div class="scene-break my-16 reveal">
+                <div class="scene-break-label" style="border-color:rgba(100,116,139,.4)">
+                    <span style="color:#e5e7eb">— The Courtyard —</span>
+                </div>
             </div>
 
-            <!-- The Courtyard -->
+            <!-- The New Carriage -->
             <div class="highlight-box my-12 reveal">
                 <div class="prose">
                     <p class="dialogue dialogue-maid">"Your Royal Highness, the carriage you arrived in appeared somewhat damaged, so we have prepared a replacement. Please, this way."</p>
@@ -497,7 +428,6 @@
                 </div>
             </div>
 
-            <!-- The New Carriage -->
             <section class="prose mt-12 reveal">
                 <p>At first glance, the carriage hitched to fresh horses appeared to be an ordinary four-wheeled vehicle.</p>
                 <p class="text-neutral-400 text-xl">However, closer inspection revealed exterior plating of thin steel and wheels reinforced with iron.</p>
@@ -577,10 +507,11 @@
                 <p class="dialogue dialogue-neril text-blue-300 font-semibold">"Your Highness, please wait a moment!"</p>
             </section>
 
-            <div class="divider my-16 reveal">
-                <div class="divider-line"></div>
-                <div class="divider-diamond"></div>
-                <div class="divider-line"></div>
+            <!-- Scene Break - The Study -->
+            <div class="scene-break my-16 reveal">
+                <div class="scene-break-label" style="border-color:rgba(59,130,246,.5)">
+                    <span style="color:#bfdbfe">— The Study —</span>
+                </div>
             </div>
 
             <!-- The Study -->
@@ -626,10 +557,11 @@
                 <p class="italic text-neutral-400">The Marquis waved his hand dismissively, as though to hurry her out before his composure wavered.</p>
             </section>
 
-            <div class="divider my-16 reveal">
-                <div class="divider-line"></div>
-                <div class="divider-diamond"></div>
-                <div class="divider-line"></div>
+            <!-- Scene Break - Years Ago -->
+            <div class="scene-break my-16 reveal">
+                <div class="scene-break-label" style="border-color:rgba(148,163,184,.5)">
+                    <span style="color:#e5e7eb">— Years Ago —</span>
+                </div>
             </div>
 
             <!-- Flashback: Years Ago -->
@@ -695,10 +627,11 @@
                 </div>
             </div>
 
-            <div class="divider my-16 reveal">
-                <div class="divider-line"></div>
-                <div class="divider-diamond"></div>
-                <div class="divider-line"></div>
+            <!-- Scene Break - Several Days Later -->
+            <div class="scene-break my-16 reveal">
+                <div class="scene-break-label" style="border-color:rgba(16,185,129,.5)">
+                    <span style="color:#a7f3d0">— Several Days Later —</span>
+                </div>
             </div>
 
             <!-- Several Days Later -->
@@ -766,10 +699,11 @@
                 </div>
             </div>
 
-            <div class="divider my-16 reveal">
-                <div class="divider-line"></div>
-                <div class="divider-diamond"></div>
-                <div class="divider-line"></div>
+            <!-- Scene Break - Return to the Palace -->
+            <div class="scene-break my-16 reveal">
+                <div class="scene-break-label" style="border-color:rgba(148,163,184,.5)">
+                    <span style="color:#e5e7eb">— Return to the Palace —</span>
+                </div>
             </div>
 
             <!-- Return to Palace -->
@@ -792,9 +726,21 @@
                     <p class="end-card-continue">[ Continue to Chapter 18 ]</p>
                 </div>
             </div>
+
         </article>
     </main>
-    <script>function initReveal(){const e=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1,rootMargin:"50px"});document.querySelectorAll(".reveal").forEach(t=>e.observe(t))}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",initReveal):initReveal(),window.addEventListener("load",initReveal)</script>
+
+    <script>
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("active");
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+    </script>
 </body>
 
 </html>

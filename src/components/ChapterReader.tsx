@@ -4,7 +4,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo, memo } from "react"
 import { createPortal } from "react-dom"
 import { chapters, isChapterLocked, PRICING } from "@/data"
-import { X, ArrowLeft, ArrowRight, Lock, Loader2, Crown, BookOpen, Sparkles, Zap } from "lucide-react"
+import { X, ArrowLeft, ArrowRight, Lock, Loader2, Crown, BookOpen, Sparkles, Zap, Menu, Check } from "lucide-react"
 import { useAuth } from "@/lib/auth/AuthContext"
 import { useRazorpay } from "@/lib/razorpay/hooks"
 
@@ -31,6 +31,23 @@ interface ErrorScreenProps {
   onClose: () => void
 }
 
+interface ChapterListSidebarProps {
+  isOpen: boolean
+  onClose: () => void
+  currentChapterSlug: string
+  userTier: 'free' | 'complete'
+  ownedChapters: number[]
+  onNavigate: (slug: string) => void
+}
+
+interface ChapterListItemProps {
+  chapter: Chapter
+  isActive: boolean
+  isLocked: boolean
+  onNavigate: (slug: string) => void
+  onClose: () => void
+}
+
 type Chapter = typeof chapters[number]
 
 // ============================================================================
@@ -44,10 +61,6 @@ const FOCUSABLE_ELEMENTS = 'button, [href], input, select, textarea, [tabindex]:
 // Utility Hooks
 // ============================================================================
 
-/**
- * Hook to maintain a ref that always has the latest value
- * Useful for accessing current state in callbacks without causing re-renders
- */
 function useLatestRef<T>(value: T) {
   const ref = useRef(value)
   useEffect(() => {
@@ -56,9 +69,6 @@ function useLatestRef<T>(value: T) {
   return ref
 }
 
-/**
- * Hook to trap focus within a container element
- */
 function useFocusTrap(containerRef: React.RefObject<HTMLElement | null>, isActive: boolean) {
   useEffect(() => {
     if (!isActive || !containerRef.current) return
@@ -68,10 +78,7 @@ function useFocusTrap(containerRef: React.RefObject<HTMLElement | null>, isActiv
     const firstElement = focusableElements[0]
     const lastElement = focusableElements[focusableElements.length - 1]
 
-    // Store previously focused element to restore later
     const previouslyFocused = document.activeElement as HTMLElement | null
-
-    // Focus first element
     firstElement?.focus()
 
     const handleTabKey = (e: KeyboardEvent) => {
@@ -94,29 +101,23 @@ function useFocusTrap(containerRef: React.RefObject<HTMLElement | null>, isActiv
 
     return () => {
       container.removeEventListener('keydown', handleTabKey)
-      // Restore focus to previously focused element
       previouslyFocused?.focus()
     }
   }, [containerRef, isActive])
 }
 
-/**
- * Hook to manage browser history for modal
- */
 function useModalHistory(isOpen: boolean, onClose: () => void) {
   const hasAddedHistoryRef = useRef(false)
 
   useEffect(() => {
     if (!isOpen) return
 
-    // Push state when modal opens
     if (!hasAddedHistoryRef.current) {
       window.history.pushState({ modal: 'chapter-reader' }, '')
       hasAddedHistoryRef.current = true
     }
 
     const handlePopState = (e: PopStateEvent) => {
-      // Only close if this is our modal state
       onClose()
     }
 
@@ -124,7 +125,6 @@ function useModalHistory(isOpen: boolean, onClose: () => void) {
 
     return () => {
       window.removeEventListener('popstate', handlePopState)
-      // Clean up history state if modal closes normally (not via back button)
       if (hasAddedHistoryRef.current && window.history.state?.modal === 'chapter-reader') {
         window.history.back()
       }
@@ -133,9 +133,258 @@ function useModalHistory(isOpen: boolean, onClose: () => void) {
   }, [isOpen, onClose])
 }
 
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia(query)
+    setMatches(media.matches)
+
+    const listener = (e: MediaQueryListEvent) => setMatches(e.matches)
+    media.addEventListener('change', listener)
+    return () => media.removeEventListener('change', listener)
+  }, [query])
+
+  return matches
+}
+
 // ============================================================================
 // Sub-components
 // ============================================================================
+
+const ChapterListItem = memo(function ChapterListItem({
+  chapter,
+  isActive,
+  isLocked,
+  onNavigate,
+  onClose
+}: ChapterListItemProps) {
+  const handleClick = useCallback(() => {
+    if (!isLocked) {
+      onNavigate(chapter.slug)
+      onClose()
+    }
+  }, [chapter.slug, isLocked, onNavigate, onClose])
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={isLocked}
+      className={`
+        w-full text-left px-4 py-3 rounded-lg transition-all duration-200
+        ${isActive
+          ? 'bg-[#9f1239]/20 border border-[#9f1239]/40 text-white'
+          : isLocked
+            ? 'bg-neutral-900/30 border border-neutral-800/30 text-neutral-600 cursor-not-allowed'
+            : 'bg-neutral-900/50 border border-neutral-800/50 text-neutral-300 hover:bg-neutral-800/70 hover:border-neutral-700 hover:text-white'
+        }
+        active:scale-[0.98]
+      `}
+      aria-label={`${chapter.number}: ${chapter.title}${isLocked ? ' (locked)' : ''}${isActive ? ' (current)' : ''}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className={`
+              text-[9px] font-ui tracking-wider uppercase
+              ${isActive ? 'text-[#9f1239]' : 'text-neutral-500'}
+            `}>
+              {chapter.number}
+            </span>
+            {isActive && (
+              <Check className="w-3 h-3 text-[#9f1239]" aria-hidden="true" />
+            )}
+          </div>
+          <h3 className="text-sm font-heading leading-tight truncate">
+            {chapter.title}
+          </h3>
+        </div>
+
+        <div className="flex-shrink-0 pt-0.5">
+          {isLocked ? (
+            <div className="w-5 h-5 rounded-full bg-neutral-800/50 flex items-center justify-center">
+              <Lock className="w-3 h-3 text-neutral-600" aria-hidden="true" />
+            </div>
+          ) : isActive ? (
+            <div className="w-5 h-5 rounded-full bg-[#9f1239]/20 flex items-center justify-center">
+              <div className="w-2 h-2 rounded-full bg-[#9f1239]" aria-hidden="true" />
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </button>
+  )
+})
+
+const ChapterListSidebar = memo(function ChapterListSidebar({
+  isOpen,
+  onClose,
+  currentChapterSlug,
+  userTier,
+  ownedChapters,
+  onNavigate
+}: ChapterListSidebarProps) {
+  const sidebarRef = useRef<HTMLDivElement>(null)
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+
+  useFocusTrap(sidebarRef, isOpen)
+
+  // Keyboard handling
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
+  // Separate chapters into free and locked
+  const { freeChapters, lockedChapters } = useMemo(() => {
+    const free: Chapter[] = []
+    const locked: Chapter[] = []
+
+    chapters.forEach(chapter => {
+      if (isChapterLocked(chapter.id, userTier, ownedChapters)) {
+        locked.push(chapter)
+      } else {
+        free.push(chapter)
+      }
+    })
+
+    return { freeChapters: free, lockedChapters: locked }
+  }, [userTier, ownedChapters])
+
+  if (!isOpen) return null
+
+  const sidebarContent = (
+    <>
+      {/* Backdrop (mobile only) */}
+      {!isDesktop && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] lg:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        ref={sidebarRef}
+        className={`
+          fixed top-0 right-0 h-full w-full sm:w-96 bg-black border-l border-neutral-800
+          z-[111] flex flex-col
+          ${isDesktop ? 'lg:w-80' : ''}
+        `}
+        role="complementary"
+        aria-label="Chapter list"
+      >
+        {/* Header */}
+        <header className="flex-shrink-0 px-5 py-4 border-b border-neutral-800/50 bg-neutral-950/50 backdrop-blur-md">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#9f1239] to-[#7f1d1d] flex items-center justify-center">
+                <BookOpen className="w-4 h-4 text-white" aria-hidden="true" />
+              </div>
+              <h2 className="text-base font-heading text-white tracking-wide">
+                Chapters
+              </h2>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="text-neutral-400 hover:text-white transition-colors p-1.5 -mr-1.5 rounded-lg hover:bg-neutral-800/50"
+              aria-label="Close chapter list"
+            >
+              <X className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="flex items-center gap-4 text-xs font-ui">
+            <div className="flex items-center gap-1.5 text-neutral-400">
+              <div className="w-2 h-2 rounded-full bg-green-500/50" aria-hidden="true" />
+              <span>{freeChapters.length} unlocked</span>
+            </div>
+            {lockedChapters.length > 0 && (
+              <div className="flex items-center gap-1.5 text-neutral-600">
+                <Lock className="w-3 h-3" aria-hidden="true" />
+                <span>{lockedChapters.length} locked</span>
+              </div>
+            )}
+          </div>
+        </header>
+
+        {/* Chapter List */}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+          <div className="space-y-2">
+            {/* Available Chapters */}
+            {freeChapters.map((chapter) => (
+              <ChapterListItem
+                key={chapter.id}
+                chapter={chapter}
+                isActive={chapter.slug === currentChapterSlug}
+                isLocked={false}
+                onNavigate={onNavigate}
+                onClose={onClose}
+              />
+            ))}
+
+            {/* Locked Chapters Section */}
+            {lockedChapters.length > 0 && (
+              <>
+                <div className="pt-4 pb-2 px-1">
+                  <div className="flex items-center gap-2 text-xs font-ui tracking-wider uppercase text-neutral-600">
+                    <Crown className="w-3.5 h-3.5 text-[#9f1239]/50" aria-hidden="true" />
+                    <span>Premium Chapters</span>
+                  </div>
+                </div>
+
+                {lockedChapters.map((chapter) => (
+                  <ChapterListItem
+                    key={chapter.id}
+                    chapter={chapter}
+                    isActive={chapter.slug === currentChapterSlug}
+                    isLocked={true}
+                    onNavigate={onNavigate}
+                    onClose={onClose}
+                  />
+                ))}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Footer - Unlock CTA (if locked chapters exist) */}
+        {lockedChapters.length > 0 && (
+          <footer className="flex-shrink-0 p-4 border-t border-neutral-800/50 bg-neutral-950/50">
+            <button
+              onClick={() => {
+                onClose()
+                requestAnimationFrame(() => {
+                  setTimeout(() => {
+                    document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })
+                  }, 100)
+                })
+              }}
+              className="w-full px-4 py-3 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-wider hover:from-red-500 hover:to-red-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-red-900/20 active:scale-[0.98]"
+            >
+              <Crown className="w-4 h-4" aria-hidden="true" />
+              <span>Unlock All Chapters</span>
+            </button>
+          </footer>
+        )}
+      </aside>
+    </>
+  )
+
+  return createPortal(sidebarContent, document.body)
+})
 
 const LockedScreen = memo(function LockedScreen({
   onUnlock,
@@ -144,7 +393,6 @@ const LockedScreen = memo(function LockedScreen({
 }: LockedScreenProps) {
   const handleViewPlans = useCallback(() => {
     onClose()
-    // Use requestAnimationFrame for smoother transition
     requestAnimationFrame(() => {
       setTimeout(() => {
         document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })
@@ -155,7 +403,6 @@ const LockedScreen = memo(function LockedScreen({
   return (
     <div className="absolute inset-0 flex items-center justify-center px-6 py-12 overflow-y-auto">
       <div className="max-w-lg w-full" role="region" aria-labelledby="locked-title">
-        {/* Animated Lock Icon */}
         <div className="relative w-20 h-20 mx-auto mb-6">
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-red-900/20 to-purple-900/20 animate-pulse" />
           <div className="absolute inset-2 rounded-full bg-gradient-to-br from-neutral-900 to-neutral-800 border-2 border-neutral-700 flex items-center justify-center">
@@ -218,7 +465,6 @@ const LockedScreen = memo(function LockedScreen({
           </button>
         </div>
 
-        {/* Benefits Card */}
         <div className="relative overflow-hidden p-5 bg-gradient-to-br from-neutral-900/60 to-neutral-900/40 border border-neutral-800/60 rounded-xl shadow-xl">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[#9f1239]/5 rounded-full blur-3xl" aria-hidden="true" />
 
@@ -295,7 +541,8 @@ const ErrorScreen = memo(function ErrorScreen({
             Go Back
           </button>
         </div>
-      </div>    </div>
+      </div>
+    </div>
   )
 })
 
@@ -411,39 +658,28 @@ export default function ChapterReader({
   onClose,
   onNavigate
 }: ChapterReaderProps) {
-  // -------------------------------------------------------------------------
   // State
-  // -------------------------------------------------------------------------
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  // -------------------------------------------------------------------------
   // Refs
-  // -------------------------------------------------------------------------
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const loadingChapterRef = useRef<string>(chapterSlug)
 
-  // -------------------------------------------------------------------------
   // Hooks
-  // -------------------------------------------------------------------------
   const { initializePayment, isProcessing } = useRazorpay()
 
-  // Use latest refs for stable callbacks
   const stableOnClose = useLatestRef(onClose)
   const stableOnNavigate = useLatestRef(onNavigate)
 
-  // Focus trap for accessibility
-  useFocusTrap(containerRef, mounted && !isLoading)
-
-  // Browser history management
+  useFocusTrap(containerRef, mounted && !isLoading && !isSidebarOpen)
   useModalHistory(mounted, onClose)
 
-  // -------------------------------------------------------------------------
   // Memoized Values
-  // -------------------------------------------------------------------------
   const currentChapter = useMemo(
     () => chapters.find(ch => ch.slug === chapterSlug),
     [chapterSlug]
@@ -484,9 +720,7 @@ export default function ChapterReader({
     [currentChapter]
   )
 
-  // -------------------------------------------------------------------------
   // Callbacks
-  // -------------------------------------------------------------------------
   const clearLoadTimeout = useCallback(() => {
     if (loadTimeoutRef.current) {
       clearTimeout(loadTimeoutRef.current)
@@ -499,7 +733,6 @@ export default function ChapterReader({
     setIsLoading(true)
     loadingChapterRef.current = chapterSlug
 
-    // Force iframe reload by clearing and resetting src
     if (iframeRef.current) {
       const currentSrc = iframeRef.current.src
       iframeRef.current.src = ''
@@ -511,96 +744,90 @@ export default function ChapterReader({
     }
   }, [chapterSlug])
 
- const handleIframeLoad = useCallback(() => {
-  // Verify this load event is for the current chapter
-  if (loadingChapterRef.current !== chapterSlug) {
-    return
-  }
-
-  clearLoadTimeout()
-  setIsLoading(false)
-  setHasError(false)
-
-  // Inject styles into iframe
-  if (iframeRef.current?.contentWindow) {
-    try {
-      const iframeDoc = iframeRef.current.contentDocument
-      if (iframeDoc?.head && !iframeDoc.getElementById('reader-injected-styles')) {
-        const style = iframeDoc.createElement("style")
-        style.id = 'reader-injected-styles'
-        style.textContent = `
-          .fixed-nav,
-          .ambient-indicator,
-          .fog-container,
-          [data-reader-hide] {
-            display: none !important;
-          }
-          
-          html {
-            scroll-behavior: smooth;
-          }
-          
-          /* Center the content */
-          html, body {
-            min-height: 100%;
-            display: flex;
-            flex-direction: column;
-          }
-          
-          body {
-            padding-bottom: 80px !important;
-            margin: 0 auto !important;
-            max-width: 65ch !important; /* Optimal reading width */
-            width: 100% !important;
-            padding-left: 1.5rem !important;
-            padding-right: 1.5rem !important;
-            box-sizing: border-box !important;
-          }
-          
-          /* If your content has a main wrapper, center it too */
-          body > main,
-          body > article,
-          body > div:first-child,
-          .content,
-          .chapter-content,
-          .prose {
-            margin: 0 auto !important;
-            max-width: 100% !important;
-            width: 100% !important;
-          }
-          
-          .prose p,
-          article p {
-            line-height: 1.9 !important;
-          }
-          
-          ::-webkit-scrollbar {
-            display: none;
-          }
-          
-          * {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-          
-          .reveal,
-          .reveal.active {
-            opacity: 1 !important;
-            transform: none !important;
-          }
-        `
-        iframeDoc.head.appendChild(style)
-
-        // Scroll to top
-        iframeDoc.documentElement.scrollTop = 0
-        iframeDoc.body.scrollTop = 0
-      }
-    } catch {
-      // CORS restrictions - styles in chapter HTML will be used
-      console.debug("Could not inject iframe styles (CORS)")
+  const handleIframeLoad = useCallback(() => {
+    if (loadingChapterRef.current !== chapterSlug) {
+      return
     }
-  }
-}, [chapterSlug, clearLoadTimeout])
+
+    clearLoadTimeout()
+    setIsLoading(false)
+    setHasError(false)
+
+    if (iframeRef.current?.contentWindow) {
+      try {
+        const iframeDoc = iframeRef.current.contentDocument
+        if (iframeDoc?.head && !iframeDoc.getElementById('reader-injected-styles')) {
+          const style = iframeDoc.createElement("style")
+          style.id = 'reader-injected-styles'
+          style.textContent = `
+            .fixed-nav,
+            .ambient-indicator,
+            .fog-container,
+            [data-reader-hide] {
+              display: none !important;
+            }
+            
+            html {
+              scroll-behavior: smooth;
+            }
+            
+            html, body {
+              min-height: 100%;
+              display: flex;
+              flex-direction: column;
+            }
+            
+            body {
+              padding-bottom: 80px !important;
+              margin: 0 auto !important;
+              max-width: 65ch !important;
+              width: 100% !important;
+              padding-left: 1.5rem !important;
+              padding-right: 1.5rem !important;
+              box-sizing: border-box !important;
+            }
+            
+            body > main,
+            body > article,
+            body > div:first-child,
+            .content,
+            .chapter-content,
+            .prose {
+              margin: 0 auto !important;
+              max-width: 100% !important;
+              width: 100% !important;
+            }
+            
+            .prose p,
+            article p {
+              line-height: 1.9 !important;
+            }
+            
+            ::-webkit-scrollbar {
+              display: none;
+            }
+            
+            * {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+            
+            .reveal,
+            .reveal.active {
+              opacity: 1 !important;
+              transform: none !important;
+            }
+          `
+          iframeDoc.head.appendChild(style)
+
+          iframeDoc.documentElement.scrollTop = 0
+          iframeDoc.body.scrollTop = 0
+        }
+      } catch {
+        console.debug("Could not inject iframe styles (CORS)")
+      }
+    }
+  }, [chapterSlug, clearLoadTimeout])
 
   const handleIframeError = useCallback(() => {
     if (loadingChapterRef.current !== chapterSlug) {
@@ -628,9 +855,14 @@ export default function ChapterReader({
     })
   }, [stableOnClose])
 
-  // Stable keyboard handler using refs
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen(prev => !prev)
+  }, [])
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Check if target is an interactive element
+    // Don't handle if sidebar is open (it has its own escape handler)
+    if (isSidebarOpen) return
+
     if (e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLTextAreaElement ||
       (e.target instanceof HTMLElement && e.target.isContentEditable)) {
@@ -654,14 +886,16 @@ export default function ChapterReader({
           stableOnNavigate.current(nextChapter.slug)
         }
         break
+      case "m":
+      case "M":
+        // Toggle chapter list with 'm' key
+        e.preventDefault()
+        setIsSidebarOpen(prev => !prev)
+        break
     }
-  }, [prevChapter, nextChapter, isNextLocked, isPrevLocked, stableOnClose, stableOnNavigate])
+  }, [prevChapter, nextChapter, isNextLocked, isPrevLocked, isSidebarOpen, stableOnClose, stableOnNavigate])
 
-  // -------------------------------------------------------------------------
   // Effects
-  // -------------------------------------------------------------------------
-
-  // Mount effect
   useEffect(() => {
     setMounted(true)
     document.body.style.overflow = "hidden"
@@ -672,21 +906,17 @@ export default function ChapterReader({
     }
   }, [clearLoadTimeout])
 
-  // Keyboard listener
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [handleKeyDown])
 
-  // Chapter change effect
   useEffect(() => {
     loadingChapterRef.current = chapterSlug
     setIsLoading(true)
     setHasError(false)
 
-    // Set loading timeout
     loadTimeoutRef.current = setTimeout(() => {
-      // Only trigger error if still loading the same chapter
       if (loadingChapterRef.current === chapterSlug) {
         setIsLoading(false)
         setHasError(true)
@@ -696,7 +926,6 @@ export default function ChapterReader({
     return clearLoadTimeout
   }, [chapterSlug, clearLoadTimeout])
 
-  // Prefetch adjacent chapters
   useEffect(() => {
     if (isLocked || hasError) return
 
@@ -721,143 +950,152 @@ export default function ChapterReader({
     }
   }, [nextChapter, prevChapter, isNextLocked, isPrevLocked, isLocked, hasError])
 
-  // -------------------------------------------------------------------------
-  // Early Returns
-  // -------------------------------------------------------------------------
-
   if (!mounted) return null
   if (!currentChapter) return null
 
-  // -------------------------------------------------------------------------
-  // Render
-  // -------------------------------------------------------------------------
-
   const readerContent = (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 z-[100] bg-[#050505] flex flex-col overflow-hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="chapter-title"
-    >
-      {/* Screen reader announcements */}
-      <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {isLoading && `Loading ${currentChapter.title}`}
-        {!isLoading && !hasError && !isLocked && `${currentChapter.title} loaded`}
+    <>
+      <div
+        ref={containerRef}
+        className="fixed inset-0 z-[100] bg-[#050505] flex flex-col overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="chapter-title"
+      >
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {isLoading && `Loading ${currentChapter.title}`}
+          {!isLoading && !hasError && !isLocked && `${currentChapter.title} loaded`}
+        </div>
+
+        {/* Top Navigation Bar */}
+        <header className="flex-shrink-0 bg-black/95 backdrop-blur-md border-b border-neutral-800/50 z-20">
+          <div className="max-w-5xl mx-auto px-4 md:px-6 py-2 md:py-2.5">
+            <div className="flex items-center justify-between gap-4">
+              {/* Left - Back */}
+              <div className="flex-shrink-0 w-[100px] md:w-[120px]">
+                <button
+                  onClick={onClose}
+                  className="flex items-center gap-1.5 text-neutral-400 hover:text-white transition-all p-1.5 -ml-1.5 rounded-lg hover:bg-neutral-800/50"
+                  aria-label="Back to chapters"
+                >
+                  <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                  <span className="text-xs font-ui tracking-wide hidden sm:inline">Back</span>
+                </button>
+              </div>
+
+              {/* Center - Chapter info */}
+              <div className="text-center flex-1 px-2 min-w-0">
+                <div className="text-[8px] md:text-[9px] font-ui tracking-[0.3em] uppercase text-neutral-500 mb-0.5">
+                  {currentChapter.number}
+                </div>
+                <h1
+                  id="chapter-title"
+                  className="text-xs md:text-sm font-heading text-neutral-200 truncate leading-tight"
+                >
+                  {currentChapter.title}
+                </h1>
+              </div>
+
+              {/* Right - Menu & Close */}
+              <div className="flex-shrink-0 w-[100px] md:w-[120px] flex items-center justify-end gap-1">
+                <button
+                  onClick={toggleSidebar}
+                  className="text-neutral-400 hover:text-white transition-all p-1.5 rounded-lg hover:bg-neutral-800/50"
+                  aria-label="Toggle chapter list"
+                  aria-expanded={isSidebarOpen}
+                >
+                  <Menu className="w-4 h-4" aria-hidden="true" />
+                </button>
+                <button
+                  onClick={onClose}
+                  className="text-neutral-400 hover:text-white transition-all p-1.5 -mr-1.5 rounded-lg hover:bg-neutral-800/50"
+                  aria-label="Close reader"
+                >
+                  <X className="w-4 h-4" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-1 relative overflow-hidden bg-gradient-to-b from-[#050505] to-black">
+          {isLocked ? (
+            <LockedScreen
+              onUnlock={handleUnlock}
+              isProcessing={isProcessing}
+              onClose={onClose}
+            />
+          ) : hasError ? (
+            <ErrorScreen
+              onRetry={handleRetry}
+              onClose={onClose}
+            />
+          ) : (
+            <>
+              {isLoading && <LoadingScreen />}
+
+              <iframe
+                ref={iframeRef}
+                src={chapterPath}
+                onLoad={handleIframeLoad}
+                onError={handleIframeError}
+                className="w-full h-full border-0"
+                title={`${currentChapter.number}: ${currentChapter.title}`}
+                loading="eager"
+                sandbox="allow-scripts"
+                style={{
+                  opacity: isLoading ? 0 : 1,
+                  transition: "opacity 0.3s ease-in-out"
+                }}
+              />
+            </>
+          )}
+        </main>
+
+        {/* Bottom Navigation */}
+        <nav
+          className="flex-shrink-0 bg-black/95 backdrop-blur-md border-t border-neutral-800/50 z-20"
+          aria-label="Chapter navigation"
+        >
+          <div className="max-w-5xl mx-auto px-4 md:px-6 py-2 md:py-2.5">
+            <div className="flex items-center justify-between">
+              <NavigationButton
+                direction="prev"
+                chapter={prevChapter}
+                isLocked={isPrevLocked}
+                onNavigate={onNavigate}
+                onViewPricing={handleViewPricing}
+              />
+
+              <div className="text-center" aria-label={`Chapter ${currentIndex + 1} of ${chapters.length}`}>
+                <div className="text-[9px] font-ui text-neutral-500 tracking-wider">
+                  {currentIndex + 1} / {chapters.length}
+                </div>
+              </div>
+
+              <NavigationButton
+                direction="next"
+                chapter={nextChapter}
+                isLocked={isNextLocked}
+                onNavigate={onNavigate}
+                onViewPricing={handleViewPricing}
+              />
+            </div>
+          </div>
+        </nav>
       </div>
 
-      {/* Top Navigation Bar */}
-      <header className="flex-shrink-0 bg-black/95 backdrop-blur-md border-b border-neutral-800/50 z-20">
-        <div className="max-w-5xl mx-auto px-4 md:px-6 py-2 md:py-2.5">
-          <div className="flex items-center justify-between gap-4">
-            {/* Left side - Back button */}
-            <div className="flex-shrink-0 w-[100px] md:w-[120px]">
-              <button
-                onClick={onClose}
-                className="flex items-center gap-1.5 text-neutral-400 hover:text-white transition-all p-1.5 -ml-1.5 rounded-lg hover:bg-neutral-800/50"
-                aria-label="Back to chapters"
-              >
-                <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-                <span className="text-xs font-ui tracking-wide hidden sm:inline">Back</span>
-              </button>
-            </div>
-
-            {/* Center - Chapter info */}
-            <div className="text-center flex-1 px-2 min-w-0">
-              <div className="text-[8px] md:text-[9px] font-ui tracking-[0.3em] uppercase text-neutral-500 mb-0.5">
-                {currentChapter.number}
-              </div>
-              <h1
-                id="chapter-title"
-                className="text-xs md:text-sm font-heading text-neutral-200 truncate leading-tight"
-              >
-                {currentChapter.title}
-              </h1>
-            </div>
-
-            {/* Right side - Close button */}
-            <div className="flex-shrink-0 w-[100px] md:w-[120px] flex items-center justify-end">
-              <button
-                onClick={onClose}
-                className="text-neutral-400 hover:text-white transition-all p-1.5 -mr-1.5 rounded-lg hover:bg-neutral-800/50"
-                aria-label="Close reader"
-              >
-                <X className="w-4 h-4" aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="flex-1 relative overflow-hidden bg-gradient-to-b from-[#050505] to-black">
-        {isLocked ? (
-          <LockedScreen
-            onUnlock={handleUnlock}
-            isProcessing={isProcessing}
-            onClose={onClose}
-          />
-        ) : hasError ? (
-          <ErrorScreen
-            onRetry={handleRetry}
-            onClose={onClose}
-          />
-        ) : (
-          <>
-            {isLoading && <LoadingScreen />}
-
-            {/* Chapter Content Iframe */}
-            <iframe
-              ref={iframeRef}
-              src={chapterPath}
-              onLoad={handleIframeLoad}
-              onError={handleIframeError}
-              className="w-full h-full border-0"
-              title={`${currentChapter.number}: ${currentChapter.title}`}
-              loading="eager"
-              sandbox="allow-scripts"
-              style={{
-                opacity: isLoading ? 0 : 1,
-                transition: "opacity 0.3s ease-in-out"
-              }}
-            />
-          </>
-        )}
-      </main>
-
-      {/* Bottom Navigation Bar */}
-      <nav
-        className="flex-shrink-0 bg-black/95 backdrop-blur-md border-t border-neutral-800/50 z-20"
-        aria-label="Chapter navigation"
-      >
-        <div className="max-w-5xl mx-auto px-4 md:px-6 py-2 md:py-2.5">
-          <div className="flex items-center justify-between">
-            <NavigationButton
-              direction="prev"
-              chapter={prevChapter}
-              isLocked={isPrevLocked}
-              onNavigate={onNavigate}
-              onViewPricing={handleViewPricing}
-            />
-
-            {/* Center - Chapter Counter */}
-            <div className="text-center" aria-label={`Chapter ${currentIndex + 1} of ${chapters.length}`}>
-              <div className="text-[9px] font-ui text-neutral-500 tracking-wider">
-                {currentIndex + 1} / {chapters.length}
-              </div>
-            </div>
-
-            <NavigationButton
-              direction="next"
-              chapter={nextChapter}
-              isLocked={isNextLocked}
-              onNavigate={onNavigate}
-              onViewPricing={handleViewPricing}
-            />
-          </div>
-        </div>
-      </nav>
-    </div>
+      {/* Chapter List Sidebar */}
+      <ChapterListSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        currentChapterSlug={chapterSlug}
+        userTier={userTier}
+        ownedChapters={ownedChapters}
+        onNavigate={onNavigate}
+      />
+    </>
   )
 
   return createPortal(readerContent, document.body)
