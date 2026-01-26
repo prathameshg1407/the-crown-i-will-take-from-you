@@ -1,14 +1,27 @@
 // app/(auth)/login/page.tsx
 "use client"
 
-import { useState, useEffect, useCallback, FormEvent } from 'react'
+import { Suspense, useState, useEffect, useCallback, FormEvent } from 'react'
 import { useLogin } from '@/lib/auth/hooks'
 import { useAuth } from '@/lib/auth/AuthContext'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, AlertCircle } from 'lucide-react'
 
-export default function LoginPage() {
+// Loading component
+function LoginLoading() {
+  return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="w-8 h-8 text-[#9f1239] animate-spin mx-auto mb-4" />
+        <p className="text-neutral-400 font-body">Loading...</p>
+      </div>
+    </div>
+  )
+}
+
+// Inner component that uses useSearchParams
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -225,5 +238,14 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Main export with Suspense boundary
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginForm />
+    </Suspense>
   )
 }
