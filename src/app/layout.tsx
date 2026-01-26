@@ -8,6 +8,9 @@ import UserMenuFixed from "@/components/auth/UserMenu";
 import Script from "next/script";
 import RazorpayLoader from "@/components/RazorpayLoader";
 import PayPalProvider from "@/components/providers/PayPalProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next"; // Add this import
+import { Analytics } from "@vercel/analytics/react";
+
 
 const headingFont = Cinzel({
   subsets: ["latin"],
@@ -375,6 +378,10 @@ export default function RootLayout({
             />
           </PayPalProvider>
         </AuthProvider>
+        <SpeedInsights />
+        <Analytics />
+
+
       </body>
     </html>
   );
