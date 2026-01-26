@@ -2,7 +2,7 @@
 import { MetadataRoute } from "next";
 import { chapters, PRICING } from "@/data/chapters";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://the-crown-i-will-take-from-you.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date().toISOString();
@@ -16,16 +16,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${siteUrl}/#chapters`,
+      url: `${siteUrl}/chapters`,
       lastModified: now,
       changeFrequency: "daily",
       priority: 0.9,
     },
     {
-      url: `${siteUrl}/#pricing`,
+      url: `${siteUrl}/pricing`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/about`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.6,
     },
   ];
 
@@ -33,10 +39,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const chapterPages: MetadataRoute.Sitemap = chapters.map((chapter) => {
     const isFree = chapter.id <= PRICING.FREE_CHAPTERS;
     const isPrologue = chapter.id === 0;
-    
+
     return {
       url: `${siteUrl}/read/${chapter.slug}`,
-      lastModified: chapter.publishedAt,
+      lastModified: chapter.publishedAt || now,
       changeFrequency: "monthly" as const,
       // Prologue highest, then free chapters, then premium
       priority: isPrologue ? 0.95 : isFree ? 0.85 : 0.7,

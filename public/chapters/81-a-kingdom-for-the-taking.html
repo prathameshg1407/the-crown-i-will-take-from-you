@@ -1,577 +1,947 @@
-<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>A Kingdom for the Taking</title>
-<!-- Self-hosted fonts -->
-    <link rel="stylesheet" href="/fonts/fonts.css">
-    
-    <style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Kingdom for the Taking | Chapter 81</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+  
+  <style>
     /* ============================================
-       CSS Variables
+       CSS Custom Properties
        ============================================ */
     :root {
-      --font-heading: 'Cinzel', serif;
+      /* Fonts */
+      --font-display: 'Cinzel', serif;
       --font-body: 'Cormorant Garamond', serif;
-      --font-ui: 'Lato', sans-serif;
+      --font-accent: 'Spectral', serif;
+      
+      /* Colors - Dark Theme */
+      --bg-primary: #0a0a0b;
+      --bg-secondary: #111114;
+      --bg-elevated: #18181c;
+      
+      /* Text Colors */
+      --text-primary: #e8e6e3;
+      --text-secondary: #9a9590;
+      --text-muted: #5c5856;
+      --text-dim: #3d3a38;
+      
+      /* Accent Colors */
+      --blood-50: #fef2f2;
+      --blood-100: #ffe1e1;
+      --blood-200: #ffc8c8;
+      --blood-300: #ffa3a3;
+      --blood-400: #ff6b6b;
+      --blood-500: #ef4444;
+      --blood-600: #dc2626;
+      --blood-700: #b91c1c;
+      --blood-800: #991b1b;
+      --blood-900: #7f1d1d;
+      --blood-950: #450a0a;
+      
+      /* Gold Accents */
+      --gold-300: #fcd34d;
+      --gold-400: #fbbf24;
+      --gold-500: #f59e0b;
+      --gold-600: #d97706;
+      
+      /* Purple for thoughts */
+      --violet-200: #ddd6fe;
+      --violet-300: #c4b5fd;
+      --violet-400: #a78bfa;
+      --violet-900: #4c1d95;
+      
+      /* Spacing */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      --space-3xl: 4rem;
+      --space-4xl: 6rem;
+      
+      /* Transitions */
+      --transition-fast: 150ms ease;
+      --transition-base: 300ms ease;
+      --transition-slow: 500ms ease;
     }
-    
+
     /* ============================================
-       Reset & Base
+       Reset & Base Styles
        ============================================ */
-    * {
+    *, *::before, *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     html {
       scroll-behavior: smooth;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      font-size: 16px;
     }
-    
+
+    @media (min-width: 1200px) {
+      html { font-size: 18px; }
+    }
+
     body {
-      background-color: #050505;
-      color: #a3a3a3;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
       font-family: var(--font-body);
-      line-height: 1.75;
+      font-size: 1.25rem;
+      line-height: 1.9;
+      font-weight: 400;
       overflow-x: hidden;
-      padding-bottom: 100px;
+      min-height: 100vh;
     }
-    
+
     ::selection {
-      background-color: #881337;
-      color: #fff;
+      background: var(--blood-800);
+      color: var(--blood-50);
     }
-    
-    /* Hide scrollbars */
+
+    /* Custom Scrollbar */
     ::-webkit-scrollbar {
-      display: none;
+      width: 8px;
     }
-    
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
     }
-    
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--blood-900);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--blood-800);
+    }
+
     /* ============================================
-       Background
+       Background Effects
        ============================================ */
-    .bg-gradient {
+    .bg-atmosphere {
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
       z-index: -1;
       pointer-events: none;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(127, 29, 29, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 50%, rgba(76, 29, 149, 0.05), transparent),
+        radial-gradient(ellipse 60% 40% at 0% 80%, rgba(127, 29, 29, 0.08), transparent);
     }
-    
+
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.03;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
     /* ============================================
-       Main Container
+       Header / Hero Section
        ============================================ */
-    main {
-      position: relative;
+    .hero {
       min-height: 100vh;
-      padding-bottom: 10rem;
-    }
-    
-    /* ============================================
-       Header
-       ============================================ */
-    header {
-      min-height: 60vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem 1.5rem 2rem;
+      padding: var(--space-xl);
       text-align: center;
       position: relative;
     }
-    
-    @media (max-width: 768px) {
-      header {
-        min-height: 50vh;
-        padding: 2rem 1rem;
-      }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: linear-gradient(to top, var(--bg-primary), transparent);
+      pointer-events: none;
     }
-    
-    .chapter-badge {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      padding: 0.25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, 0.5);
-      border-radius: 9999px;
-      background-color: rgba(24, 24, 27, 0.7);
-      backdrop-filter: blur(4px);
+
+    .hero-content {
+      animation: heroReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
     }
-    
-    .chapter-badge span {
-      color: #fee2e2;
-      font-size: 0.625rem;
-      font-family: var(--font-ui);
-      letter-spacing: 0.4em;
-      text-transform: uppercase;
-    }
-    
-    h1 {
-      font-family: var(--font-heading);
-      font-size: clamp(2.25rem, 7vw, 4rem);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      color: #e5e5e5;
-      margin-bottom: 1.5rem;
-    }
-    
-    .gradient-text {
-      background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-style: italic;
-    }
-    
-    header p {
-      font-family: var(--font-body);
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
-      font-style: italic;
-      max-width: 30rem;
-    }
-    
-    /* ============================================
-       Article Container
-       ============================================ */
-    article {
-      max-width: 42rem;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-    
-    @media (max-width: 768px) {
-      article {
-        padding: 0 1rem;
-      }
-    }
-    
-    /* ============================================
-       ALL Paragraphs - Center by default
-       ============================================ */
-    article p {
-      line-height: 2.1;
-      margin-bottom: 1.5em;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      article p {
-        font-size: 1.1rem;
-        line-height: 2;
-      }
-    }
-    
-    /* Prose paragraphs */
-    .prose p {
-      line-height: 2.1;
-      margin-bottom: 1.75em;
-      font-size: 1.2rem;
-      color: #a3a3a3;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      .prose p {
-        font-size: 1.1rem;
-        line-height: 2;
-        margin-bottom: 1.5em;
-      }
-    }
-    
-    /* ============================================
-       Drop Cap
-       ============================================ */
-    .drop-cap {
-      text-align: left;
-    }
-    
-    .drop-cap::first-letter {
-      font-family: var(--font-heading);
-      float: left;
-      font-size: 4rem;
-      line-height: 0.8;
-      margin-right: 0.75rem;
-      margin-top: 0.15rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
-    }
-    
-    @media (max-width: 640px) {
-      .drop-cap::first-letter {
-        font-size: 3.5rem;
-        margin-right: 0.5rem;
-      }
-    }
-    
-    /* ============================================
-       Dialogue
-       ============================================ */
-    .dialogue {
-      color: #e2e8f0;
-      font-style: normal;
-      position: relative;
-      padding: 1rem 1.5rem;
-      border-left: 2px solid rgba(136, 19, 55, 0.3);
-      text-align: center;
-      display: block;
-      margin: 1.5rem auto;
-      max-width: 90%;
-      line-height: 1.9;
-    }
-    
-    @media (max-width: 480px) {
-      .dialogue {
-        padding: 0.75rem 1rem;
-        max-width: 95%;
-      }
-    }
-    
-    /* ============================================
-       Thought Box
-       ============================================ */
-    .thought {
-      color: #c4b5fd;
-      font-style: italic;
-      border-left: 2px solid rgba(196, 181, 253, 0.3);
-      padding: 1.5rem 2rem;
-      margin: 2rem auto;
-      max-width: 90%;
-      background: rgba(88, 28, 135, 0.05);
-      border-radius: 4px;
-      text-align: center;
-    }
-    
-    .thought p {
-      margin-bottom: 1rem;
-      line-height: 1.8;
-      text-align: center;
-    }
-    
-    .thought p:last-child {
-      margin-bottom: 0;
-    }
-    
-    /* ============================================
-       Reveal containers - center all content
-       ============================================ */
-    .reveal {
-      opacity: 1;
-      transform: translateY(0);
-      text-align: center;
-    }
-    
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    .reveal p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Special Content Boxes
-       ============================================ */
-    .my-20,
-    .my-24 {
-      text-align: center;
-    }
-    
-    .my-20 > p,
-    .my-24 > p {
-      text-align: center;
-    }
-    
-    /* Gradient boxes */
-    [class*="bg-gradient-to"] {
-      text-align: center;
-    }
-    
-    [class*="bg-gradient-to"] p {
-      text-align: center;
-    }
-    
-    /* Border boxes */
-    [class*="border-l-"] {
-      text-align: center;
-    }
-    
-    [class*="border-l-"] p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Scene Elements
-       ============================================ */
-    .scene-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
-      margin: 4rem 0;
-    }
-    
-    .section-divider {
-      font-family: var(--font-heading);
-      text-align: center;
-      color: #525252;
-      font-size: 0.875rem;
-      letter-spacing: 0.3em;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .time-marker {
-      background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
-      border-top: 1px solid rgba(159, 18, 57, 0.3);
-      border-bottom: 1px solid rgba(159, 18, 57, 0.3);
-      padding: 1.5rem 0;
-      margin: 3rem 0;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Action Line & Narrator
-       ============================================ */
-    .action-line {
-      font-style: italic;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      text-align: center;
-      margin: 1.5rem 0;
-    }
-    
-    .narrator {
-      color: #a3a3a3;
-      font-style: italic;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Space-y containers
-       ============================================ */
-    .space-y-4,
-    .space-y-6,
-    .space-y-8 {
-      text-align: center;
-    }
-    
-    .space-y-4 > *,
-    .space-y-6 > *,
-    .space-y-8 > * {
-      text-align: center;
-    }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    /* ============================================
-       Final Box / Ending
-       ============================================ */
-    .final-box,
-    [class*="mt-32"][class*="mb-40"] {
-      margin: 6rem auto 4rem;
-      text-align: center;
-    }
-    
-    [class*="border-t"][class*="border-neutral"] {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Utility Classes
-       ============================================ */
-    .text-center { text-align: center !important; }
-    .italic { font-style: italic; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    .font-body { font-family: var(--font-body); }
-    .font-ui { font-family: var(--font-ui); }
-    
-    /* Text Sizes */
-    .text-sm { font-size: 0.875rem; }
-    .text-base { font-size: 1rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-4xl { font-size: 2.25rem; }
-    .text-6xl { font-size: 3.75rem; }
-    .text-8xl { font-size: 6rem; }
-    .text-9xl { font-size: 8rem; }
-    
-    /* Responsive text */
-    @media (min-width: 768px) {
-      .md\:text-8xl { font-size: 6rem; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:text-9xl { font-size: 8rem; }
-    }
-    
-    /* Margins */
-    .m-0 { margin: 0; }
-    .mb-4 { margin-bottom: 1rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-32 { margin-top: 8rem; }
-    .mb-40 { margin-bottom: 10rem; }
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
-    
-    /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-neutral-600 { color: #525252; }
-    .text-neutral-700 { color: #404040; }
-    .text-neutral-800 { color: #262626; }
-    .text-white { color: #ffffff; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-green-100 { color: #dcfce7; }
-    .text-green-200 { color: #bbf7d0; }
-    .text-green-300 { color: #86efac; }
-    .text-green-700 { color: #15803d; }
-    .text-green-800 { color: #166534; }
-    .text-green-900 { color: #14532d; }
-    .text-rose-200 { color: #fecdd3; }
-    .text-amber-100 { color: #fef3c7; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-red-800 { color: #991b1b; }
-    .text-slate-200 { color: #e2e8f0; }
-    .text-slate-400 { color: #94a3b8; }
-    
-    /* Leading & Tracking */
-    .leading-tight { line-height: 1.25; }
-    .leading-relaxed { line-height: 1.625; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-tighter { letter-spacing: -0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    /* Padding */
-    .p-6 { padding: 1.5rem; }
-    .p-8 { padding: 2rem; }
-    .p-10 { padding: 2.5rem; }
-    .p-12 { padding: 3rem; }
-    .pl-4 { padding-left: 1rem; }
-    .pl-6 { padding-left: 1.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .px-8 { padding-left: 2rem; padding-right: 2rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .pt-16 { padding-top: 4rem; }
-    .pb-40 { padding-bottom: 10rem; }
-    
-    /* Borders */
-    .border { border-width: 1px; border-style: solid; }
-    .border-2 { border-width: 2px; border-style: solid; }
-    .border-t { border-top-width: 1px; border-top-style: solid; }
-    .border-l-2 { border-left-width: 2px; border-left-style: solid; }
-    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
-    .rounded-full { border-radius: 9999px; }
-    
-    .border-neutral-800 { border-color: #262626; }
-    .border-green-500 { border-color: #22c55e; }
-    .border-green-800 { border-color: #166534; }
-    .border-amber-700 { border-color: #b45309; }
-    .border-red-800 { border-color: #991b1b; }
-    .border-purple-800 { border-color: #6b21a8; }
-    
-    /* Flex */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    
-    /* Position */
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .fixed { position: fixed; }
-    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-    .bottom-10 { bottom: 2.5rem; }
-    .z-10 { z-index: 10; }
-    .-z-10 { z-index: -10; }
-    
-    /* Width/Height */
-    .w-2 { width: 0.5rem; }
-    .h-2 { height: 0.5rem; }
-    .h-px { height: 1px; }
-    .w-full { width: 100%; }
-    .h-screen { height: 100vh; }
-    .min-h-screen { min-height: 100vh; }
-    .max-w-2xl { max-width: 42rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    
-    /* Backgrounds */
-    .bg-green-700 { background-color: #15803d; }
-    .bg-green-800 { background-color: #166534; }
-    .bg-green-900 { background-color: #14532d; }
-    .bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
-    .bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
-    .bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
-    .bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
-    
-    /* Backdrop */
-    .backdrop-blur-sm { backdrop-filter: blur(4px); }
-    
-    /* Overflow */
-    .overflow-x-hidden { overflow-x: hidden; }
-    
-    /* Animation */
-    .animate-fade-up {
-      animation: fadeUp 1s ease-out;
-    }
-    
-    .animate-bounce {
-      animation: bounce 1s infinite;
-    }
-    
-    @keyframes fadeUp {
+
+    @keyframes heroReveal {
       from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(40px);
       }
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
-    
-    @keyframes bounce {
-      0%, 100% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-      }
-      50% {
-        transform: translateY(0);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+
+    .chapter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-xs) var(--space-lg);
+      margin-bottom: var(--space-xl);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 100px;
+      background: rgba(127, 29, 29, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .chapter-badge span {
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--blood-300);
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 8vw, 5.5rem);
+      font-weight: 500;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: var(--space-lg);
+    }
+
+    .hero-title .accent {
+      display: block;
+      background: linear-gradient(135deg, var(--blood-400), var(--blood-700));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-style: italic;
+      text-shadow: 0 0 80px rgba(239, 68, 68, 0.3);
+    }
+
+    .hero-subtitle {
+      font-family: var(--font-accent);
+      font-size: clamp(1rem, 2.5vw, 1.35rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--text-muted);
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: var(--space-3xl);
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--text-dim);
+      animation: float 2s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(10px); }
+    }
+
+    .scroll-indicator svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 1.5;
+    }
+
+    /* ============================================
+       Main Article Container
+       ============================================ */
+    .article-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 var(--space-xl);
+    }
+
+    @media (max-width: 768px) {
+      .article-container {
+        padding: 0 var(--space-lg);
       }
     }
 
-  </style></head><body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
-  <div class="bg-gradient"></div>
-<main class="relative min-h-screen pb-40"><div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10"></div><header class="h-screen flex flex-col items-center justify-center relative p-6"><div class="animate-fade-up flex flex-col items-center"><div class="mb-6 px-4 py-1 border border-blood-800/50 rounded-full bg-blood-950/20 backdrop-blur-sm"><span class="text-blood-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 81</span></div><h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tighter mb-8">A Kingdom<br><span class="gradient-text">for the Taking</span></h1><p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">"When one empire sickens, another man's ambition begins to breathe."</p></div><div class="absolute bottom-10 animate-bounce text-neutral-600"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div></header><article class="max-w-2xl mx-auto px-8 relative z-10"><div class="prose prose-invert prose-xl reveal"><p class="drop-cap">After the ceremony, when Sissair moved to guide the Katzen delegation, the Prince Regent hurriedly stepped in front of him.</p><p class="dialogue">"Allow me to attend personally to our distinguished guests from the Empire. This way, Your Highnesses."</p><p>It was his first opportunity to impress the Katzen nobility.</p><p>The Prince Regent had no intention of conceding such a crucial role to a pale, untested youth.</p><p class="dialogue">"Your Royal Highness, you must have endured great hardship to bring your precious personage all the way to rugged Valdina."</p><p>He quickly attached himself to the visiting royals under the lofty pretext of “personally guiding them through the palace.”</p><p class="dialogue">"Over there is the main palace where Your Highness will reside. It is the largest and finest among all guest residences in Valdina’s royal compound—"</p><p class="dialogue">"Hardly. It's smaller than the annex of my own palace."</p><p>The Princess's tone dripped with disdain, clearly attempting to recover pride crumpled only moments ago.</p><p>The Prince Regent, however, accepted her slight with a gracious smile, showing no hint of displeasure.</p><p class="dialogue">"Naturally, our circumstances in Valdina are modest. We cannot compare to Katzen, so richly blessed with gold and jewels."</p><p>He looked every bit the leech clinging to power. Valdinian subjects shook their heads in unison.</p><p>Even among the Regent’s own faction, more than one thought:</p><p class="thought">The Prince Regent’s groveling… doesn’t he look more like a servant than a sovereign?</p><p>However small Valdina might be, in a thousand years of history it had never once become Katzen’s vassal.</p><p>Not once.</p><p>The Prince Regent never realized that his obsequious display was, in fact, stirring Valdina’s dormant patriotism.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"What are you thinking, Your Highness?"</p><p>Medea watched the delegation’s retreating backs in silence before answering.</p><p class="dialogue">"Only... wondering when they’ll be leaving."</p><p class="dialogue">"Exactly. I wish they would depart quickly as well. To be so arrogant on the very first day…"</p><p>Saya exhaled heavily. The Katzen nobles, who behaved as though they feared nothing and no one even in the slums, had already worn out her patience.</p><p class="dialogue">"Don’t worry."</p><p class="thought">They won’t be leaving as quietly as they came.</p></div><div class="my-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-neutral-700 w-24"></div><div class="w-2 h-2 bg-neutral-700 rotate-45 mx-4"></div><div class="h-px bg-neutral-700 w-24"></div></div></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap">In the classically appointed residence assigned to the Katzen delegation, Jason stood by the window, gazing into the gathering dark.</p><p>Only two people occupied the spacious salon—Jason and his closest aide.</p><p>The Grand Duke’s red eyes lingered on the night-darkened glass for a long time.</p><p class="dialogue">"I never heard that Valdina’s Princess was so beautiful. You’d be hard-pressed to find such a woman even in Katzen."</p><p>Even Jason agreed with Jared on that point.</p><p>Beautiful women rarely possessed spine, and women with spine were rarely beautiful.</p><p class="thought">"Grand Duke, I look forward to our time here. You’ve finally met your match."</p><p>Jason’s lips twitched at the memory of Jared’s lascivious gaze, following the Princess and giggling to himself.</p><p class="thought">How dare that brute set his sights on her?</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>During the welcome ceremony, Jason himself had been startled when Medea’s true identity was revealed.</p><p>The girl whose image refused to leave his mind turned out to be the Princess of Valdina.</p><p class="thought">Is this not a revelation from God to me?</p><p>His heart pounded heavily.</p><p>Valdina might be small compared to the Empire, but it was renowned for its warriors.</p><p>In particular, the King’s personal guard—Agema—was famous for overwhelming military prowess. If they stood behind him…</p><p class="dialogue">"The Emperor’s guard becomes a trivial obstacle. I could even dream of seizing the capital."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"But, Your Highness… you know as well as I that the real threat in the capital is not His Majesty."</p><p>Jason’s aide cast a chill over his fantasies.</p><p class="dialogue">"That’s obvious. It’s why I’ve been wary of that damned curse from the start."</p><p>Jason had only begun serious maneuvering after learning the true nature of the First Prince’s “illness.”</p><p class="dialogue">"The First Prince may have left the palace under the guise of illness, but many still support him in the capital."</p><p>The aide’s concern was not unfounded.</p><p>The fact that First Prince Cesare’s influence remained so strong despite three years of absence spoke volumes about the scale of his power.</p><p class="thought">If not for that curse, I’d never have set foot in the capital again—only to find my head rolling at Cesare’s feet.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"His reputation is unmatched. When he first marched to war and unified the southern states, everyone assumed he’d died. Perhaps this time too..."</p><p>Though Cesare lay stricken now, his cruel nature was widely known across the continent. His forces clung to him less out of loyalty than fear.</p><p>They knew well that if they betrayed him, he might someday return—only to pour poison into their cups.</p><p class="dialogue">"Nonsense. If you doubt me, then at least trust Katzen. No—trust a thousand years of history in the Middle Continent. Has a single person ever survived the original curse?"</p><p>Jason spoke sharply, irritation flaring.</p><p class="dialogue">"I’m not the only one targeting the First Prince. Even the Emperor fears his recovery. Once he dies, what will become of his faction?"</p><p>The aide fell silent.</p><p>Jason clapped him on the shoulder with renewed confidence.</p><p class="dialogue">"We’ll swallow his forces, General Jared, and the Princess of Valdina. With those two at my side, my odds of success are excellent."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>With troops surging northwest, they could directly challenge the Emperor.</p><p>Once the First Prince fell, his remaining adherents would have no choice but to bend the knee.</p><p class="dialogue">"God is fair. Life has its rise and fall. Just as the First Prince’s ascent was my hell, now the roles are simply reversing."</p><p>Jason gazed ahead at an imagined, rosy future.</p><p class="dialogue">"Investigate the Princess. What she likes, where she goes, who her companions are—everything."</p><p class="dialogue">"Understood. But she is the Princess of Valdina. If we become too obvious—"</p><p class="dialogue">"Hardly. When have you seen me move for reasons other than necessity?"</p><p>Despite his words, the image of the girl standing upright, veiled yet unshaken, would not leave his mind.</p></div><div class="my-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-neutral-700 w-24"></div><div class="w-2 h-2 bg-neutral-700 rotate-45 mx-4"></div><div class="h-px bg-neutral-700 w-24"></div></div></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap">Due to their rank, the Fourth Princess and the Grand Duke were housed within the palace itself.</p><p>Count Kensington remained there as well—to advise, and to keep a close watch on Angelique.</p><p class="dialogue">"Where are you headed, General?"</p><p>Raju watched as General Jared lingered instead of following the others.</p><p>His ingratiating bow and oily smile carried their own particular stench.</p><p class="dialogue">"If you’ve no prior engagements, might you accompany me to Duke Claudio’s estate? The Prince Regent has long admired your bravery; he’ll consider it a great honor to receive you."</p><p>Jared grinned, amused.</p><p class="dialogue">"Duke Claudio, hm? I recall hearing that the Duchess and the Princess are famed beauties in Valdina..."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Raju’s stomach lurched.</p><p class="dialogue">"Ah—yes, I neglected to mention. Neither is currently at the ducal residence. They’re still at the Queen Mother’s palace."</p><p>In his eagerness to secure Jared’s favor, Raju had nearly forgotten that crucial detail.</p><p>Jared’s reckless tendencies had made even Katzen’s Emperor click his tongue in frustration.</p><p>This was a man among the Empire’s top ten—one of its rare Ten-Star Knights. Once Jared decided to do something insane, no one could stop him.</p><p class="dialogue">"The Duchess is convalescing at the Queen Mother’s palace, and the Princess is recuperating abroad."</p><p>Upon learning that none of the women he was interested in were present, Jared shook his head, abruptly losing interest.</p><p class="dialogue">"Forget it. I’m a crippled man now—I’ve no patience for cumbersome etiquette. Don’t worry, I’ll report to the palace on time."</p><p>Only after he departed did Raju fully grasp his own narrow escape.</p><p class="thought">Even if Jared is a brilliant swordsman who helped win the succession war, this is too much.</p><p class="thought">I almost brought that monster into my place of rest.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Let’s head to Duke Claudio’s estate."</p><p class="dialogue">"Yes, Count."</p><p>Raju puffed out his chest as if to erase the memory of bowing and scraping before the Princess. Through the carriage window, the sunset over Valdina spread in muted reds.</p><p class="dialogue">"This wretched little country is as backward as ever."</p><p>It was nothing compared to the Empire’s bustling avenues, overflowing with dazzling spectacles and endless entertainments.</p><p>The earthy scent of soil and wild grass rode the wind. Raju immediately wrinkled his nose.</p><p class="dialogue">"Light the scented candle."</p><p>As the rich fragrance favored by Katzen nobles filled the carriage, he finally felt at ease—as though he’d re-entered the only world that truly suited him.</p></div><div class="mt-32 mb-40 reveal relative"><div class="absolute -inset-0.5 bg-gradient-to-r from-blood-900 to-black rounded-lg blur opacity-50 animate-pulse-slow"></div><div class="relative bg-black border border-blood-800/50 p-12 rounded-lg text-center shadow-2xl"><div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-blood-800/50 rounded text-xs tracking-widest text-red-400 font-ui uppercase">End Chapter 12</div><h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">A Kingdom for the Taking</h2><div class="w-full h-px bg-gradient-to-r from-transparent via-red-800 to-transparent my-8"></div><p class="text-slate-500 font-serif italic text-xl">"While some kneel to power, others quietly sharpen their knives."</p><p class="mt-8 text-slate-600 text-sm font-ui tracking-widest uppercase">[ Continue to Chapter 13 ]</p></div></div></article></main><script>const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1});document.querySelectorAll(".reveal").forEach(e=>observer.observe(e))</script></body></html>
+    /* ============================================
+       Section Styling
+       ============================================ */
+    .section {
+      padding: var(--space-3xl) 0;
+    }
+
+    .section.reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .section.reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ============================================
+       Typography
+       ============================================ */
+    .prose p {
+      font-size: 1.25rem;
+      line-height: 2.1;
+      margin-bottom: 1.75em;
+      color: var(--text-secondary);
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+    }
+
+    @media (max-width: 768px) {
+      .prose p {
+        font-size: 1.15rem;
+        line-height: 2;
+        text-align: left;
+      }
+    }
+
+    /* Drop Cap */
+    .prose .drop-cap::first-letter {
+      font-family: var(--font-display);
+      float: left;
+      font-size: 4.5rem;
+      line-height: 0.8;
+      font-weight: 600;
+      margin-right: 0.6rem;
+      margin-top: 0.1rem;
+      color: var(--blood-600);
+      text-shadow: 
+        0 0 30px rgba(220, 38, 38, 0.4),
+        2px 2px 0 var(--blood-950);
+    }
+
+    @media (max-width: 640px) {
+      .prose .drop-cap::first-letter {
+        font-size: 3.5rem;
+      }
+    }
+
+    /* ============================================
+       Dialogue Styling
+       ============================================ */
+    .dialogue {
+      position: relative;
+      display: block;
+      margin: var(--space-xl) 0;
+      padding: var(--space-lg) var(--space-xl);
+      padding-left: calc(var(--space-xl) + 4px);
+      color: var(--text-primary);
+      font-size: 1.2rem;
+      font-style: normal;
+      line-height: 1.9;
+      text-align: left;
+      background: linear-gradient(90deg, rgba(127, 29, 29, 0.08), transparent 80%);
+      border-left: 3px solid var(--blood-700);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .dialogue::before {
+      content: '"';
+      position: absolute;
+      left: var(--space-md);
+      top: var(--space-sm);
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      color: var(--blood-700);
+      opacity: 0.5;
+      line-height: 1;
+    }
+
+    @media (max-width: 640px) {
+      .dialogue {
+        padding: var(--space-md) var(--space-lg);
+        padding-left: calc(var(--space-lg) + 4px);
+        font-size: 1.1rem;
+      }
+    }
+
+    /* ============================================
+       Thought / Internal Monologue
+       ============================================ */
+    .thought {
+      position: relative;
+      margin: var(--space-xl) auto;
+      padding: var(--space-xl);
+      max-width: 90%;
+      color: var(--violet-300);
+      font-style: italic;
+      font-size: 1.15rem;
+      line-height: 1.9;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(76, 29, 149, 0.08), rgba(76, 29, 149, 0.02));
+      border: 1px solid rgba(167, 139, 250, 0.15);
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+    }
+
+    .thought::before,
+    .thought::after {
+      content: '✧';
+      position: absolute;
+      font-size: 0.8rem;
+      color: var(--violet-400);
+      opacity: 0.5;
+    }
+
+    .thought::before {
+      top: var(--space-sm);
+      left: var(--space-md);
+    }
+
+    .thought::after {
+      bottom: var(--space-sm);
+      right: var(--space-md);
+    }
+
+    .thought p {
+      margin-bottom: var(--space-md);
+    }
+
+    .thought p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* ============================================
+       Scene Dividers
+       ============================================ */
+    .scene-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-lg);
+      padding: var(--space-4xl) 0;
+    }
+
+    .scene-divider .line {
+      width: 80px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--text-dim), transparent);
+    }
+
+    .scene-divider .ornament {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--blood-700);
+      opacity: 0.6;
+    }
+
+    .scene-divider .diamond {
+      width: 8px;
+      height: 8px;
+      background: var(--blood-800);
+      transform: rotate(45deg);
+      box-shadow: 0 0 10px var(--blood-900);
+    }
+
+    /* ============================================
+       Chapter End Card
+       ============================================ */
+    .chapter-end {
+      margin: var(--space-4xl) 0;
+      padding: var(--space-4xl) var(--space-xl);
+      text-align: center;
+      position: relative;
+    }
+
+    .end-card {
+      position: relative;
+      padding: var(--space-3xl);
+      background: var(--bg-secondary);
+      border: 1px solid rgba(127, 29, 29, 0.3);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .end-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(127, 29, 29, 0.1), transparent);
+      pointer-events: none;
+    }
+
+    .end-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--blood-600), transparent);
+    }
+
+    .end-label {
+      display: inline-block;
+      padding: var(--space-xs) var(--space-md);
+      margin-bottom: var(--space-xl);
+      font-family: var(--font-display);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--blood-400);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 4px;
+      background: rgba(127, 29, 29, 0.1);
+    }
+
+    .end-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, var(--blood-400), var(--blood-800));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--space-xl);
+    }
+
+    .end-divider {
+      width: 100%;
+      height: 1px;
+      margin: var(--space-xl) 0;
+      background: linear-gradient(90deg, transparent, var(--blood-800), transparent);
+    }
+
+    .end-quote {
+      font-family: var(--font-accent);
+      font-size: 1.15rem;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text-muted);
+      max-width: 400px;
+      margin: 0 auto var(--space-xl);
+      line-height: 1.6;
+    }
+
+    .continue-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-xl);
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--text-dim);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      text-decoration: none;
+    }
+
+    .continue-btn:hover {
+      color: var(--blood-400);
+      border-color: var(--blood-700);
+      background: rgba(127, 29, 29, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .continue-btn svg {
+      width: 16px;
+      height: 16px;
+      transition: transform var(--transition-base);
+    }
+
+    .continue-btn:hover svg {
+      transform: translateX(4px);
+    }
+
+    /* ============================================
+       Decorative Elements
+       ============================================ */
+    .crown-ornament {
+      text-align: center;
+      padding: var(--space-2xl) 0;
+      color: var(--blood-800);
+      font-size: 1.5rem;
+      opacity: 0.4;
+    }
+
+    /* ============================================
+       Animations
+       ============================================ */
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(127, 29, 29, 0.2);
+      }
+      50% {
+        box-shadow: 0 0 40px rgba(127, 29, 29, 0.4);
+      }
+    }
+
+    .glow-pulse {
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    /* ============================================
+       Footer
+       ============================================ */
+    footer {
+      padding: var(--space-3xl);
+      text-align: center;
+      border-top: 1px solid rgba(127, 29, 29, 0.1);
+    }
+
+    .footer-ornament {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--blood-900);
+      opacity: 0.4;
+      letter-spacing: 0.5em;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Background Effects -->
+  <div class="bg-atmosphere"></div>
+  <div class="noise-overlay"></div>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="hero-content">
+      <div class="chapter-badge">
+        <span>Chapter 81</span>
+      </div>
+      
+      <h1 class="hero-title">
+        A Kingdom
+        <span class="accent">for the Taking</span>
+      </h1>
+      
+      <p class="hero-subtitle">
+        "When one empire sickens, another man's ambition begins to breathe."
+      </p>
+    </div>
+
+    <div class="scroll-indicator">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+      </svg>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <article class="article-container">
+      
+      <!-- Scene 1 -->
+      <section class="section prose reveal">
+        <p class="drop-cap">After the ceremony, when Sissair moved to guide the Katzen delegation, the Prince Regent hurriedly stepped in front of him.</p>
+        
+        <span class="dialogue">Allow me to attend personally to our distinguished guests from the Empire. This way, Your Highnesses.</span>
+        
+        <p>It was his first opportunity to impress the Katzen nobility. The Prince Regent had no intention of conceding such a crucial role to a pale, untested youth.</p>
+        
+        <span class="dialogue">Your Royal Highness, you must have endured great hardship to bring your precious personage all the way to rugged Valdina.</span>
+        
+        <p>He quickly attached himself to the visiting royals under the lofty pretext of "personally guiding them through the palace."</p>
+        
+        <span class="dialogue">Over there is the main palace where Your Highness will reside. It is the largest and finest among all guest residences in Valdina's royal compound—</span>
+        
+        <span class="dialogue">Hardly. It's smaller than the annex of my own palace.</span>
+        
+        <p>The Princess's tone dripped with disdain, clearly attempting to recover pride crumpled only moments ago.</p>
+        
+        <p>The Prince Regent, however, accepted her slight with a gracious smile, showing no hint of displeasure.</p>
+        
+        <span class="dialogue">Naturally, our circumstances in Valdina are modest. We cannot compare to Katzen, so richly blessed with gold and jewels.</span>
+        
+        <p>He looked every bit the leech clinging to power. Valdinian subjects shook their heads in unison.</p>
+        
+        <p>Even among the Regent's own faction, more than one thought:</p>
+        
+        <div class="thought">
+          <p>The Prince Regent's groveling… doesn't he look more like a servant than a sovereign?</p>
+        </div>
+        
+        <p>However small Valdina might be, in a thousand years of history it had never once become Katzen's vassal.</p>
+        
+        <p>Not once.</p>
+        
+        <p>The Prince Regent never realized that his obsequious display was, in fact, stirring Valdina's dormant patriotism.</p>
+      </section>
+
+      <!-- Scene 2 -->
+      <section class="section prose reveal">
+        <span class="dialogue">What are you thinking, Your Highness?</span>
+        
+        <p>Medea watched the delegation's retreating backs in silence before answering.</p>
+        
+        <span class="dialogue">Only... wondering when they'll be leaving.</span>
+        
+        <span class="dialogue">Exactly. I wish they would depart quickly as well. To be so arrogant on the very first day…</span>
+        
+        <p>Saya exhaled heavily. The Katzen nobles, who behaved as though they feared nothing and no one even in the slums, had already worn out her patience.</p>
+        
+        <span class="dialogue">Don't worry.</span>
+        
+        <div class="thought">
+          <p>They won't be leaving as quietly as they came.</p>
+        </div>
+      </section>
+
+      <!-- Divider -->
+      <div class="scene-divider reveal">
+        <div class="line"></div>
+        <div class="diamond"></div>
+        <div class="line"></div>
+      </div>
+
+      <!-- Scene 3: Jason's POV -->
+      <section class="section prose reveal">
+        <p class="drop-cap">In the classically appointed residence assigned to the Katzen delegation, Jason stood by the window, gazing into the gathering dark.</p>
+        
+        <p>Only two people occupied the spacious salon—Jason and his closest aide.</p>
+        
+        <p>The Grand Duke's red eyes lingered on the night-darkened glass for a long time.</p>
+        
+        <span class="dialogue">I never heard that Valdina's Princess was so beautiful. You'd be hard-pressed to find such a woman even in Katzen.</span>
+        
+        <p>Even Jason agreed with Jared on that point.</p>
+        
+        <p>Beautiful women rarely possessed spine, and women with spine were rarely beautiful.</p>
+        
+        <div class="thought">
+          <p>"Grand Duke, I look forward to our time here. You've finally met your match."</p>
+        </div>
+        
+        <p>Jason's lips twitched at the memory of Jared's lascivious gaze, following the Princess and giggling to himself.</p>
+        
+        <div class="thought">
+          <p>How dare that brute set his sights on her?</p>
+        </div>
+      </section>
+
+      <!-- Scene 4 -->
+      <section class="section prose reveal">
+        <p>During the welcome ceremony, Jason himself had been startled when Medea's true identity was revealed.</p>
+        
+        <p>The girl whose image refused to leave his mind turned out to be the Princess of Valdina.</p>
+        
+        <div class="thought">
+          <p>Is this not a revelation from God to me?</p>
+        </div>
+        
+        <p>His heart pounded heavily.</p>
+        
+        <p>Valdina might be small compared to the Empire, but it was renowned for its warriors.</p>
+        
+        <p>In particular, the King's personal guard—Agema—was famous for overwhelming military prowess. If they stood behind him…</p>
+        
+        <span class="dialogue">The Emperor's guard becomes a trivial obstacle. I could even dream of seizing the capital.</span>
+      </section>
+
+      <!-- Scene 5 -->
+      <section class="section prose reveal">
+        <span class="dialogue">But, Your Highness… you know as well as I that the real threat in the capital is not His Majesty.</span>
+        
+        <p>Jason's aide cast a chill over his fantasies.</p>
+        
+        <span class="dialogue">That's obvious. It's why I've been wary of that damned curse from the start.</span>
+        
+        <p>Jason had only begun serious maneuvering after learning the true nature of the First Prince's "illness."</p>
+        
+        <span class="dialogue">The First Prince may have left the palace under the guise of illness, but many still support him in the capital.</span>
+        
+        <p>The aide's concern was not unfounded.</p>
+        
+        <p>The fact that First Prince Cesare's influence remained so strong despite three years of absence spoke volumes about the scale of his power.</p>
+        
+        <div class="thought">
+          <p>If not for that curse, I'd never have set foot in the capital again—only to find my head rolling at Cesare's feet.</p>
+        </div>
+      </section>
+
+      <!-- Scene 6 -->
+      <section class="section prose reveal">
+        <span class="dialogue">His reputation is unmatched. When he first marched to war and unified the southern states, everyone assumed he'd died. Perhaps this time too...</span>
+        
+        <p>Though Cesare lay stricken now, his cruel nature was widely known across the continent. His forces clung to him less out of loyalty than fear.</p>
+        
+        <p>They knew well that if they betrayed him, he might someday return—only to pour poison into their cups.</p>
+        
+        <span class="dialogue">Nonsense. If you doubt me, then at least trust Katzen. No—trust a thousand years of history in the Middle Continent. Has a single person ever survived the original curse?</span>
+        
+        <p>Jason spoke sharply, irritation flaring.</p>
+        
+        <span class="dialogue">I'm not the only one targeting the First Prince. Even the Emperor fears his recovery. Once he dies, what will become of his faction?</span>
+        
+        <p>The aide fell silent.</p>
+        
+        <p>Jason clapped him on the shoulder with renewed confidence.</p>
+        
+        <span class="dialogue">We'll swallow his forces, General Jared, and the Princess of Valdina. With those two at my side, my odds of success are excellent.</span>
+      </section>
+
+      <!-- Scene 7 -->
+      <section class="section prose reveal">
+        <p>With troops surging northwest, they could directly challenge the Emperor.</p>
+        
+        <p>Once the First Prince fell, his remaining adherents would have no choice but to bend the knee.</p>
+        
+        <span class="dialogue">God is fair. Life has its rise and fall. Just as the First Prince's ascent was my hell, now the roles are simply reversing.</span>
+        
+        <p>Jason gazed ahead at an imagined, rosy future.</p>
+        
+        <span class="dialogue">Investigate the Princess. What she likes, where she goes, who her companions are—everything.</span>
+        
+        <span class="dialogue">Understood. But she is the Princess of Valdina. If we become too obvious—</span>
+        
+        <span class="dialogue">Hardly. When have you seen me move for reasons other than necessity?</span>
+        
+        <p>Despite his words, the image of the girl standing upright, veiled yet unshaken, would not leave his mind.</p>
+      </section>
+
+      <!-- Divider -->
+      <div class="scene-divider reveal">
+        <div class="line"></div>
+        <div class="diamond"></div>
+        <div class="line"></div>
+      </div>
+
+      <!-- Scene 8: Jared's Path -->
+      <section class="section prose reveal">
+        <p class="drop-cap">Due to their rank, the Fourth Princess and the Grand Duke were housed within the palace itself.</p>
+        
+        <p>Count Kensington remained there as well—to advise, and to keep a close watch on Angelique.</p>
+        
+        <span class="dialogue">Where are you headed, General?</span>
+        
+        <p>Raju watched as General Jared lingered instead of following the others.</p>
+        
+        <p>His ingratiating bow and oily smile carried their own particular stench.</p>
+        
+        <span class="dialogue">If you've no prior engagements, might you accompany me to Duke Claudio's estate? The Prince Regent has long admired your bravery; he'll consider it a great honor to receive you.</span>
+        
+        <p>Jared grinned, amused.</p>
+        
+        <span class="dialogue">Duke Claudio, hm? I recall hearing that the Duchess and the Princess are famed beauties in Valdina...</span>
+      </section>
+
+      <!-- Scene 9 -->
+      <section class="section prose reveal">
+        <p>Raju's stomach lurched.</p>
+        
+        <span class="dialogue">Ah—yes, I neglected to mention. Neither is currently at the ducal residence. They're still at the Queen Mother's palace.</span>
+        
+        <p>In his eagerness to secure Jared's favor, Raju had nearly forgotten that crucial detail.</p>
+        
+        <p>Jared's reckless tendencies had made even Katzen's Emperor click his tongue in frustration.</p>
+        
+        <p>This was a man among the Empire's top ten—one of its rare Ten-Star Knights. Once Jared decided to do something insane, no one could stop him.</p>
+        
+        <span class="dialogue">The Duchess is convalescing at the Queen Mother's palace, and the Princess is recuperating abroad.</span>
+        
+        <p>Upon learning that none of the women he was interested in were present, Jared shook his head, abruptly losing interest.</p>
+        
+        <span class="dialogue">Forget it. I'm a crippled man now—I've no patience for cumbersome etiquette. Don't worry, I'll report to the palace on time.</span>
+        
+        <p>Only after he departed did Raju fully grasp his own narrow escape.</p>
+        
+        <div class="thought">
+          <p>Even if Jared is a brilliant swordsman who helped win the succession war, this is too much.</p>
+          <p>I almost brought that monster into my place of rest.</p>
+        </div>
+      </section>
+
+      <!-- Final Scene -->
+      <section class="section prose reveal">
+        <span class="dialogue">Let's head to Duke Claudio's estate.</span>
+        
+        <span class="dialogue">Yes, Count.</span>
+        
+        <p>Raju puffed out his chest as if to erase the memory of bowing and scraping before the Princess. Through the carriage window, the sunset over Valdina spread in muted reds.</p>
+        
+        <span class="dialogue">This wretched little country is as backward as ever.</span>
+        
+        <p>It was nothing compared to the Empire's bustling avenues, overflowing with dazzling spectacles and endless entertainments.</p>
+        
+        <p>The earthy scent of soil and wild grass rode the wind. Raju immediately wrinkled his nose.</p>
+        
+        <span class="dialogue">Light the scented candle.</span>
+        
+        <p>As the rich fragrance favored by Katzen nobles filled the carriage, he finally felt at ease—as though he'd re-entered the only world that truly suited him.</p>
+      </section>
+
+      <!-- Chapter End Card -->
+      <section class="chapter-end reveal">
+        <div class="end-card glow-pulse">
+          <span class="end-label">End of Chapter 81</span>
+          
+          <h2 class="end-title">A Kingdom for the Taking</h2>
+          
+          <div class="end-divider"></div>
+          
+          <p class="end-quote">
+            "While some kneel to power, others quietly sharpen their knives."
+          </p>
+          
+          <a href="#" class="continue-btn">
+            Continue to Chapter 82
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
+          </a>
+        </div>
+      </section>
+
+    </article>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-ornament">❧ ❧ ❧</div>
+  </footer>
+
+  <!-- Reveal Animation Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const reveals = document.querySelectorAll('.reveal');
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              entry.target.classList.add('visible');
+            }, index * 100);
+          }
+        });
+      }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      });
+      
+      reveals.forEach(el => observer.observe(el));
+    });
+  </script>
+</body>
+</html>

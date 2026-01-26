@@ -1,7 +1,9 @@
 // lib/seo/utils.ts
-import { chapters, PRICING, MAX_CHAPTER_ID } from "@/data/chapters";
+import { chapters, PRICING } from "@/data/chapters";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "https://the-crown-i-will-take-from-you.vercel.app";
 const siteName = "The Crown I Will Take From You";
 const siteNameKorean = "너에게 빼앗을 왕관";
 
@@ -23,7 +25,7 @@ export function generateChapterSEO(chapterId: number): ChapterSEO | null {
   const isFree = chapter.id <= PRICING.FREE_CHAPTERS;
 
   const title = `${chapterLabel}: ${chapter.title} | ${siteName}`;
-  
+
   const description = isPrologue
     ? `Read the Prologue "${chapter.title}" of "${siteName}" (${siteNameKorean}). The epic Korean fantasy regression revenge romance begins. Free to read.`
     : `Read ${chapterLabel} "${chapter.title}" of "${siteName}". ${isFree ? "Free chapter." : "Premium chapter."} Korean fantasy regression revenge romance.`;
@@ -38,30 +40,49 @@ export function generateChapterSEO(chapterId: number): ChapterSEO | null {
     "regression",
     "revenge romance",
     "read online",
-    isFree ? "free chapter" : "premium",
+    "English translation",
+    isFree ? "free chapter" : "premium chapter",
+    "Medea",
+    "villainess",
   ];
 
   const canonicalUrl = `${siteUrl}/read/${chapter.slug}`;
-  const ogImage = `${siteUrl}/og/chapter-${chapter.id}.jpg`;
+  
+  // Use default OG image unless you have per-chapter images
+  const ogImage = `${siteUrl}/og-image.jpg`;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Chapter",
+    "@id": `${canonicalUrl}/#chapter`,
     name: `${chapterLabel}: ${chapter.title}`,
+    headline: chapter.title,
     position: chapter.id + 1,
     url: canonicalUrl,
     isPartOf: {
       "@type": "Book",
+      "@id": `${siteUrl}/#book`,
       name: siteName,
       alternateName: siteNameKorean,
       author: { "@type": "Person", name: "Wilbright" },
     },
     datePublished: chapter.publishedAt,
+    dateModified: new Date().toISOString(),
     inLanguage: "en",
     isAccessibleForFree: isFree,
+    author: {
+      "@type": "Person",
+      name: "Wilbright",
+    },
   };
 
   return { title, description, keywords, canonicalUrl, ogImage, jsonLd };
+}
+
+export function generateChapterSEOBySlug(slug: string): ChapterSEO | null {
+  const chapter = chapters.find((c) => c.slug === slug);
+  if (!chapter) return null;
+  return generateChapterSEO(chapter.id);
 }
 
 export function generateBookJsonLd() {
@@ -86,40 +107,27 @@ export function generateBookJsonLd() {
     numberOfPages: chapters.length,
     bookFormat: "EBook",
     datePublished: "2024",
-    description: "An epic Korean fantasy regression revenge romance web novel. Follow Medea's journey of betrayal, time travel, and ultimate revenge.",
-    image: `${siteUrl}/img1.jpg`,
+    description:
+      "An epic Korean fantasy regression revenge romance web novel. Follow Medea's journey of betrayal, time travel, and ultimate revenge.",
+    image: `${siteUrl}/og-image.jpg`,
     url: siteUrl,
     workExample: chapters.slice(0, 5).map((ch) => ({
       "@type": "Chapter",
-      name: `${ch.number}: ${ch.title}`,
+      name: ch.id === 0 ? `Prologue: ${ch.title}` : `Chapter ${ch.id}: ${ch.title}`,
       url: `${siteUrl}/read/${ch.slug}`,
       position: ch.id + 1,
+      isAccessibleForFree: ch.id <= PRICING.FREE_CHAPTERS,
     })),
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      reviewCount: "1250",
-      bestRating: "5",
-      worstRating: "1",
+    // Only include offers if you have a real product
+    offers: {
+      "@type": "Offer",
+      name: "Premium Chapters",
+      description: `Access all ${PRICING.COMPLETE_PACK.chapters} premium chapters`,
+      price: String(PRICING.COMPLETE_PACK.price),
+      priceCurrency: "INR",
+      availability: "https://schema.org/InStock",
+      url: `${siteUrl}/#pricing`,
     },
-    offers: [
-      {
-        "@type": "Offer",
-        name: "Free Chapters",
-        description: `First ${PRICING.FREE_CHAPTERS + 1} chapters free`,
-        price: "0",
-        priceCurrency: "INR",
-        availability: "https://schema.org/InStock",
-      },
-      {
-        "@type": "Offer",
-        name: "Complete Pack",
-        description: `All ${PRICING.COMPLETE_PACK.chapters} premium chapters`,
-        price: String(PRICING.COMPLETE_PACK.price),
-        priceCurrency: "INR",
-        availability: "https://schema.org/InStock",
-      },
-    ],
   };
 }
 
@@ -127,6 +135,7 @@ export function generateFAQJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    "@id": `${siteUrl}/#faq`,
     mainEntity: [
       {
         "@type": "Question",
@@ -173,9 +182,79 @@ export function generateFAQJsonLd() {
         name: "How much does the Complete Pack cost?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: `The Complete Pack costs ₹${PRICING.COMPLETE_PACK.price} for all ${PRICING.COMPLETE_PACK.chapters} premium chapters. This is a one-time payment with lifetime access, averaging just ₹${PRICING.COMPLETE_PACK.pricePerChapter} per chapter.`,
+          text: `The Complete Pack costs ₹${PRICING.COMPLETE_PACK.price} for all ${PRICING.COMPLETE_PACK.chapters} premium chapters. This is a one-time payment with lifetime access.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Can I read on mobile devices?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes! The website is fully responsive and optimized for reading on mobile phones, tablets, and desktop computers.",
         },
       },
     ],
+  };
+}
+
+// Generate breadcrumb for any page
+export function generateBreadcrumbJsonLd(
+  items: Array<{ name: string; url?: string }>
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url || undefined,
+    })),
+  };
+}
+
+// Helper to get all chapter slugs for static generation
+export function getAllChapterSlugs(): string[] {
+  return chapters.map((c) => c.slug);
+}
+
+// Helper to get chapter by slug
+export function getChapterBySlug(slug: string) {
+  return chapters.find((c) => c.slug === slug);
+}
+
+// Generate metadata for chapter page
+export function generateChapterMetadata(slug: string) {
+  const seo = generateChapterSEOBySlug(slug);
+  if (!seo) return null;
+
+  return {
+    title: seo.title,
+    description: seo.description,
+    keywords: seo.keywords,
+    alternates: {
+      canonical: seo.canonicalUrl,
+    },
+    openGraph: {
+      title: seo.title,
+      description: seo.description,
+      url: seo.canonicalUrl,
+      siteName: siteName,
+      images: [
+        {
+          url: seo.ogImage,
+          width: 1200,
+          height: 630,
+          alt: seo.title,
+        },
+      ],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seo.title,
+      description: seo.description,
+      images: [seo.ogImage],
+    },
   };
 }

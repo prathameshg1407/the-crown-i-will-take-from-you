@@ -221,14 +221,24 @@ const ChapterGroup = memo(function ChapterGroup({
 
 export default function ChaptersList() {
   const { user } = useAuth()
-  const userTier = user?.tier || "free"
-  const ownedChapters = user?.ownedChapters || []
+  const [mounted, setMounted] = useState(false)
   const [activeChapter, setActiveChapter] = useState<string | null>(null)
   const router = useRouter()
 
+  // Wait for client-side mount
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Use default values during SSR, real values after mount
+  const userTier = mounted ? (user?.tier || "free") : "free"
+  const ownedChapters = mounted ? (user?.ownedChapters || []) : []
+
   // Sync with URL on mount
   useEffect(() => {
-    const path = typeof window !== "undefined" ? window.location.pathname : ""
+    if (!mounted) return
+    
+    const path = window.location.pathname
     if (path.startsWith("/read/")) {
       const slug = path.replace("/read/", "")
       const chapter = chapters.find((ch) => ch.slug === slug)
@@ -236,7 +246,7 @@ export default function ChaptersList() {
         setActiveChapter(slug)
       }
     }
-  }, [userTier, ownedChapters])
+  }, [mounted, userTier, ownedChapters])
 
   const handleCloseReader = useCallback(() => {
     setActiveChapter(null)
@@ -251,14 +261,13 @@ export default function ChaptersList() {
 
   // Memoized calculations
   const stats = useMemo(() => {
-    const freeCount = PRICING.FREE_CHAPTERS + 1 // 0..80 = 81 chapters
+    const freeCount = PRICING.FREE_CHAPTERS + 1
     const premiumCount = chapters.length - freeCount
     const accessibleCount = chapters.filter((ch) =>
       !isChapterLocked(ch.id, userTier, ownedChapters)
     ).length
-    const readCount = 0 // TODO: Track read progress
 
-    return { freeCount, premiumCount, accessibleCount, readCount }
+    return { freeCount, premiumCount, accessibleCount, readCount: 0 }
   }, [userTier, ownedChapters])
 
   const chapterGroups = useMemo(() => ({
@@ -266,9 +275,10 @@ export default function ChaptersList() {
     premium: chapters.filter((ch) => ch.id > PRICING.FREE_CHAPTERS),
   }), [])
 
-  // User tier display
+  // User tier display - only render after mount to prevent hydration mismatch
   const tierBadge = useMemo(() => {
-    if (!user) return null
+    // Don't render user-specific content until mounted
+    if (!mounted || !user) return null
 
     if (userTier === "complete") {
       return (
@@ -300,7 +310,7 @@ export default function ChaptersList() {
         </p>
       </div>
     )
-  }, [user, userTier, ownedChapters, stats.freeCount, chapters.length])
+  }, [mounted, user, userTier, ownedChapters, stats.freeCount])
 
   return (
     <>

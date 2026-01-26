@@ -8,9 +8,9 @@ import UserMenuFixed from "@/components/auth/UserMenu";
 import Script from "next/script";
 import RazorpayLoader from "@/components/RazorpayLoader";
 import PayPalProvider from "@/components/providers/PayPalProvider";
-import { SpeedInsights } from "@vercel/speed-insights/next"; // Add this import
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
-
+import ReportButton from "@/components/ReportButton";
 
 const headingFont = Cinzel({
   subsets: ["latin"],
@@ -34,7 +34,7 @@ const uiFont = Lato({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://the-crown-i-will-take-from-you.vercel.app";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -48,7 +48,6 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  // Basic Metadata
   title: {
     default: "The Crown I Will Take From You | Korean Fantasy Web Novel",
     template: "%s | The Crown I Will Take From You",
@@ -74,13 +73,10 @@ export const metadata: Metadata = {
     "villainess novel",
     "female lead revenge",
   ],
-  authors: [
-    { name: "Wilbright (윌브라이트)", url: siteUrl },
-  ],
+  authors: [{ name: "Wilbright (윌브라이트)", url: siteUrl }],
   creator: "Wilbright",
-  publisher: "Your Site Name",
-  
-  // Canonical & Alternate
+  publisher: "The Crown I Will Take From You",
+
   metadataBase: new URL(siteUrl),
   alternates: {
     canonical: "/",
@@ -89,8 +85,7 @@ export const metadata: Metadata = {
       "ko-KR": "/ko",
     },
   },
-  
-  // Open Graph
+
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -117,19 +112,15 @@ export const metadata: Metadata = {
       },
     ],
   },
-  
-  // Twitter Card
+
   twitter: {
     card: "summary_large_image",
-    site: "@yourtwitter",
-    creator: "@yourtwitter",
     title: "The Crown I Will Take From You | Korean Fantasy Web Novel",
     description:
       "An epic Korean fantasy regression revenge romance web novel. Follow Medea's journey of betrayal, time travel, and ultimate revenge.",
     images: ["/twitter-image.jpg"],
   },
-  
-  // Robots
+
   robots: {
     index: true,
     follow: true,
@@ -142,27 +133,19 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  
-  // Verification (add your actual verification codes)
-  verification: {
-    google: "your-google-verification-code",
-    yandex: "your-yandex-verification-code",
-    yahoo: "your-yahoo-verification-code",
-    other: {
-      "msvalidate.01": "your-bing-verification-code",
-      "facebook-domain-verification": "your-facebook-verification",
-    },
-  },
-  
-  // App Links
+
+  // Add verification codes when you have them
+  // verification: {
+  //   google: "your-actual-google-code",
+  // },
+
   appLinks: {
     web: {
       url: siteUrl,
       should_fallback: true,
     },
   },
-  
-  // Icons
+
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -181,14 +164,10 @@ export const metadata: Metadata = {
       },
     ],
   },
-  
-  // Manifest
+
   manifest: "/manifest.json",
-  
-  // Category
   category: "literature",
-  
-  // Other
+
   other: {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
@@ -241,11 +220,10 @@ const jsonLd = {
         caption: "The Crown I Will Take From You",
       },
       image: { "@id": `${siteUrl}/#logo` },
-      sameAs: [
-        "https://twitter.com/yourtwitter",
-        "https://www.instagram.com/yourinstagram",
-        "https://www.facebook.com/yourfacebook",
-      ],
+      // Add real social links when available
+      // sameAs: [
+      //   "https://twitter.com/yourtwitter",
+      // ],
     },
     {
       "@type": "Book",
@@ -268,7 +246,7 @@ const jsonLd = {
       datePublished: "2024",
       publisher: {
         "@type": "Organization",
-        name: "Your Site Name",
+        name: "The Crown I Will Take From You",
       },
       description:
         "An epic Korean fantasy regression revenge romance web novel. Follow Medea's journey of betrayal, time travel, and ultimate revenge.",
@@ -313,22 +291,21 @@ export default function RootLayout({
       className={`${headingFont.variable} ${bodyFont.variable} ${uiFont.variable} scroll-smooth`}
     >
       <head>
-        {/* Preconnect to important domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
-        {/* DNS Prefetch */}
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
         <link rel="dns-prefetch" href="https://www.paypal.com" />
-        
-        {/* JSON-LD Structured Data */}
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        
-        {/* Razorpay Checkout */}
-        <Script 
+
+        <Script
           src="https://checkout.razorpay.com/v1/checkout.js"
           strategy="afterInteractive"
         />
@@ -338,8 +315,8 @@ export default function RootLayout({
         <AuthProvider>
           <PayPalProvider>
             <UserMenuFixed />
-            <a 
-              href="#main-content" 
+            <a
+              href="#main-content"
               className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#9f1239] focus:text-white focus:rounded"
             >
               Skip to main content
@@ -350,38 +327,38 @@ export default function RootLayout({
               toastOptions={{
                 duration: 4000,
                 style: {
-                  background: '#1a1a1a',
-                  color: '#fff',
-                  border: '1px solid #333',
+                  background: "#1a1a1a",
+                  color: "#fff",
+                  border: "1px solid #333",
                 },
                 success: {
                   duration: 6000,
                   iconTheme: {
-                    primary: '#9f1239',
-                    secondary: '#fff',
+                    primary: "#9f1239",
+                    secondary: "#fff",
                   },
                 },
                 error: {
                   duration: 5000,
                   iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
+                    primary: "#ef4444",
+                    secondary: "#fff",
                   },
                 },
                 loading: {
                   iconTheme: {
-                    primary: '#9f1239',
-                    secondary: '#fff',
+                    primary: "#9f1239",
+                    secondary: "#fff",
                   },
                 },
               }}
             />
           </PayPalProvider>
         </AuthProvider>
+                <ReportButton />
+
         <SpeedInsights />
         <Analytics />
-
-
       </body>
     </html>
   );

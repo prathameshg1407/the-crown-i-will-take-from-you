@@ -1,8 +1,35 @@
 // lib/seo/jsonld.ts
-export function generateHomeJsonLd(siteUrl: string) {
+
+const DEFAULT_SITE_URL = "https://the-crown-i-will-take-from-you.vercel.app";
+
+export function generateHomeJsonLd(siteUrl: string = DEFAULT_SITE_URL) {
   return {
     "@context": "https://schema.org",
     "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        name: "The Crown I Will Take From You",
+        description: "Korean Fantasy Web Novel - English Translation",
+        publisher: {
+          "@id": `${siteUrl}/#organization`,
+        },
+        inLanguage: "en-US",
+      },
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: "The Crown I Will Take From You",
+        url: siteUrl,
+        logo: {
+          "@type": "ImageObject",
+          "@id": `${siteUrl}/#logo`,
+          url: `${siteUrl}/logo.png`,
+          width: 512,
+          height: 512,
+        },
+      },
       {
         "@type": "WebPage",
         "@id": `${siteUrl}/#webpage`,
@@ -25,19 +52,18 @@ export function generateHomeJsonLd(siteUrl: string) {
         potentialAction: [
           {
             "@type": "ReadAction",
-            target: [`${siteUrl}/chapters`],
+            target: [`${siteUrl}/read/prologue`],
           },
         ],
       },
       {
         "@type": "ImageObject",
         "@id": `${siteUrl}/#primaryimage`,
-        url: `${siteUrl}/img1.jpg`,
-        contentUrl: `${siteUrl}/img1.jpg`,
-        width: 800,
-        height: 1200,
-        caption:
-          "The Crown I Will Take From You - Main Cover featuring Medea",
+        url: `${siteUrl}/og-image.jpg`,
+        contentUrl: `${siteUrl}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        caption: "The Crown I Will Take From You - Korean Fantasy Web Novel",
       },
       {
         "@type": "BreadcrumbList",
@@ -68,22 +94,24 @@ export function generateHomeJsonLd(siteUrl: string) {
         },
         bookFormat: "EBook",
         genre: ["Fantasy", "Romance", "Regression", "Revenge", "Drama"],
-        inLanguage: "ko",
+        inLanguage: ["ko", "en"],
         datePublished: "2024",
         description:
           "An epic Korean fantasy regression revenge romance. Medea returns 13 years to the past with memories of betrayal, determined to claim her revenge.",
-        image: `${siteUrl}/img1.jpg`,
+        image: `${siteUrl}/og-image.jpg`,
         mainEntityOfPage: siteUrl,
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: "4.8",
-          reviewCount: "1250",
-          bestRating: "5",
-          worstRating: "1",
-        },
+        // Only include if you have real ratings
+        // aggregateRating: {
+        //   "@type": "AggregateRating",
+        //   ratingValue: "4.8",
+        //   reviewCount: "1250",
+        //   bestRating: "5",
+        //   worstRating: "1",
+        // },
       },
       {
         "@type": "FAQPage",
+        "@id": `${siteUrl}/#faq`,
         mainEntity: [
           {
             "@type": "Question",
@@ -114,7 +142,15 @@ export function generateHomeJsonLd(siteUrl: string) {
             name: "What genres does this novel cover?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "The novel covers Fantasy, Regression, Revenge, Romance, and Drama genres. It's especially popular among fans of time-travel revenge romances.",
+              text: "The novel covers Fantasy, Regression, Revenge, Romance, and Drama genres. It's especially popular among fans of time-travel revenge romances and villainess stories.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "How can I read premium chapters?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "You can purchase chapter bundles or subscribe to access premium chapters. The first few chapters are free to read.",
             },
           },
         ],
@@ -124,24 +160,125 @@ export function generateHomeJsonLd(siteUrl: string) {
 }
 
 export function generateChapterJsonLd(
-  siteUrl: string,
-  chapterNumber: number,
-  chapterTitle: string,
-  content: string
+  siteUrl: string = DEFAULT_SITE_URL,
+  chapter: {
+    id: number;
+    slug: string;
+    title: string;
+    publishedAt?: string;
+  },
+  contentPreview?: string
+) {
+  const chapterUrl = `${siteUrl}/read/${chapter.slug}`;
+  const isPrologue = chapter.id === 0;
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Chapter",
+        "@id": `${chapterUrl}/#chapter`,
+        name: isPrologue ? "Prologue" : `Chapter ${chapter.id}: ${chapter.title}`,
+        headline: chapter.title,
+        isPartOf: {
+          "@type": "Book",
+          "@id": `${siteUrl}/#book`,
+          name: "The Crown I Will Take From You",
+        },
+        position: chapter.id,
+        url: chapterUrl,
+        description: contentPreview
+          ? contentPreview.substring(0, 160).trim() + "..."
+          : `Read ${isPrologue ? "Prologue" : `Chapter ${chapter.id}`} of The Crown I Will Take From You.`,
+        inLanguage: "en",
+        author: {
+          "@type": "Person",
+          name: "Wilbright",
+        },
+        datePublished: chapter.publishedAt || "2024-01-01",
+        dateModified: new Date().toISOString(),
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${chapterUrl}/#breadcrumb`,
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: siteUrl,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Chapters",
+            item: `${siteUrl}/chapters`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: isPrologue ? "Prologue" : `Chapter ${chapter.id}`,
+            item: chapterUrl,
+          },
+        ],
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${chapterUrl}/#webpage`,
+        url: chapterUrl,
+        name: `${isPrologue ? "Prologue" : `Chapter ${chapter.id}`}: ${chapter.title} | The Crown I Will Take From You`,
+        isPartOf: {
+          "@id": `${siteUrl}/#website`,
+        },
+        breadcrumb: {
+          "@id": `${chapterUrl}/#breadcrumb`,
+        },
+        inLanguage: "en-US",
+      },
+    ],
+  };
+}
+
+// Generate JSON-LD for chapters listing page
+export function generateChaptersListJsonLd(
+  siteUrl: string = DEFAULT_SITE_URL,
+  chapters: Array<{ id: number; slug: string; title: string }>
 ) {
   return {
     "@context": "https://schema.org",
-    "@type": "Chapter",
-    "@id": `${siteUrl}/chapters/${chapterNumber}`,
-    name: `Chapter ${chapterNumber}: ${chapterTitle}`,
+    "@type": "CollectionPage",
+    "@id": `${siteUrl}/chapters/#webpage`,
+    name: "All Chapters | The Crown I Will Take From You",
+    description: "Browse all chapters of The Crown I Will Take From You Korean fantasy web novel.",
+    url: `${siteUrl}/chapters`,
     isPartOf: {
-      "@type": "Book",
-      "@id": `${siteUrl}/#book`,
-      name: "The Crown I Will Take From You",
+      "@id": `${siteUrl}/#website`,
     },
-    position: chapterNumber,
-    url: `${siteUrl}/chapters/${chapterNumber}`,
-    text: content.substring(0, 500) + "...",
-    inLanguage: "en",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: chapters.slice(0, 50).map((chapter, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `${siteUrl}/read/${chapter.slug}`,
+        name: chapter.id === 0 ? "Prologue" : `Chapter ${chapter.id}: ${chapter.title}`,
+      })),
+    },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: siteUrl,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Chapters",
+          item: `${siteUrl}/chapters`,
+        },
+      ],
+    },
   };
 }

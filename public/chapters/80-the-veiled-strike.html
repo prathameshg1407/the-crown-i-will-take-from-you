@@ -1,556 +1,155 @@
-<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Veiled Strike</title>
-<!-- Self-hosted fonts -->
-    <link rel="stylesheet" href="/fonts/fonts.css">
-
-    <style>
-/* ============================================
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Veiled Strike — Chapter 80</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Spectral:ital,wght@0,400;0,500;1,400;1,500&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ============================================
        CSS Variables
        ============================================ */
     :root {
-      --font-heading: 'Cinzel', serif;
-      --font-body: 'Cormorant Garamond', serif;
-      --font-ui: 'Lato', sans-serif;
+      /* Typography */
+      --font-display: 'Cinzel', serif;
+      --font-body: 'Spectral', serif;
+      --font-accent: 'Cormorant Garamond', serif;
+      --font-ui: 'Raleway', sans-serif;
+      
+      /* Colors - Clean Dark Theme */
+      --bg-primary: #0c0c0e;
+      --bg-secondary: #121215;
+      --bg-elevated: #1a1a1e;
+      --bg-card: rgba(22, 22, 26, 0.9);
+      
+      /* Text Colors */
+      --text-primary: #e8e8eb;
+      --text-secondary: #a8a8b0;
+      --text-muted: #6b6b75;
+      --text-faint: #45454d;
+      
+      /* Accent Colors */
+      --accent-primary: #be123c;
+      --accent-secondary: #9f1239;
+      --accent-dark: #881337;
+      --accent-glow: rgba(190, 18, 60, 0.3);
+      
+      /* Special Colors */
+      --thought-color: #c4b5fd;
+      --thought-border: rgba(167, 139, 250, 0.25);
+      --thought-bg: rgba(88, 28, 135, 0.06);
+      --dialogue-color: #f1f5f9;
+      --dialogue-border: rgba(190, 18, 60, 0.35);
+      
+      /* Gold Accents */
+      --gold-mid: #d97706;
+      
+      /* Spacing */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      --space-3xl: 4rem;
+      --space-4xl: 6rem;
     }
-    
+
     /* ============================================
        Reset & Base
        ============================================ */
-    * {
+    *, *::before, *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     html {
       scroll-behavior: smooth;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    
+
     body {
-      background-color: #050505;
-      color: #a3a3a3;
+      background-color: var(--bg-primary);
+      color: var(--text-secondary);
       font-family: var(--font-body);
-      line-height: 1.75;
+      font-size: 1.125rem;
+      line-height: 1.85;
       overflow-x: hidden;
-      padding-bottom: 100px;
+      min-height: 100vh;
     }
-    
+
     ::selection {
-      background-color: #881337;
+      background-color: var(--accent-secondary);
       color: #fff;
     }
-    
-    /* Hide scrollbars */
+
+    /* Clean Scrollbar */
     ::-webkit-scrollbar {
-      display: none;
+      width: 6px;
     }
-    
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
     }
-    
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--text-faint);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
     /* ============================================
-       Background
+       Simple, Clean Background
        ============================================ */
-    .bg-gradient {
+    .bg-glow {
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
       z-index: -1;
       pointer-events: none;
+      background: radial-gradient(
+        ellipse 80% 50% at 50% 0%,
+        rgba(139, 0, 50, 0.08) 0%,
+        transparent 50%
+      );
     }
-    
+
     /* ============================================
-       Main Container
+       Main Layout
        ============================================ */
     main {
       position: relative;
       min-height: 100vh;
-      padding-bottom: 10rem;
     }
-    
+
     /* ============================================
-       Header
+       Hero Header
        ============================================ */
-    header {
-      min-height: 60vh;
+    .hero {
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem 1.5rem 2rem;
+      padding: var(--space-2xl);
       text-align: center;
       position: relative;
     }
-    
-    @media (max-width: 768px) {
-      header {
-        min-height: 50vh;
-        padding: 2rem 1rem;
-      }
+
+    .hero-content {
+      animation: fadeIn 1s ease-out;
     }
-    
-    .chapter-badge {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      padding: 0.25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, 0.5);
-      border-radius: 9999px;
-      background-color: rgba(24, 24, 27, 0.7);
-      backdrop-filter: blur(4px);
-    }
-    
-    .chapter-badge span {
-      color: #fee2e2;
-      font-size: 0.625rem;
-      font-family: var(--font-ui);
-      letter-spacing: 0.4em;
-      text-transform: uppercase;
-    }
-    
-    h1 {
-      font-family: var(--font-heading);
-      font-size: clamp(2.25rem, 7vw, 4rem);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      color: #e5e5e5;
-      margin-bottom: 1.5rem;
-    }
-    
-    .gradient-text {
-      background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-style: italic;
-    }
-    
-    header p {
-      font-family: var(--font-body);
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
-      font-style: italic;
-      max-width: 30rem;
-    }
-    
-    /* ============================================
-       Article Container
-       ============================================ */
-    article {
-      max-width: 42rem;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-    
-    @media (max-width: 768px) {
-      article {
-        padding: 0 1rem;
-      }
-    }
-    
-    /* ============================================
-       ALL Paragraphs - Center by default
-       ============================================ */
-    article p {
-      line-height: 2.1;
-      margin-bottom: 1.5em;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      article p {
-        font-size: 1.1rem;
-        line-height: 2;
-      }
-    }
-    
-    /* Prose paragraphs */
-    .prose p {
-      line-height: 2.1;
-      margin-bottom: 1.75em;
-      font-size: 1.2rem;
-      color: #a3a3a3;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      .prose p {
-        font-size: 1.1rem;
-        line-height: 2;
-        margin-bottom: 1.5em;
-      }
-    }
-    
-    /* ============================================
-       Drop Cap
-       ============================================ */
-    .drop-cap {
-      text-align: left;
-    }
-    
-    .drop-cap::first-letter {
-      font-family: var(--font-heading);
-      float: left;
-      font-size: 4rem;
-      line-height: 0.8;
-      margin-right: 0.75rem;
-      margin-top: 0.15rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
-    }
-    
-    @media (max-width: 640px) {
-      .drop-cap::first-letter {
-        font-size: 3.5rem;
-        margin-right: 0.5rem;
-      }
-    }
-    
-    /* ============================================
-       Dialogue
-       ============================================ */
-    .dialogue {
-      color: #e2e8f0;
-      font-style: normal;
-      position: relative;
-      padding: 1rem 1.5rem;
-      border-left: 2px solid rgba(136, 19, 55, 0.3);
-      text-align: center;
-      display: block;
-      margin: 1.5rem auto;
-      max-width: 90%;
-      line-height: 1.9;
-    }
-    
-    @media (max-width: 480px) {
-      .dialogue {
-        padding: 0.75rem 1rem;
-        max-width: 95%;
-      }
-    }
-    
-    /* ============================================
-       Thought Box
-       ============================================ */
-    .thought {
-      color: #c4b5fd;
-      font-style: italic;
-      border-left: 2px solid rgba(196, 181, 253, 0.3);
-      padding: 1.5rem 2rem;
-      margin: 2rem auto;
-      max-width: 90%;
-      background: rgba(88, 28, 135, 0.05);
-      border-radius: 4px;
-      text-align: center;
-    }
-    
-    .thought p {
-      margin-bottom: 1rem;
-      line-height: 1.8;
-      text-align: center;
-    }
-    
-    .thought p:last-child {
-      margin-bottom: 0;
-    }
-    
-    /* ============================================
-       Reveal containers - center all content
-       ============================================ */
-    .reveal {
-      opacity: 1;
-      transform: translateY(0);
-      text-align: center;
-    }
-    
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    .reveal p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Special Content Boxes
-       ============================================ */
-    .my-20,
-    .my-24 {
-      text-align: center;
-    }
-    
-    .my-20 > p,
-    .my-24 > p {
-      text-align: center;
-    }
-    
-    /* Gradient boxes */
-    [class*="bg-gradient-to"] {
-      text-align: center;
-    }
-    
-    [class*="bg-gradient-to"] p {
-      text-align: center;
-    }
-    
-    /* Border boxes */
-    [class*="border-l-"] {
-      text-align: center;
-    }
-    
-    [class*="border-l-"] p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Scene Elements
-       ============================================ */
-    .scene-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
-      margin: 4rem 0;
-    }
-    
-    .section-divider {
-      font-family: var(--font-heading);
-      text-align: center;
-      color: #525252;
-      font-size: 0.875rem;
-      letter-spacing: 0.3em;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .time-marker {
-      background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
-      border-top: 1px solid rgba(159, 18, 57, 0.3);
-      border-bottom: 1px solid rgba(159, 18, 57, 0.3);
-      padding: 1.5rem 0;
-      margin: 3rem 0;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Action Line & Narrator
-       ============================================ */
-    .action-line {
-      font-style: italic;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      text-align: center;
-      margin: 1.5rem 0;
-    }
-    
-    .narrator {
-      color: #a3a3a3;
-      font-style: italic;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Space-y containers
-       ============================================ */
-    .space-y-4,
-    .space-y-6,
-    .space-y-8 {
-      text-align: center;
-    }
-    
-    .space-y-4 > *,
-    .space-y-6 > *,
-    .space-y-8 > * {
-      text-align: center;
-    }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    /* ============================================
-       Final Box / Ending
-       ============================================ */
-    .final-box,
-    [class*="mt-32"][class*="mb-40"] {
-      margin: 6rem auto 4rem;
-      text-align: center;
-    }
-    
-    [class*="border-t"][class*="border-neutral"] {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Utility Classes
-       ============================================ */
-    .text-center { text-align: center !important; }
-    .italic { font-style: italic; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    .font-body { font-family: var(--font-body); }
-    .font-ui { font-family: var(--font-ui); }
-    
-    /* Text Sizes */
-    .text-sm { font-size: 0.875rem; }
-    .text-base { font-size: 1rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-4xl { font-size: 2.25rem; }
-    .text-6xl { font-size: 3.75rem; }
-    .text-8xl { font-size: 6rem; }
-    .text-9xl { font-size: 8rem; }
-    
-    /* Responsive text */
-    @media (min-width: 768px) {
-      .md\:text-8xl { font-size: 6rem; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:text-9xl { font-size: 8rem; }
-    }
-    
-    /* Margins */
-    .m-0 { margin: 0; }
-    .mb-4 { margin-bottom: 1rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-32 { margin-top: 8rem; }
-    .mb-40 { margin-bottom: 10rem; }
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
-    
-    /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-neutral-600 { color: #525252; }
-    .text-neutral-700 { color: #404040; }
-    .text-neutral-800 { color: #262626; }
-    .text-white { color: #ffffff; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-green-100 { color: #dcfce7; }
-    .text-green-200 { color: #bbf7d0; }
-    .text-green-300 { color: #86efac; }
-    .text-green-700 { color: #15803d; }
-    .text-green-800 { color: #166534; }
-    .text-green-900 { color: #14532d; }
-    .text-rose-200 { color: #fecdd3; }
-    .text-amber-100 { color: #fef3c7; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-red-800 { color: #991b1b; }
-    .text-slate-200 { color: #e2e8f0; }
-    .text-slate-400 { color: #94a3b8; }
-    
-    /* Leading & Tracking */
-    .leading-tight { line-height: 1.25; }
-    .leading-relaxed { line-height: 1.625; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-tighter { letter-spacing: -0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    /* Padding */
-    .p-6 { padding: 1.5rem; }
-    .p-8 { padding: 2rem; }
-    .p-10 { padding: 2.5rem; }
-    .p-12 { padding: 3rem; }
-    .pl-4 { padding-left: 1rem; }
-    .pl-6 { padding-left: 1.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .px-8 { padding-left: 2rem; padding-right: 2rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .pt-16 { padding-top: 4rem; }
-    .pb-40 { padding-bottom: 10rem; }
-    
-    /* Borders */
-    .border { border-width: 1px; border-style: solid; }
-    .border-2 { border-width: 2px; border-style: solid; }
-    .border-t { border-top-width: 1px; border-top-style: solid; }
-    .border-l-2 { border-left-width: 2px; border-left-style: solid; }
-    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
-    .rounded-full { border-radius: 9999px; }
-    
-    .border-neutral-800 { border-color: #262626; }
-    .border-green-500 { border-color: #22c55e; }
-    .border-green-800 { border-color: #166534; }
-    .border-amber-700 { border-color: #b45309; }
-    .border-red-800 { border-color: #991b1b; }
-    .border-purple-800 { border-color: #6b21a8; }
-    
-    /* Flex */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    
-    /* Position */
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .fixed { position: fixed; }
-    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-    .bottom-10 { bottom: 2.5rem; }
-    .z-10 { z-index: 10; }
-    .-z-10 { z-index: -10; }
-    
-    /* Width/Height */
-    .w-2 { width: 0.5rem; }
-    .h-2 { height: 0.5rem; }
-    .h-px { height: 1px; }
-    .w-full { width: 100%; }
-    .h-screen { height: 100vh; }
-    .min-h-screen { min-height: 100vh; }
-    .max-w-2xl { max-width: 42rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    
-    /* Backgrounds */
-    .bg-green-700 { background-color: #15803d; }
-    .bg-green-800 { background-color: #166534; }
-    .bg-green-900 { background-color: #14532d; }
-    .bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
-    .bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
-    .bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
-    .bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
-    
-    /* Backdrop */
-    .backdrop-blur-sm { backdrop-filter: blur(4px); }
-    
-    /* Overflow */
-    .overflow-x-hidden { overflow-x: hidden; }
-    
-    /* Animation */
-    .animate-fade-up {
-      animation: fadeUp 1s ease-out;
-    }
-    
-    .animate-bounce {
-      animation: bounce 1s infinite;
-    }
-    
-    @keyframes fadeUp {
+
+    @keyframes fadeIn {
       from {
         opacity: 0;
         transform: translateY(20px);
@@ -560,19 +159,749 @@
         transform: translateY(0);
       }
     }
-    
+
+    /* Chapter Badge */
+    .chapter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-xl);
+      padding: var(--space-sm) var(--space-lg);
+      background: var(--bg-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+    }
+
+    .chapter-badge::before,
+    .chapter-badge::after {
+      content: '◆';
+      font-size: 0.4rem;
+      color: var(--accent-secondary);
+      opacity: 0.5;
+    }
+
+    .chapter-badge span {
+      font-family: var(--font-ui);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* Title */
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 500;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: var(--space-lg);
+    }
+
+    .hero-title .accent {
+      display: block;
+      background: linear-gradient(180deg, #f43f5e 0%, #881337 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-style: italic;
+    }
+
+    /* Subtitle */
+    .hero-subtitle {
+      font-family: var(--font-accent);
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      font-style: italic;
+      color: var(--text-muted);
+      max-width: 26rem;
+      margin: 0 auto;
+    }
+
+    /* Scroll Indicator */
+    .scroll-indicator {
+      position: absolute;
+      bottom: var(--space-3xl);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-sm);
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.3s;
+    }
+
+    .scroll-indicator:hover {
+      opacity: 0.8;
+    }
+
+    .scroll-indicator span {
+      font-family: var(--font-ui);
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .scroll-indicator svg {
+      animation: bounce 2s infinite;
+    }
+
     @keyframes bounce {
-      0%, 100% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-      }
-      50% {
-        transform: translateY(0);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+    }
+
+    /* ============================================
+       Content Area
+       ============================================ */
+    .content {
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: 0 var(--space-xl);
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        padding: 0 var(--space-lg);
       }
     }
 
+    /* ============================================
+       Prose
+       ============================================ */
+    .prose {
+      margin-bottom: var(--space-3xl);
+    }
+
+    .prose p {
+      font-size: 1.15rem;
+      line-height: 2;
+      color: var(--text-secondary);
+      margin-bottom: 1.6em;
+      text-align: justify;
+      hyphens: auto;
+    }
+
+    @media (max-width: 640px) {
+      .prose p {
+        font-size: 1.05rem;
+        line-height: 1.9;
+        text-align: left;
+      }
+    }
+
+    /* Drop Cap */
+    .drop-cap::first-letter {
+      font-family: var(--font-display);
+      float: left;
+      font-size: 4rem;
+      line-height: 0.8;
+      margin-right: 0.12em;
+      margin-top: 0.08em;
+      color: var(--accent-primary);
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .drop-cap::first-letter {
+        font-size: 3.2rem;
+      }
+    }
+
+    /* ============================================
+       Dialogue
+       ============================================ */
+    .dialogue {
+      font-family: var(--font-accent);
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: var(--dialogue-color);
+      padding: var(--space-md) var(--space-lg);
+      margin: var(--space-lg) 0;
+      text-align: center;
+      border-left: 2px solid var(--dialogue-border);
+      background: linear-gradient(90deg, rgba(190, 18, 60, 0.03), transparent);
+    }
+
+    /* ============================================
+       Thought
+       ============================================ */
+    .thought {
+      font-family: var(--font-accent);
+      font-size: 1.1rem;
+      font-style: italic;
+      color: var(--thought-color);
+      padding: var(--space-lg);
+      margin: var(--space-lg) auto;
+      max-width: 95%;
+      text-align: center;
+      background: var(--thought-bg);
+      border-left: 2px solid var(--thought-border);
+      border-radius: 0 6px 6px 0;
+    }
+
+    .thought p {
+      margin-bottom: var(--space-sm) !important;
+      color: var(--thought-color) !important;
+      text-align: center !important;
+      font-size: 1.1rem !important;
+    }
+
+    .thought p:last-child {
+      margin-bottom: 0 !important;
+    }
+
+    /* ============================================
+       Content Cards
+       ============================================ */
+    .content-card {
+      background: var(--bg-card);
+      border-left: 3px solid var(--accent-secondary);
+      padding: var(--space-xl);
+      margin: var(--space-2xl) 0;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .content-card p {
+      margin-bottom: var(--space-md);
+    }
+
+    .content-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .content-card.amber {
+      border-left-color: var(--gold-mid);
+    }
+
+    /* ============================================
+       Scene Break
+       ============================================ */
+    .scene-break {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-md);
+      margin: var(--space-4xl) 0;
+      color: var(--text-faint);
+    }
+
+    .scene-break::before,
+    .scene-break::after {
+      content: '';
+      width: 80px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--text-faint), transparent);
+    }
+
+    .scene-break span {
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+    }
+
+    /* ============================================
+       Action Effect
+       ============================================ */
+    .action-effect {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--accent-primary);
+      text-align: center;
+      margin: var(--space-lg) 0;
+    }
+
+    /* ============================================
+       Reveal Animation
+       ============================================ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(25px);
+      transition: all 0.7s ease-out;
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ============================================
+       Chapter End
+       ============================================ */
+    .chapter-end {
+      margin: var(--space-4xl) auto;
+      padding: var(--space-3xl) var(--space-lg);
+    }
+
+    .chapter-end-card {
+      position: relative;
+      background: var(--bg-elevated);
+      border: 1px solid rgba(190, 18, 60, 0.2);
+      border-radius: 12px;
+      padding: var(--space-3xl) var(--space-xl);
+      text-align: center;
+    }
+
+    .end-label {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-ui);
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent-primary);
+      padding: var(--space-xs) var(--space-md);
+      background: var(--bg-primary);
+      border: 1px solid rgba(190, 18, 60, 0.2);
+      border-radius: 4px;
+    }
+
+    .end-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #f43f5e 0%, #881337 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--space-lg);
+    }
+
+    .end-divider {
+      width: 60%;
+      max-width: 200px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dark), transparent);
+      margin: var(--space-lg) auto;
+    }
+
+    .end-quote {
+      font-family: var(--font-accent);
+      font-size: 1.15rem;
+      font-style: italic;
+      color: var(--text-muted);
+      margin-bottom: var(--space-lg);
+    }
+
+    .end-continue {
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    /* Corner Decorations */
+    .corner-decoration {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      opacity: 0.3;
+    }
+
+    .corner-decoration.top-left {
+      top: var(--space-md);
+      left: var(--space-md);
+      border-top: 1px solid var(--accent-secondary);
+      border-left: 1px solid var(--accent-secondary);
+    }
+
+    .corner-decoration.top-right {
+      top: var(--space-md);
+      right: var(--space-md);
+      border-top: 1px solid var(--accent-secondary);
+      border-right: 1px solid var(--accent-secondary);
+    }
+
+    .corner-decoration.bottom-left {
+      bottom: var(--space-md);
+      left: var(--space-md);
+      border-bottom: 1px solid var(--accent-secondary);
+      border-left: 1px solid var(--accent-secondary);
+    }
+
+    .corner-decoration.bottom-right {
+      bottom: var(--space-md);
+      right: var(--space-md);
+      border-bottom: 1px solid var(--accent-secondary);
+      border-right: 1px solid var(--accent-secondary);
+    }
+
+    /* Footer Space */
+    .footer-space {
+      height: 8rem;
+    }
+
+    /* ============================================
+       Utility Classes
+       ============================================ */
+    .m-0 { margin: 0 !important; }
+    .mt-6 { margin-top: var(--space-lg); }
+    .mb-0 { margin-bottom: 0 !important; }
+    .italic { font-style: italic; }
+
   </style>
-</head><body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
-  <div class="bg-gradient"></div>
-<main class="relative min-h-screen pb-40"><div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10"></div><header class="h-screen flex flex-col items-center justify-center relative p-6"><div class="animate-fade-up flex flex-col items-center"><div class="mb-6 px-4 py-1 border border-blood-800/50 rounded-full bg-blood-950/20 backdrop-blur-sm"><span class="text-blood-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 80</span></div><h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tighter mb-8">The Veiled<br><span class="gradient-text">Strike</span></h1><p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">"Words sharper than steel, delivered behind silk."</p></div><div class="absolute bottom-10 animate-bounce text-neutral-600"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div></header><article class="max-w-2xl mx-auto px-8 relative z-10"><div class="prose prose-invert prose-xl reveal"><p class="drop-cap text-neutral-300">Unlike the discourteous Fourth Princess, the Valdinian nobles began concealing their uncomfortable expressions only after hearing the Grand Duke's gracious words praising their homeland.</p><p class="thought">'The Grand Duke acknowledges our nation with such respect. As expected, the Emperor's bloodline is different.'</p><p>Favorable assessments of 'Grand Duke Castullo'—removed from the throne by unfortunate circumstances—began to rise among the crowd.</p><p>Count Kensington also directed a grateful glance toward the Grand Duke for easing the tension.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue thought">"When examined closely, I feel only... amusement."</p><p>Medea barely suppressed a derisive snort.</p><p class="thought">It's obvious Jason intended this strike all along, waiting for precisely this moment.</p><p class="thought">'Jason, do you wish to exploit my country?'</p><p class="thought">Then you, too, shall pay a fair price this time.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Grand Duke Castullo, I have heard much of the... valiant actions of your father, the late Emperor."</p><p>A clear, resonant voice rang out among the Valdinian assembly.</p><p class="dialogue">"Your father visited our Valdina quite often, as I recall."</p><p>Medea's words caused the gathered nobles to pause in consideration.</p><p>His father, Alcetas II, had once invaded and ravaged Valdinian soil.</p><p>No matter how graciously the Grand Duke spoke of Valdina now, the immutable fact remained—he was the son of Alcetas II.</p></div><div class="bg-blood-950/20 border-l-4 border-blood-800 p-8 my-12 rounded-r-lg reveal"><div class="prose prose-invert prose-xl"><p class="dialogue m-0">"You undoubtedly learned the Grand Duke's high opinion of Valdina from your father, did you not? I can only express my deepest gratitude for such generous words."</p><p class="mt-4">The atmosphere turned frigid instantly.</p><p>As though their earlier cordiality had never existed, the nobles averted their gazes and pointedly ignored the Grand Duke of Katzen.</p></div></div><div class="prose prose-invert prose-xl reveal"><p>"..."</p><p>Jason found himself momentarily speechless.</p><p class="thought">'Why attack me so immediately upon seeing me?'</p><p>Jason's carefully laid plan to cultivate favorable impressions among the Valdinians crumbled to nothing.</p><p>Rather than earning goodwill, he felt fortunate merely to avoid provoking greater antipathy than the Fourth Princess herself.</p><p>All undone by a few words from that veiled woman.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The woman who'd silently ambushed him wore a black veil obscuring her features. Her attire was similarly modest.</p><p>She appeared to be neither a great noble nor royalty.</p><p>Jason barely suppressed a frown and forced a diplomatic smile.</p><p class="dialogue">"What purpose would discussing the past serve when we've gathered to promote continental peace?"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The Fourth Princess raised her voice as though she'd caught prey.</p><p class="dialogue">"Who are you to dare interfere in dialogue between nations? Remove that veil and show yourself!"</p><p>The command dripped with imperial authority.</p><p>The Valdinian nobles bristled with offense. Why was the Katzen Princess issuing orders on their soil?</p><p>Weary of the Princess's arrogant attitude, none volunteered to reveal Medea's identity.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Has Her Royal Highness asked—"</p><p>The Prince Regent, sensing an opportunity, began turning toward Medea.</p><p class="dialogue">"As you yourself stated, this is an official exchange of ambassadors between two nations. Even the Emperor of Katzen cannot compel Valdina to act against its will."</p><p>A crystalline voice emerged from beneath the veil.</p><p class="dialogue">"Does the Fourth Princess truly wish to exceed her father's authority?"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The Princess's face froze. She glanced hastily toward her delegation.</p><p class="thought">No matter how beloved his children, the Emperor becomes ruthlessly cold where imperial power is concerned. If this matter reaches Father's ears, he'll view me with suspicion as well.</p><p class="thought">Mother's position—constantly competing with the other empresses—could be jeopardized.</p><p>She bit her lip hard.</p><p>She couldn't continue pressuring this strange woman who dared invoke the Emperor, yet nor could she simply retreat.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>As the Fourth Princess's predicament deepened, Count Raju stepped forward, scolding the veiled woman.</p><p class="dialogue">"How dare you insult our Princess's loyalty! His Majesty above all—even at the cost of our very lives!"</p><p>Raju sought to win the Princess's favor through this display.</p><p class="dialogue">"Why aren't you dragging her to her knees!"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Sissair, who'd been observing the arrogant imperials with crossed arms, frowned deliberately.</p><p class="dialogue">"Ah, Count Raju—it's you! How does it feel returning to your homeland after such a long absence? We all welcome you warmly."</p><p>Sissair spread his arms before Raju as though greeting an old friend, stoking the Valdinians' simmering anger.</p><p>At Sissair's words, the Fourth Princess glanced back at Raju as though suddenly remembering.</p><p class="thought">Count Raju, who stepped forward to defend me, was originally Valdinian before catching the Emperor's eye and becoming naturalized to the Empire.</p><p class="thought">'That's why Father doesn't fully trust him. Is this wretched creature attempting to curry my favor?'</p><p class="thought">'Do I appear so desperate that a mongrel from this backwater would dare?'</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"You—silence!"</p><p class="italic text-center my-8">CRACK!</p><p>The Princess slapped Raju across the face. Count Raju, struck for his foolishness, couldn't comprehend why the Princess had turned on him.</p><p>While Count Raju stood dazed, the Fourth Princess shrieked again.</p><p class="dialogue">"I've heard all Valdinians are this discourteous! What does it mean, concealing one's face when greeting a delegation?"</p><p>The Princess, regaining her confidence, huffed indignantly.</p><p class="dialogue">"Count Kensington, bring that woman to me and make her kneel. I must demonstrate the majesty of my great empire!"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Your Highness..."</p><p>Kensington sighed heavily.</p><p class="dialogue">"Please show proper courtesy to the Fourth Princess."</p><p>A pale hand reached up and removed the veil.</p><p>The black fabric fell away, revealing a young woman's face.</p><p>Her upright posture radiated quiet authority and unwavering grace. Delicate features formed a face both refined and striking. Vivid green eyes regarded them with perfect composure.</p></div><div class="bg-neutral-900/30 border-l-4 border-amber-800/50 p-8 my-12 rounded-r-lg reveal"><div class="prose prose-invert prose-xl"><p class="dialogue m-0">"May I present Her Highness Medea, Princess of Valdina and His Majesty the King's only sister."</p><p class="mt-4">Sissair's voice rang out into sudden silence.</p><p>The Katzen delegation collectively held their breath.</p><p class="thought italic text-xl">That girl is a princess?</p></div></div><div class="prose prose-invert prose-xl reveal"><p>They all knew the stories about Valdina's foolish princess.</p><p>A puppet manipulated throughout the palace while her brother fought wars abroad.</p><p>They stood speechless, confronted by a princess utterly unlike the rumors they'd heard.</p><p>The Fourth Princess froze as though turned to ice.</p><p class="thought">'Why is the girl from yesterday's altercation here...?'</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>While everyone absorbed the revelation in stunned silence, that clear voice spoke once more.</p><p class="dialogue">"Please don't worry, Fourth Princess. You've already demonstrated quite admirably the majesty of your great empire."</p><p>The Valdinians felt vindicated by their princess's composed critique, while the Katzen delegation experienced collective shame.</p><p>"..."</p><p>The Fourth Princess's face flushed crimson.</p><p class="thought">'This girl...'</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Beyond pointing out their arrogant self-designation as a great power, Medea was subtly threatening her by referencing yesterday's behavior.</p><p class="thought">No matter how powerful the Katzen Empire, if it's revealed we attempted to harm innocent Valdinians at an official event like this, not only I but the entire delegation will face consequences.</p><p class="thought">'She wouldn't dare bring that up publicly... would she?'</p><p>Yet even the Fourth Princess couldn't openly demand that the King's own sister kneel before her.</p><p>She chewed her lip, unable to escalate further, and could only glare at Medea with impotent fury.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Her Majesty the Princess is fatigued from her long journey. We humbly ask our distinguished Valdinian hosts for understanding."</p><p>Count Kensington sighed and stepped forward once more to salvage the disastrous arrival.</p><p>Neither General Jared standing behind him nor the Grand Duke observing from the side showed any inclination to smooth over the situation.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Of course. I'm aware you've all been exceedingly occupied with preparations for today's meeting. I understand completely."</p><p>When Medea offered this pointed reminder, even the false smile vanished from the Fourth Princess's face.</p><p class="dialogue">"Since Her Highness demonstrates such generous understanding, I can only accept with gratitude."</p><p>Kensington bowed to Medea.</p><p>Their eyes met—two masters recognizing each other across the diplomatic chessboard.</p></div><div class="bg-blood-950/20 border-l-4 border-blood-800 p-8 my-12 rounded-r-lg reveal"><div class="prose prose-invert prose-xl"><p class="thought m-0">'We finally meet, Kensington.'</p><p class="thought mt-4">'Is this girl truly"the" Princess? She's far from easy prey.'</p><p class="mt-6">Fortunately, the atmosphere—sharp and brittle as thin ice—resolved without shattering.</p><p>However, it was abundantly clear the encounter had fallen far short of the overwhelming show of power the Katzen delegation had intended.</p></div></div><div class="mt-32 mb-40 reveal relative"><div class="absolute -inset-0.5 bg-gradient-to-r from-blood-900 to-black rounded-lg blur opacity-50 animate-pulse-slow"></div><div class="relative bg-black border border-blood-800/50 p-12 rounded-lg text-center shadow-2xl"><div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-blood-800/50 rounded text-xs tracking-widest text-red-400 font-ui uppercase">End Chapter 11</div><h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">The Veiled Strike</h2><div class="w-full h-px bg-gradient-to-r from-transparent via-red-800 to-transparent my-8"></div><p class="text-slate-500 font-serif italic text-xl">"First blood drawn—without a single blade."</p><p class="mt-8 text-slate-600 text-sm font-ui tracking-widest uppercase">[ To Be Continued... ]</p></div></div></article></main><script>const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1});document.querySelectorAll(".reveal").forEach(e=>observer.observe(e))</script></body></html>
+</head>
+
+<body>
+  <!-- Simple, subtle background glow -->
+  <div class="bg-glow"></div>
+
+  <main>
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-content">
+        <div class="chapter-badge">
+          <span>Chapter 80</span>
+        </div>
+        
+        <h1 class="hero-title">
+          The Veiled
+          <span class="accent">Strike</span>
+        </h1>
+        
+        <p class="hero-subtitle">
+          "Words sharper than steel, delivered behind silk."
+        </p>
+      </div>
+      
+      <div class="scroll-indicator" id="scrollBtn">
+        <span>Begin</span>
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <article class="content">
+      
+      <!-- Opening Section -->
+      <section class="prose reveal">
+        <p class="drop-cap">Unlike the discourteous Fourth Princess, the Valdinian nobles began concealing their uncomfortable expressions only after hearing the Grand Duke's gracious words praising their homeland.</p>
+        
+        <div class="thought">
+          <p>'The Grand Duke acknowledges our nation with such respect. As expected, the Emperor's bloodline is different.'</p>
+        </div>
+        
+        <p>Favorable assessments of 'Grand Duke Castullo'—removed from the throne by unfortunate circumstances—began to rise among the crowd.</p>
+        
+        <p>Count Kensington also directed a grateful glance toward the Grand Duke for easing the tension.</p>
+      </section>
+
+      <!-- Medea's Observation -->
+      <section class="prose reveal">
+        <div class="thought">
+          <p>"When examined closely, I feel only... amusement."</p>
+        </div>
+        
+        <p>Medea barely suppressed a derisive snort.</p>
+        
+        <div class="thought">
+          <p>It's obvious Jason intended this strike all along, waiting for precisely this moment.</p>
+          <p>'Jason, do you wish to exploit my country?'</p>
+          <p>Then you, too, shall pay a fair price this time.</p>
+        </div>
+      </section>
+
+      <!-- Scene Break -->
+      <div class="scene-break">
+        <span>◆ ◇ ◆</span>
+      </div>
+
+      <!-- Medea Speaks -->
+      <section class="prose reveal">
+        <p class="dialogue">"Grand Duke Castullo, I have heard much of the... valiant actions of your father, the late Emperor."</p>
+        
+        <p>A clear, resonant voice rang out among the Valdinian assembly.</p>
+        
+        <p class="dialogue">"Your father visited our Valdina quite often, as I recall."</p>
+        
+        <p>Medea's words caused the gathered nobles to pause in consideration.</p>
+        
+        <p>His father, Alcetas II, had once invaded and ravaged Valdinian soil.</p>
+        
+        <p>No matter how graciously the Grand Duke spoke of Valdina now, the immutable fact remained—he was the son of Alcetas II.</p>
+      </section>
+
+      <!-- Key Moment Card -->
+      <div class="content-card reveal">
+        <p class="dialogue m-0">"You undoubtedly learned the Grand Duke's high opinion of Valdina from your father, did you not? I can only express my deepest gratitude for such generous words."</p>
+        
+        <p class="mt-6">The atmosphere turned frigid instantly.</p>
+        
+        <p class="mb-0">As though their earlier cordiality had never existed, the nobles averted their gazes and pointedly ignored the Grand Duke of Katzen.</p>
+      </div>
+
+      <!-- Jason's Reaction -->
+      <section class="prose reveal">
+        <p>"..."</p>
+        
+        <p>Jason found himself momentarily speechless.</p>
+        
+        <div class="thought">
+          <p>'Why attack me so immediately upon seeing me?'</p>
+        </div>
+        
+        <p>Jason's carefully laid plan to cultivate favorable impressions among the Valdinians crumbled to nothing.</p>
+        
+        <p>Rather than earning goodwill, he felt fortunate merely to avoid provoking greater antipathy than the Fourth Princess herself.</p>
+        
+        <p>All undone by a few words from that veiled woman.</p>
+      </section>
+
+      <!-- Jason Observes Medea -->
+      <section class="prose reveal">
+        <p>The woman who'd silently ambushed him wore a black veil obscuring her features. Her attire was similarly modest.</p>
+        
+        <p>She appeared to be neither a great noble nor royalty.</p>
+        
+        <p>Jason barely suppressed a frown and forced a diplomatic smile.</p>
+        
+        <p class="dialogue">"What purpose would discussing the past serve when we've gathered to promote continental peace?"</p>
+      </section>
+
+      <!-- Fourth Princess Intervenes -->
+      <section class="prose reveal">
+        <p>The Fourth Princess raised her voice as though she'd caught prey.</p>
+        
+        <p class="dialogue">"Who are you to dare interfere in dialogue between nations? Remove that veil and show yourself!"</p>
+        
+        <p>The command dripped with imperial authority.</p>
+        
+        <p>The Valdinian nobles bristled with offense. Why was the Katzen Princess issuing orders on their soil?</p>
+        
+        <p>Weary of the Princess's arrogant attitude, none volunteered to reveal Medea's identity.</p>
+      </section>
+
+      <!-- Medea's Response -->
+      <section class="prose reveal">
+        <p class="dialogue">"Has Her Royal Highness asked—"</p>
+        
+        <p>The Prince Regent, sensing an opportunity, began turning toward Medea.</p>
+        
+        <p class="dialogue">"As you yourself stated, this is an official exchange of ambassadors between two nations. Even the Emperor of Katzen cannot compel Valdina to act against its will."</p>
+        
+        <p>A crystalline voice emerged from beneath the veil.</p>
+        
+        <p class="dialogue">"Does the Fourth Princess truly wish to exceed her father's authority?"</p>
+      </section>
+
+      <!-- Princess's Dilemma -->
+      <section class="prose reveal">
+        <p>The Princess's face froze. She glanced hastily toward her delegation.</p>
+        
+        <div class="thought">
+          <p>No matter how beloved his children, the Emperor becomes ruthlessly cold where imperial power is concerned. If this matter reaches Father's ears, he'll view me with suspicion as well.</p>
+          <p>Mother's position—constantly competing with the other empresses—could be jeopardized.</p>
+        </div>
+        
+        <p>She bit her lip hard.</p>
+        
+        <p>She couldn't continue pressuring this strange woman who dared invoke the Emperor, yet nor could she simply retreat.</p>
+      </section>
+
+      <!-- Count Raju Intervenes -->
+      <section class="prose reveal">
+        <p>As the Fourth Princess's predicament deepened, Count Raju stepped forward, scolding the veiled woman.</p>
+        
+        <p class="dialogue">"How dare you insult our Princess's loyalty! His Majesty above all—even at the cost of our very lives!"</p>
+        
+        <p>Raju sought to win the Princess's favor through this display.</p>
+        
+        <p class="dialogue">"Why aren't you dragging her to her knees!"</p>
+      </section>
+
+      <!-- Sissair's Counter -->
+      <section class="prose reveal">
+        <p>Sissair, who'd been observing the arrogant imperials with crossed arms, frowned deliberately.</p>
+        
+        <p class="dialogue">"Ah, Count Raju—it's you! How does it feel returning to your homeland after such a long absence? We all welcome you warmly."</p>
+        
+        <p>Sissair spread his arms before Raju as though greeting an old friend, stoking the Valdinians' simmering anger.</p>
+        
+        <p>At Sissair's words, the Fourth Princess glanced back at Raju as though suddenly remembering.</p>
+        
+        <div class="thought">
+          <p>Count Raju, who stepped forward to defend me, was originally Valdinian before catching the Emperor's eye and becoming naturalized to the Empire.</p>
+          <p>'That's why Father doesn't fully trust him. Is this wretched creature attempting to curry my favor?'</p>
+          <p>'Do I appear so desperate that a mongrel from this backwater would dare?'</p>
+        </div>
+      </section>
+
+      <!-- The Slap -->
+      <section class="prose reveal">
+        <p class="dialogue">"You—silence!"</p>
+        
+        <p class="action-effect">CRACK!</p>
+        
+        <p>The Princess slapped Raju across the face. Count Raju, struck for his foolishness, couldn't comprehend why the Princess had turned on him.</p>
+        
+        <p>While Count Raju stood dazed, the Fourth Princess shrieked again.</p>
+        
+        <p class="dialogue">"I've heard all Valdinians are this discourteous! What does it mean, concealing one's face when greeting a delegation?"</p>
+        
+        <p>The Princess, regaining her confidence, huffed indignantly.</p>
+        
+        <p class="dialogue">"Count Kensington, bring that woman to me and make her kneel. I must demonstrate the majesty of my great empire!"</p>
+      </section>
+
+      <!-- The Reveal -->
+      <section class="prose reveal">
+        <p class="dialogue">"Your Highness..."</p>
+        
+        <p>Kensington sighed heavily.</p>
+        
+        <p class="dialogue">"Please show proper courtesy to the Fourth Princess."</p>
+        
+        <p>A pale hand reached up and removed the veil.</p>
+        
+        <p>The black fabric fell away, revealing a young woman's face.</p>
+        
+        <p>Her upright posture radiated quiet authority and unwavering grace. Delicate features formed a face both refined and striking. Vivid green eyes regarded them with perfect composure.</p>
+      </section>
+
+      <!-- Identity Revealed Card -->
+      <div class="content-card amber reveal">
+        <p class="dialogue m-0">"May I present Her Highness Medea, Princess of Valdina and His Majesty the King's only sister."</p>
+        
+        <p class="mt-6">Sissair's voice rang out into sudden silence.</p>
+        
+        <p>The Katzen delegation collectively held their breath.</p>
+        
+        <p class="thought italic mb-0">That girl is a princess?</p>
+      </div>
+
+      <!-- Aftermath -->
+      <section class="prose reveal">
+        <p>They all knew the stories about Valdina's foolish princess.</p>
+        
+        <p>A puppet manipulated throughout the palace while her brother fought wars abroad.</p>
+        
+        <p>They stood speechless, confronted by a princess utterly unlike the rumors they'd heard.</p>
+        
+        <p>The Fourth Princess froze as though turned to ice.</p>
+        
+        <div class="thought">
+          <p>'Why is the girl from yesterday's altercation here...?'</p>
+        </div>
+      </section>
+
+      <!-- Medea's Final Strike -->
+      <section class="prose reveal">
+        <p>While everyone absorbed the revelation in stunned silence, that clear voice spoke once more.</p>
+        
+        <p class="dialogue">"Please don't worry, Fourth Princess. You've already demonstrated quite admirably the majesty of your great empire."</p>
+        
+        <p>The Valdinians felt vindicated by their princess's composed critique, while the Katzen delegation experienced collective shame.</p>
+        
+        <p>"..."</p>
+        
+        <p>The Fourth Princess's face flushed crimson.</p>
+        
+        <div class="thought">
+          <p>'This girl...'</p>
+        </div>
+      </section>
+
+      <!-- The Threat -->
+      <section class="prose reveal">
+        <p>Beyond pointing out their arrogant self-designation as a great power, Medea was subtly threatening her by referencing yesterday's behavior.</p>
+        
+        <div class="thought">
+          <p>No matter how powerful the Katzen Empire, if it's revealed we attempted to harm innocent Valdinians at an official event like this, not only I but the entire delegation will face consequences.</p>
+          <p>'She wouldn't dare bring that up publicly... would she?'</p>
+        </div>
+        
+        <p>Yet even the Fourth Princess couldn't openly demand that the King's own sister kneel before her.</p>
+        
+        <p>She chewed her lip, unable to escalate further, and could only glare at Medea with impotent fury.</p>
+      </section>
+
+      <!-- Kensington's Intervention -->
+      <section class="prose reveal">
+        <p class="dialogue">"Her Majesty the Princess is fatigued from her long journey. We humbly ask our distinguished Valdinian hosts for understanding."</p>
+        
+        <p>Count Kensington sighed and stepped forward once more to salvage the disastrous arrival.</p>
+        
+        <p>Neither General Jared standing behind him nor the Grand Duke observing from the side showed any inclination to smooth over the situation.</p>
+      </section>
+
+      <!-- Final Exchange -->
+      <section class="prose reveal">
+        <p class="dialogue">"Of course. I'm aware you've all been exceedingly occupied with preparations for today's meeting. I understand completely."</p>
+        
+        <p>When Medea offered this pointed reminder, even the false smile vanished from the Fourth Princess's face.</p>
+        
+        <p class="dialogue">"Since Her Highness demonstrates such generous understanding, I can only accept with gratitude."</p>
+        
+        <p>Kensington bowed to Medea.</p>
+        
+        <p>Their eyes met—two masters recognizing each other across the diplomatic chessboard.</p>
+      </section>
+
+      <!-- Closing Card -->
+      <div class="content-card reveal">
+        <div class="thought m-0">
+          <p>'We finally meet, Kensington.'</p>
+          <p>'Is this girl truly "the" Princess? She's far from easy prey.'</p>
+        </div>
+        
+        <p class="mt-6">Fortunately, the atmosphere—sharp and brittle as thin ice—resolved without shattering.</p>
+        
+        <p class="mb-0">However, it was abundantly clear the encounter had fallen far short of the overwhelming show of power the Katzen delegation had intended.</p>
+      </div>
+
+      <!-- Chapter End -->
+      <section class="chapter-end reveal">
+        <div class="chapter-end-card">
+          <div class="corner-decoration top-left"></div>
+          <div class="corner-decoration top-right"></div>
+          <div class="corner-decoration bottom-left"></div>
+          <div class="corner-decoration bottom-right"></div>
+          
+          <span class="end-label">End Chapter 80</span>
+          
+          <h2 class="end-title">The Veiled Strike</h2>
+          
+          <div class="end-divider"></div>
+          
+          <p class="end-quote">"First blood drawn—without a single blade."</p>
+          
+          <p class="end-continue">[ To Be Continued... ]</p>
+        </div>
+      </section>
+
+    </article>
+
+    <div class="footer-space"></div>
+  </main>
+
+  <script>
+    // Reveal animation
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Scroll button
+    document.getElementById('scrollBtn').addEventListener('click', () => {
+      document.querySelector('.content').scrollIntoView({ behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>

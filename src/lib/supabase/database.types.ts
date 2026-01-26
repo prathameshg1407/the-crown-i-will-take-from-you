@@ -219,6 +219,24 @@ export interface Database {
           }
         ]
       }
+      reports: {
+  Row: {
+    id: string;
+    message: string;
+    created_at: string;
+  };
+  Insert: {
+    id?: string;
+    message: string;
+    created_at?: string;
+  };
+  Update: {
+    id?: string;
+    message?: string;
+    created_at?: string;
+  };
+  Relationships: [];
+};
       sessions: {
         Row: {
           id: string

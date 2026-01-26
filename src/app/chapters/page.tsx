@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { chapters, PRICING } from "@/data/chapters";
 import ChaptersPageClient from "./ChaptersPageClient";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "https://the-crown-i-will-take-from-you.vercel.app";
 const siteName = "The Crown I Will Take From You";
 
 export const metadata: Metadata = {
@@ -21,6 +23,8 @@ export const metadata: Metadata = {
     "English translation",
     "Medea revenge",
     "regression novel",
+    "villainess novel",
+    "Wilbright",
   ],
   alternates: {
     canonical: `${siteUrl}/chapters`,
@@ -31,12 +35,14 @@ export const metadata: Metadata = {
     url: `${siteUrl}/chapters`,
     type: "website",
     siteName,
+    locale: "en_US",
     images: [
       {
-        url: `${siteUrl}/og-default.jpg`,
+        url: `${siteUrl}/og-image.jpg`,
         width: 1200,
         height: 630,
         alt: `${siteName} - All Chapters`,
+        type: "image/jpeg",
       },
     ],
   },
@@ -44,7 +50,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `All Chapters | ${siteName}`,
     description: `Browse all ${chapters.length} chapters. ${PRICING.FREE_CHAPTERS + 1} free chapters available.`,
-    images: [`${siteUrl}/og-default.jpg`],
+    images: [`${siteUrl}/og-image.jpg`],
   },
   robots: {
     index: true,
@@ -60,7 +66,7 @@ function generateChaptersJsonLd() {
     "@graph": [
       {
         "@type": "CollectionPage",
-        "@id": `${siteUrl}/chapters`,
+        "@id": `${siteUrl}/chapters/#webpage`,
         name: `All Chapters - ${siteName}`,
         description: `Complete chapter listing for ${siteName}`,
         url: `${siteUrl}/chapters`,
@@ -70,25 +76,34 @@ function generateChaptersJsonLd() {
         about: {
           "@id": `${siteUrl}/#book`,
         },
-        numberOfItems: chapters.length,
+        breadcrumb: {
+          "@id": `${siteUrl}/chapters/#breadcrumb`,
+        },
       },
       {
         "@type": "ItemList",
-        "@id": `${siteUrl}/chapters#list`,
+        "@id": `${siteUrl}/chapters/#list`,
         name: "Chapter List",
         numberOfItems: chapters.length,
-        itemListElement: chapters.slice(0, 20).map((chapter, index) => ({
+        itemListElement: chapters.slice(0, 30).map((chapter, index) => ({
           "@type": "ListItem",
           position: index + 1,
           item: {
             "@type": "Chapter",
-            name: `${chapter.number}: ${chapter.title}`,
+            "@id": `${siteUrl}/read/${chapter.slug}`,
+            name:
+              chapter.id === 0
+                ? `Prologue: ${chapter.title}`
+                : `Chapter ${chapter.id}: ${chapter.title}`,
             url: `${siteUrl}/read/${chapter.slug}`,
+            position: chapter.id,
+            isAccessibleForFree: chapter.id <= PRICING.FREE_CHAPTERS,
           },
         })),
       },
       {
         "@type": "BreadcrumbList",
+        "@id": `${siteUrl}/chapters/#breadcrumb`,
         itemListElement: [
           {
             "@type": "ListItem",
@@ -124,9 +139,16 @@ function generateChaptersJsonLd() {
         numberOfPages: chapters.length,
         bookFormat: "EBook",
         datePublished: "2024",
+        workExample: {
+          "@type": "Book",
+          bookFormat: "EBook",
+          inLanguage: "en",
+          url: `${siteUrl}/chapters`,
+        },
       },
       {
         "@type": "FAQPage",
+        "@id": `${siteUrl}/chapters/#faq`,
         mainEntity: [
           {
             "@type": "Question",
@@ -144,6 +166,14 @@ function generateChaptersJsonLd() {
               text: `You can unlock all ${PRICING.COMPLETE_PACK.chapters} premium chapters with the Complete Pack for ₹${PRICING.COMPLETE_PACK.price} (one-time payment, lifetime access).`,
             },
           },
+          {
+            "@type": "Question",
+            name: "How often are new chapters released?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "All chapters are currently available. The complete novel has been fully translated and is ready to read.",
+            },
+          },
         ],
       },
     ],
@@ -159,7 +189,9 @@ export default function ChaptersPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ChaptersPageClient />
+      <main id="main-content">
+        <ChaptersPageClient />
+      </main>
     </>
   );
 }
