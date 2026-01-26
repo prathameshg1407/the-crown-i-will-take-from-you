@@ -1,3 +1,4 @@
+// lib/auth/AuthContext.tsx
 "use client"
 
 import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react'
@@ -39,10 +40,10 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
-const MAX_REFRESH_RETRIES = 3
-const RETRY_DELAY_MS = 2000
-const TOKEN_REFRESH_INTERVAL = 10 * 60 * 1000
-const USER_FETCH_INTERVAL = 5 * 60 * 1000
+const TOKEN_REFRESH_INTERVAL = 10 * 60 * 1000 // 10 minutes
+const USER_FETCH_INTERVAL = 5 * 60 * 1000 // 5 minutes
+const MAX_BACKGROUND_RETRIES = 10 // More retries before giving up
+const RETRY_DELAY_MS = 3000
 
 function transformUserData(apiUser: any): User {
   const ownedChapters = apiUser.ownedChapters || apiUser.owned_chapters || []
@@ -61,47 +62,84 @@ function transformUserData(apiUser: any): User {
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const isOnline = () => typeof navigator !== 'undefined' ? navigator.onLine : true
 
-// Error codes that indicate no active session (not an error condition)
-const NO_SESSION_CODES = [
-  'NO_REFRESH_TOKEN',
-  'NO_SESSION', 
-  'MISSING_TOKEN',
-  'TOKEN_NOT_FOUND',
-  'UNAUTHORIZED'
-]
+// Storage keys for persistence
+const STORAGE_KEY_USER = 'auth_user_cache'
+const STORAGE_KEY_TIMESTAMP = 'auth_user_timestamp'
+const CACHE_DURATION = 24 * 60 * 60 * 1000 // 24 hours
+
+// Get cached user from localStorage
+function getCachedUser(): User | null {
+  if (typeof window === 'undefined') return null
+  
+  try {
+    const cached = localStorage.getItem(STORAGE_KEY_USER)
+    const timestamp = localStorage.getItem(STORAGE_KEY_TIMESTAMP)
+    
+    if (cached && timestamp) {
+      const age = Date.now() - parseInt(timestamp, 10)
+      if (age < CACHE_DURATION) {
+        return JSON.parse(cached)
+      }
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+  return null
+}
+
+// Save user to localStorage
+function cacheUser(user: User | null) {
+  if (typeof window === 'undefined') return
+  
+  try {
+    if (user) {
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user))
+      localStorage.setItem(STORAGE_KEY_TIMESTAMP, Date.now().toString())
+    } else {
+      localStorage.removeItem(STORAGE_KEY_USER)
+      localStorage.removeItem(STORAGE_KEY_TIMESTAMP)
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+}
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null)
+  // Initialize with cached user for instant UI
+  const [user, setUser] = useState<User | null>(() => getCachedUser())
   const [stats, setStats] = useState<UserStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   
   const isRefreshing = useRef(false)
   const refreshPromise = useRef<Promise<boolean> | null>(null)
-  const retryCount = useRef(0)
-  const lastSuccessfulRefresh = useRef<number>(Date.now())
-  const hadSession = useRef(false)
+  const backgroundRetryCount = useRef(0)
+  const lastSuccessfulFetch = useRef<number>(Date.now())
   const initialLoadComplete = useRef(false)
 
   const isAuthenticated = !!user
 
-  // Robust token refresh with proper error categorization
-  const refreshTokens = useCallback(async (forceRetry = false): Promise<boolean> => {
+  // Update user and cache
+  const setUserWithCache = useCallback((newUser: User | null) => {
+    setUser(newUser)
+    cacheUser(newUser)
+  }, [])
+
+  // Robust token refresh - NEVER logs out user on failure
+  const refreshTokens = useCallback(async (): Promise<boolean> => {
     if (isRefreshing.current && refreshPromise.current) {
       return refreshPromise.current
     }
 
     if (!isOnline()) {
-      logger.warn('Offline - skipping token refresh')
-      return hadSession.current
+      logger.debug('Offline - skipping token refresh')
+      return true // Assume success when offline, keep user logged in
     }
 
     isRefreshing.current = true
     
     refreshPromise.current = (async () => {
-      const attempts = forceRetry ? MAX_REFRESH_RETRIES : 1
-      
-      for (let i = 0; i < attempts; i++) {
+      for (let i = 0; i < 3; i++) {
         try {
           const response = await fetch('/api/auth/refresh', {
             method: 'POST',
@@ -112,98 +150,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
           })
 
           if (response.ok) {
-            lastSuccessfulRefresh.current = Date.now()
-            retryCount.current = 0
-            hadSession.current = true
+            backgroundRetryCount.current = 0
             logger.info('Token refreshed successfully')
             return true
           }
 
-          // Safely parse response
-          let data: any = {}
-          try {
-            const text = await response.text()
-            if (text) {
-              data = JSON.parse(text)
-            }
-          } catch {
-            // Response wasn't JSON, that's okay
-          }
-          
-          const errorCode = data?.error?.code || data?.code || ''
-          const errorMessage = data?.error?.message || data?.message || ''
-
-          if (response.status === 401) {
-            // Check if this is simply "no session" (not an error)
-            const isNoSession = NO_SESSION_CODES.some(code => 
-              errorCode.toUpperCase().includes(code) ||
-              errorMessage.toUpperCase().includes(code.replace(/_/g, ' '))
-            )
-
-            if (isNoSession && !hadSession.current) {
-              // No session and never had one - this is normal, not an error
-              logger.debug('No active session found (expected for new visitors)')
-              return false
-            }
-            
-            // Account issues - definitive failures
-            if (errorCode === 'ACCOUNT_DEACTIVATED' || errorCode === 'USER_NOT_FOUND') {
-              logger.error({ errorCode }, 'Account issue detected')
-              hadSession.current = false
-              return false
-            }
-            
-            // Session expired or invalid - retry if we had a session
-            if (hadSession.current && i < attempts - 1) {
-              logger.warn({ attempt: i + 1, errorCode, maxAttempts: attempts }, 'Session issue, retrying...')
-              await sleep(RETRY_DELAY_MS * (i + 1))
-              continue
-            }
-          }
-
           // Server error - retry
-          if (response.status >= 500 && i < attempts - 1) {
-            logger.warn({ status: response.status, attempt: i + 1 }, 'Server error during token refresh, retrying...')
+          if (response.status >= 500) {
+            logger.warn({ status: response.status, attempt: i + 1 }, 'Server error during refresh, retrying...')
             await sleep(RETRY_DELAY_MS * (i + 1))
             continue
           }
 
-          // Only log as error if user was previously authenticated
-          if (hadSession.current) {
-            logger.error({ status: response.status, errorCode, attempt: i + 1 }, 'Token refresh failed for authenticated user')
-          } else {
-            // Debug level for unauthenticated users - not an error
-            logger.debug('No valid session to refresh')
+          // 401/403 - token issues, but DON'T logout
+          // Just return false and let the cached user remain
+          if (response.status === 401 || response.status === 403) {
+            logger.warn({ status: response.status }, 'Token refresh returned auth error - keeping user cached')
+            return false
           }
+
+          // Other client errors
+          logger.warn({ status: response.status }, 'Token refresh failed with client error')
+          return false
           
         } catch (error) {
-          if (i < attempts - 1) {
-            logger.warn({ attempt: i + 1, error: error instanceof Error ? error.message : String(error) }, 'Token refresh network error, retrying...')
-            await sleep(RETRY_DELAY_MS * (i + 1))
-            continue
-          }
-          
-          // Only error log if we expected to have a session
-          if (hadSession.current) {
-            logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Token refresh request failed')
-          }
+          logger.warn({ attempt: i + 1, error: error instanceof Error ? error.message : String(error) }, 'Token refresh network error, retrying...')
+          await sleep(RETRY_DELAY_MS * (i + 1))
         }
       }
       
-      // Handle retry logic only for users who had sessions
-      if (hadSession.current) {
-        retryCount.current++
-        
-        if (retryCount.current >= 3) {
-          logger.error({ retryCount: retryCount.current }, 'Multiple consecutive refresh failures')
-          hadSession.current = false
-          return false
-        }
-        
-        logger.warn({ retryCount: retryCount.current }, 'Refresh failed but keeping session temporarily')
-        return true
-      }
-      
+      logger.warn('All token refresh attempts failed - keeping user cached')
       return false
     })()
 
@@ -215,6 +191,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
+  // Fetch user - NEVER logs out on failure, uses cache
   const fetchUser = useCallback(async (silent = false) => {
     try {
       if (!silent) {
@@ -231,44 +208,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         if (data.success && data.data?.user) {
           const transformedUser = transformUserData(data.data.user)
-          setUser(transformedUser)
+          setUserWithCache(transformedUser)
           setStats(data.data.stats)
-          retryCount.current = 0
-          hadSession.current = true
+          backgroundRetryCount.current = 0
+          lastSuccessfulFetch.current = Date.now()
           return true
         }
       } else if (response.status === 401) {
-        // Only attempt refresh if we previously had a session
-        if (hadSession.current) {
-          logger.info('Session expired, attempting refresh...')
-          const refreshed = await refreshTokens(true)
+        // Try to refresh tokens
+        const refreshed = await refreshTokens()
+        
+        if (refreshed) {
+          // Retry fetching user after refresh
+          const retryResponse = await fetch('/api/auth/me', {
+            credentials: 'include',
+            cache: 'no-store',
+          })
           
-          if (refreshed) {
-            const retryResponse = await fetch('/api/auth/me', {
-              credentials: 'include',
-              cache: 'no-store',
-            })
-            
-            if (retryResponse.ok) {
-              const data = await retryResponse.json()
-              if (data.success && data.data?.user) {
-                setUser(transformUserData(data.data.user))
-                setStats(data.data.stats)
-                return true
-              }
+          if (retryResponse.ok) {
+            const data = await retryResponse.json()
+            if (data.success && data.data?.user) {
+              const transformedUser = transformUserData(data.data.user)
+              setUserWithCache(transformedUser)
+              setStats(data.data.stats)
+              backgroundRetryCount.current = 0
+              lastSuccessfulFetch.current = Date.now()
+              return true
             }
           }
-          
-          // Refresh failed - clear session
-          logger.info('Session could not be refreshed, logging out')
-          hadSession.current = false
-        } else {
-          // No previous session - this is normal, not an error
-          logger.debug('No authenticated session (user not logged in)')
         }
         
-        setUser(null)
-        setStats(null)
+        // Refresh failed, but DON'T logout - keep cached user
+        // Only clear if we never had a user (initial load with no session)
+        if (!initialLoadComplete.current && !getCachedUser()) {
+          // This is initial load with no valid session - user is not logged in
+          setUser(null)
+          setStats(null)
+          return false
+        }
+        
+        // We had a user before, keep them cached
+        logger.warn('Auth failed but keeping cached user')
+        backgroundRetryCount.current++
+        return false
+      }
+      
+      // Server error - keep cached user
+      if (response.status >= 500) {
+        logger.warn({ status: response.status }, 'Server error fetching user - keeping cache')
         return false
       }
       
@@ -276,16 +263,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       logger.error({ error: error instanceof Error ? error.message : String(error) }, 'Failed to fetch user')
       
+      // Network error - keep cached user
       if (!isOnline()) {
         logger.warn('Offline - keeping current user state')
-        return hadSession.current
       }
+      
+      backgroundRetryCount.current++
       return false
     } finally {
       setIsLoading(false)
       initialLoadComplete.current = true
     }
-  }, [refreshTokens])
+  }, [refreshTokens, setUserWithCache])
 
   const login = useCallback(async (email: string, password: string) => {
     try {
@@ -304,10 +293,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error(data.error?.message || 'Login failed')
       }
 
-      setUser(transformUserData(data.data.user))
-      lastSuccessfulRefresh.current = Date.now()
-      retryCount.current = 0
-      hadSession.current = true
+      const transformedUser = transformUserData(data.data.user)
+      setUserWithCache(transformedUser)
+      backgroundRetryCount.current = 0
+      lastSuccessfulFetch.current = Date.now()
       
       toast.success('Welcome back!')
       
@@ -321,7 +310,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [router])
+  }, [router, setUserWithCache])
 
   const signup = useCallback(async (email: string, password: string, name?: string) => {
     try {
@@ -340,10 +329,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error(data.error?.message || 'Signup failed')
       }
 
-      setUser(transformUserData(data.data.user))
-      lastSuccessfulRefresh.current = Date.now()
-      retryCount.current = 0
-      hadSession.current = true
+      const transformedUser = transformUserData(data.data.user)
+      setUserWithCache(transformedUser)
+      backgroundRetryCount.current = 0
+      lastSuccessfulFetch.current = Date.now()
       
       toast.success(data.data.message || 'Account created successfully!')
       router.push('/')
@@ -355,22 +344,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [router])
+  }, [router, setUserWithCache])
 
+  // ONLY way to logout - explicit user action
   const logout = useCallback(async () => {
     try {
       setIsLoading(true)
       
-      await fetch('/api/auth/logout', {
+      // Clear local state immediately
+      setUserWithCache(null)
+      setStats(null)
+      backgroundRetryCount.current = 0
+      
+      // Try to call logout endpoint (but don't block on it)
+      fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
+      }).catch(() => {
+        // Ignore errors - user is logged out locally
       })
 
-      setUser(null)
-      setStats(null)
-      hadSession.current = false
-      retryCount.current = 0
-      
       // Notify other tabs
       try {
         localStorage.setItem('auth_logout', Date.now().toString())
@@ -383,15 +376,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       router.push('/')
       
     } catch (error) {
-      setUser(null)
+      // Even if server logout fails, clear local state
+      setUserWithCache(null)
       setStats(null)
-      hadSession.current = false
-      toast.error('Logout failed')
+      toast.success('Logged out')
       logger.error({ error: String(error) }, 'Logout error')
     } finally {
       setIsLoading(false)
     }
-  }, [router])
+  }, [router, setUserWithCache])
 
   const refreshUser = useCallback(async () => {
     logger.debug('Manually refreshing user data...')
@@ -399,7 +392,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [fetchUser])
 
   const updateUser = useCallback((data: Partial<User>) => {
-    setUser(prev => prev ? { ...prev, ...data } : null)
+    setUser(prev => {
+      if (!prev) return null
+      const updated = { ...prev, ...data }
+      cacheUser(updated)
+      return updated
+    })
   }, [])
 
   // Initial load
@@ -417,42 +415,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return
       }
       
-      const success = await refreshTokens(true)
-      
-      if (!success && retryCount.current >= 3) {
-        setUser(null)
-        setStats(null)
-        hadSession.current = false
-        toast.error('Session expired. Please log in again.')
-        router.push('/login')
-      }
+      await refreshTokens()
+      // Never logout on refresh failure - just log
     }, TOKEN_REFRESH_INTERVAL)
 
     return () => clearInterval(refreshInterval)
-  }, [user, refreshTokens, router])
+  }, [user, refreshTokens])
 
-  // Periodic user data refresh
+  // Periodic user data refresh - silent, never logs out
   useEffect(() => {
     if (!user) return
 
     const interval = setInterval(() => {
-      fetchUser(true)
+      fetchUser(true) // Silent fetch, never logs out
     }, USER_FETCH_INTERVAL)
 
     return () => clearInterval(interval)
   }, [user, fetchUser])
 
-  // Handle visibility change
+  // Background retry for failed fetches
+  useEffect(() => {
+    if (!user || backgroundRetryCount.current === 0) return
+    if (backgroundRetryCount.current >= MAX_BACKGROUND_RETRIES) {
+      logger.warn('Max background retries reached - will retry on next user action')
+      return
+    }
+
+    const retryTimeout = setTimeout(() => {
+      if (isOnline()) {
+        logger.info({ retryCount: backgroundRetryCount.current }, 'Background retry for user fetch')
+        fetchUser(true)
+      }
+    }, RETRY_DELAY_MS * Math.min(backgroundRetryCount.current, 5))
+
+    return () => clearTimeout(retryTimeout)
+  }, [user, fetchUser])
+
+  // Handle visibility change - refresh when tab becomes visible
   useEffect(() => {
     if (!user) return
 
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
-        const timeSinceLastRefresh = Date.now() - lastSuccessfulRefresh.current
+        const timeSinceLastFetch = Date.now() - lastSuccessfulFetch.current
         
-        if (timeSinceLastRefresh > 5 * 60 * 1000) {
+        // Only refresh if more than 5 minutes since last fetch
+        if (timeSinceLastFetch > 5 * 60 * 1000) {
           logger.debug('Tab visible after long absence - refreshing')
-          await refreshTokens(true)
+          await refreshTokens()
           await fetchUser(true)
         }
       }
@@ -469,12 +479,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const handleOnline = async () => {
       logger.info('Back online - refreshing session')
       toast.success('Back online')
-      await refreshTokens(true)
+      backgroundRetryCount.current = 0 // Reset retry count
+      await refreshTokens()
       await fetchUser(true)
     }
 
     const handleOffline = () => {
-      logger.warn('Connection lost')
+      logger.warn('Connection lost - keeping cached session')
       toast.error('You are offline', { duration: 3000 })
     }
 
@@ -487,22 +498,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [user, refreshTokens, fetchUser])
 
-  // Cross-tab synchronization
+  // Cross-tab synchronization - ONLY for explicit logout
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'auth_logout') {
-        setUser(null)
+        // Only clear on explicit logout from another tab
+        setUserWithCache(null)
         setStats(null)
-        hadSession.current = false
         router.push('/login')
       } else if (e.key === 'auth_refresh') {
         fetchUser(true)
+      } else if (e.key === STORAGE_KEY_USER && e.newValue) {
+        // Sync user data from another tab
+        try {
+          const newUser = JSON.parse(e.newValue)
+          setUser(newUser)
+        } catch {
+          // Ignore parse errors
+        }
       }
     }
 
     window.addEventListener('storage', handleStorageChange)
     return () => window.removeEventListener('storage', handleStorageChange)
-  }, [fetchUser, router])
+  }, [fetchUser, router, setUserWithCache])
 
   const value: AuthContextType = {
     user,

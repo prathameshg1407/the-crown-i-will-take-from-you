@@ -25,16 +25,16 @@ export async function GET(_request: NextRequest) {
     try {
       payload = await verifyAccessToken(accessToken)
     } catch (error) {
-      logger.error({ error }, 'Token verification failed')
+      logger.debug('Access token verification failed - client should refresh')
       return NextResponse.json(
-        { success: false, error: { message: 'Invalid token', code: 'INVALID_TOKEN' } },
+        { success: false, error: { message: 'Token expired', code: 'TOKEN_EXPIRED' } },
         { status: 401 }
       )
     }
 
     const userId = payload.sub
 
-    // Fetch user from database (using service role bypasses RLS)
+    // Fetch user from database
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -46,12 +46,11 @@ export async function GET(_request: NextRequest) {
         error: userError, 
         userId,
         message: userError.message,
-        details: userError.details,
-        hint: userError.hint 
       }, 'Database error fetching user')
+      
       return NextResponse.json(
-        { success: false, error: { message: 'User not found', code: 'USER_NOT_FOUND' } },
-        { status: 404 }
+        { success: false, error: { message: 'Database error', code: 'DB_ERROR' } },
+        { status: 500 }
       )
     }
 
@@ -63,57 +62,59 @@ export async function GET(_request: NextRequest) {
       )
     }
 
-    // Log raw database response
-    logger.info({ 
+    logger.debug({ 
       userId, 
       email: user.email,
       tier: user.tier,
-      owned_chapters_raw: user.owned_chapters,
-      owned_chapters_type: typeof user.owned_chapters,
-      owned_chapters_length: user.owned_chapters?.length,
-      is_array: Array.isArray(user.owned_chapters),
-      full_user_keys: Object.keys(user)
-    }, '📦 Raw user data from database')
+      owned_chapters_count: user.owned_chapters?.length || 0,
+    }, 'User data retrieved')
 
-    // Fetch user stats
-    const { data: sessions } = await supabaseAdmin
-      .from('sessions')
-      .select('id')
-      .eq('user_id', userId)
-      .gt('expires_at', new Date().toISOString())
-
-    const { data: progress } = await supabaseAdmin
-      .from('reading_progress')
-      .select('is_completed')
-      .eq('user_id', userId)
-
-    const progressRecords = (progress || []) as ReadingProgressRecord[]
-
-    const stats = {
-      activeSessions: sessions?.length || 0,
-      chaptersCompleted: progressRecords.filter((p) => p.is_completed).length,
-      chaptersInProgress: progressRecords.filter((p) => !p.is_completed).length,
+    // Fetch user stats (non-blocking errors)
+    let stats = {
+      activeSessions: 0,
+      chaptersCompleted: 0,
+      chaptersInProgress: 0,
     }
 
-    // Update last login (don't await to avoid blocking)
-    void (async () => {
-      const { error: lastLoginError } = await supabaseAdmin
-        .from('users')
-        .update({ last_login: new Date().toISOString() })
-        .eq('id', userId)
+    try {
+      const { data: sessions } = await supabaseAdmin
+        .from('sessions')
+        .select('id')
+        .eq('user_id', userId)
+        .gt('expires_at', new Date().toISOString())
 
-      if (lastLoginError) {
-        logger.error(
-          { error: lastLoginError, userId },
-          'Failed to update last login'
-        )
+      const { data: progress } = await supabaseAdmin
+        .from('reading_progress')
+        .select('is_completed')
+        .eq('user_id', userId)
+
+      const progressRecords = (progress || []) as ReadingProgressRecord[]
+
+      stats = {
+        activeSessions: sessions?.length || 0,
+        chaptersCompleted: progressRecords.filter((p) => p.is_completed).length,
+        chaptersInProgress: progressRecords.filter((p) => !p.is_completed).length,
+      }
+    } catch (statsError) {
+      logger.warn({ error: statsError }, 'Failed to fetch user stats - continuing with defaults')
+    }
+
+    // Update last login in background (fire and forget with proper async handling)
+    void (async () => {
+      try {
+        await supabaseAdmin
+          .from('users')
+          .update({ last_login: new Date().toISOString() })
+          .eq('id', userId)
+      } catch (err) {
+        logger.warn({ error: err }, 'Failed to update last login')
       }
     })()
 
     // Ensure owned_chapters is properly formatted
     const ownedChapters = Array.isArray(user.owned_chapters) ? user.owned_chapters : []
 
-    const responsePayload = {
+    return NextResponse.json({
       success: true,
       data: {
         user: {
@@ -127,16 +128,7 @@ export async function GET(_request: NextRequest) {
         },
         stats,
       },
-    }
-
-    // Log what we're sending
-    logger.info({
-      userId,
-      owned_chapters_sent: ownedChapters,
-      owned_chapters_count: ownedChapters.length
-    }, '📤 Sending user data to client')
-
-    return NextResponse.json(responsePayload)
+    })
     
   } catch (error) {
     const err = error as Error
@@ -145,10 +137,10 @@ export async function GET(_request: NextRequest) {
         message: err.message,
         stack: err.stack,
       }
-    }, 'Failed to fetch user - unhandled error')
+    }, 'Unexpected error in /api/auth/me')
     
     return NextResponse.json(
-      { success: false, error: { message: 'Internal server error' } },
+      { success: false, error: { message: 'Internal server error', code: 'INTERNAL_ERROR' } },
       { status: 500 }
     )
   }
