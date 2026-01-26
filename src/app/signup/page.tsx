@@ -1,13 +1,40 @@
 // app/(auth)/signup/page.tsx
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback, FormEvent, ChangeEvent, memo } from 'react'
 import { useSignup } from '@/lib/auth/hooks'
 import { useAuth } from '@/lib/auth/AuthContext'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Loader2, Mail, Lock, User, Eye, EyeOff, ArrowLeft, Check, X } from 'lucide-react'
-import { useEffect } from 'react'
+import { Loader2, Mail, Lock, User, Eye, EyeOff, ArrowLeft, Check, X, AlertCircle } from 'lucide-react'
+
+// ============================================================================
+// Password Requirement Component (Memoized)
+// ============================================================================
+
+interface PasswordRequirementProps {
+  met: boolean
+  text: string
+}
+
+const PasswordRequirement = memo(function PasswordRequirement({ met, text }: PasswordRequirementProps) {
+  return (
+    <div className="flex items-center gap-2">
+      {met ? (
+        <Check className="w-4 h-4 text-green-500 flex-shrink-0" aria-hidden="true" />
+      ) : (
+        <X className="w-4 h-4 text-neutral-600 flex-shrink-0" aria-hidden="true" />
+      )}
+      <span className={`text-xs font-body transition-colors ${met ? 'text-green-500' : 'text-neutral-500'}`}>
+        {text}
+      </span>
+    </div>
+  )
+})
+
+// ============================================================================
+// Main Signup Page
+// ============================================================================
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -31,7 +58,7 @@ export default function SignupPage() {
     }
   }, [isAuthenticated, router])
 
-  // Password strength validation
+  // Password validation
   const passwordValidation = {
     minLength: formData.password.length >= 8,
     hasUpperCase: /[A-Z]/.test(formData.password),
@@ -42,41 +69,36 @@ export default function SignupPage() {
 
   const isPasswordStrong = Object.values(passwordValidation).every(Boolean)
   const passwordsMatch = formData.password && formData.password === formData.confirmPassword
+  const canSubmit = isPasswordStrong && passwordsMatch && agreedToTerms && formData.email
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault()
     
-    if (!agreedToTerms) {
-      alert('Please agree to the terms and conditions')
-      return
-    }
-
-    if (!isPasswordStrong) {
-      alert('Please meet all password requirements')
-      return
-    }
-
-    if (!passwordsMatch) {
-      alert('Passwords do not match')
-      return
-    }
+    if (!canSubmit) return
 
     try {
       await signup(formData.email, formData.password, formData.name || undefined)
     } catch (err) {
       // Error handled by hook
     }
-  }
+  }, [canSubmit, formData, signup])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
     }))
-  }
+  }, [])
+
+  const togglePasswordVisibility = useCallback(() => setShowPassword(prev => !prev), [])
+  const toggleConfirmPasswordVisibility = useCallback(() => setShowConfirmPassword(prev => !prev), [])
 
   if (isAuthenticated) {
-    return null
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#9f1239] animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -87,7 +109,7 @@ export default function SignupPage() {
       {/* Back to Home */}
       <Link 
         href="/"
-        className="fixed top-6 left-6 z-50 flex items-center gap-2 text-neutral-400 hover:text-white transition-colors"
+        className="fixed top-6 left-6 z-50 flex items-center gap-2 text-neutral-400 hover:text-white transition-colors active:scale-95"
       >
         <ArrowLeft className="w-4 h-4" />
         <span className="text-sm font-ui">Back to Home</span>
@@ -109,7 +131,8 @@ export default function SignupPage() {
           {/* Signup Form */}
           <div className="bg-neutral-900/40 backdrop-blur-sm border border-neutral-800/60 rounded-xl p-8 shadow-2xl">
             {error && (
-              <div className="mb-6 p-4 bg-red-900/20 border border-red-800/50 rounded-lg">
+              <div className="mb-6 p-4 bg-red-900/20 border border-red-800/50 rounded-lg flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                 <p className="text-red-400 text-sm font-body">{error}</p>
               </div>
             )}
@@ -124,7 +147,7 @@ export default function SignupPage() {
                   Name <span className="text-neutral-600">(Optional)</span>
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" aria-hidden="true" />
                   <input
                     id="name"
                     name="name"
@@ -134,6 +157,8 @@ export default function SignupPage() {
                     placeholder="Your name"
                     className="w-full pl-11 pr-4 py-3 bg-black/40 border border-neutral-700 rounded-lg text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-[#9f1239] focus:ring-1 focus:ring-[#9f1239] transition-all font-body"
                     disabled={isLoading}
+                    autoComplete="name"
+                    autoFocus
                   />
                 </div>
               </div>
@@ -147,7 +172,7 @@ export default function SignupPage() {
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" aria-hidden="true" />
                   <input
                     id="email"
                     name="email"
@@ -158,6 +183,7 @@ export default function SignupPage() {
                     className="w-full pl-11 pr-4 py-3 bg-black/40 border border-neutral-700 rounded-lg text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-[#9f1239] focus:ring-1 focus:ring-[#9f1239] transition-all font-body"
                     required
                     disabled={isLoading}
+                    autoComplete="email"
                   />
                 </div>
               </div>
@@ -171,7 +197,7 @@ export default function SignupPage() {
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" aria-hidden="true" />
                   <input
                     id="password"
                     name="password"
@@ -182,23 +208,21 @@ export default function SignupPage() {
                     className="w-full pl-11 pr-12 py-3 bg-black/40 border border-neutral-700 rounded-lg text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-[#9f1239] focus:ring-1 focus:ring-[#9f1239] transition-all font-body"
                     required
                     disabled={isLoading}
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition-colors"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition-colors p-1 rounded active:scale-95"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
 
                 {/* Password Strength Indicator */}
                 {formData.password && (
-                  <div className="mt-3 space-y-2">
+                  <div className="mt-3 space-y-2 p-3 bg-black/20 rounded-lg border border-neutral-800/50">
                     <PasswordRequirement 
                       met={passwordValidation.minLength}
                       text="At least 8 characters"
@@ -232,7 +256,7 @@ export default function SignupPage() {
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" aria-hidden="true" />
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
@@ -243,17 +267,15 @@ export default function SignupPage() {
                     className="w-full pl-11 pr-12 py-3 bg-black/40 border border-neutral-700 rounded-lg text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-[#9f1239] focus:ring-1 focus:ring-[#9f1239] transition-all font-body"
                     required
                     disabled={isLoading}
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition-colors"
+                    onClick={toggleConfirmPasswordVisibility}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition-colors p-1 rounded active:scale-95"
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
 
@@ -279,11 +301,11 @@ export default function SignupPage() {
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-1 w-4 h-4 bg-black/40 border border-neutral-700 rounded text-[#9f1239] focus:ring-[#9f1239] focus:ring-offset-0"
+                  className="mt-1 w-4 h-4 bg-black/40 border border-neutral-700 rounded text-[#9f1239] focus:ring-[#9f1239] focus:ring-offset-0 cursor-pointer"
                   required
                   disabled={isLoading}
                 />
-                <label htmlFor="terms" className="text-sm text-neutral-400 font-body">
+                <label htmlFor="terms" className="text-sm text-neutral-400 font-body select-none cursor-pointer">
                   I agree to the{' '}
                   <Link href="/terms" className="text-[#9f1239] hover:text-[#be123c] underline">
                     Terms of Service
@@ -298,8 +320,8 @@ export default function SignupPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isLoading || !agreedToTerms || !isPasswordStrong || !passwordsMatch}
-                className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-[#9f1239]/50 flex items-center justify-center gap-2"
+                disabled={!canSubmit || isLoading}
+                className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-[#9f1239]/50 flex items-center justify-center gap-2 active:scale-95"
               >
                 {isLoading ? (
                   <>
@@ -329,7 +351,7 @@ export default function SignupPage() {
               Already have an account?{' '}
               <Link 
                 href="/login" 
-                className="text-[#9f1239] hover:text-[#be123c] font-medium transition-colors"
+                className="text-[#9f1239] hover:text-[#be123c] font-medium transition-colors active:scale-95 inline-block"
               >
                 Sign in
               </Link>
@@ -337,22 +359,6 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-// Password Requirement Component
-function PasswordRequirement({ met, text }: { met: boolean; text: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      {met ? (
-        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-      ) : (
-        <X className="w-4 h-4 text-neutral-600 flex-shrink-0" />
-      )}
-      <span className={`text-xs font-body ${met ? 'text-green-500' : 'text-neutral-500'}`}>
-        {text}
-      </span>
     </div>
   )
 }

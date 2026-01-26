@@ -1,13 +1,12 @@
 // app/(auth)/login/page.tsx
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback, FormEvent } from 'react'
 import { useLogin } from '@/lib/auth/hooks'
 import { useAuth } from '@/lib/auth/AuthContext'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react'
-import { useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -18,25 +17,36 @@ export default function LoginPage() {
   const { login, isLoading, error } = useLogin()
   const { isAuthenticated } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const redirectTo = searchParams.get('redirect') || '/'
 
   // Redirect if already logged in
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/')
+      router.push(redirectTo)
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, router, redirectTo])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault()
     try {
       await login(email, password)
     } catch (err) {
       // Error handled by hook
     }
-  }
+  }, [email, password, login])
+
+  const togglePasswordVisibility = useCallback(() => {
+    setShowPassword(prev => !prev)
+  }, [])
 
   if (isAuthenticated) {
-    return null // or loading spinner
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#9f1239] animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -47,7 +57,7 @@ export default function LoginPage() {
       {/* Back to Home */}
       <Link 
         href="/"
-        className="fixed top-6 left-6 z-50 flex items-center gap-2 text-neutral-400 hover:text-white transition-colors"
+        className="fixed top-6 left-6 z-50 flex items-center gap-2 text-neutral-400 hover:text-white transition-colors active:scale-95"
       >
         <ArrowLeft className="w-4 h-4" />
         <span className="text-sm font-ui">Back to Home</span>
@@ -69,7 +79,8 @@ export default function LoginPage() {
           {/* Login Form */}
           <div className="bg-neutral-900/40 backdrop-blur-sm border border-neutral-800/60 rounded-xl p-8 shadow-2xl">
             {error && (
-              <div className="mb-6 p-4 bg-red-900/20 border border-red-800/50 rounded-lg">
+              <div className="mb-6 p-4 bg-red-900/20 border border-red-800/50 rounded-lg flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                 <p className="text-red-400 text-sm font-body">{error}</p>
               </div>
             )}
@@ -84,7 +95,7 @@ export default function LoginPage() {
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" aria-hidden="true" />
                   <input
                     id="email"
                     type="email"
@@ -94,6 +105,8 @@ export default function LoginPage() {
                     className="w-full pl-11 pr-4 py-3 bg-black/40 border border-neutral-700 rounded-lg text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-[#9f1239] focus:ring-1 focus:ring-[#9f1239] transition-all font-body"
                     required
                     disabled={isLoading}
+                    autoComplete="email"
+                    autoFocus
                   />
                 </div>
               </div>
@@ -107,7 +120,7 @@ export default function LoginPage() {
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" aria-hidden="true" />
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -117,11 +130,13 @@ export default function LoginPage() {
                     className="w-full pl-11 pr-12 py-3 bg-black/40 border border-neutral-700 rounded-lg text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-[#9f1239] focus:ring-1 focus:ring-[#9f1239] transition-all font-body"
                     required
                     disabled={isLoading}
+                    autoComplete="current-password"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition-colors"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition-colors p-1 rounded active:scale-95"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5" />
@@ -139,17 +154,17 @@ export default function LoginPage() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 bg-black/40 border border-neutral-700 rounded text-[#9f1239] focus:ring-[#9f1239] focus:ring-offset-0"
+                    className="w-4 h-4 bg-black/40 border border-neutral-700 rounded text-[#9f1239] focus:ring-[#9f1239] focus:ring-offset-0 cursor-pointer"
                     disabled={isLoading}
                   />
-                  <span className="text-sm text-neutral-400 group-hover:text-neutral-300 transition-colors font-body">
+                  <span className="text-sm text-neutral-400 group-hover:text-neutral-300 transition-colors font-body select-none">
                     Remember me
                   </span>
                 </label>
 
                 <Link 
                   href="/forgot-password"
-                  className="text-sm text-[#9f1239] hover:text-[#be123c] transition-colors font-body"
+                  className="text-sm text-[#9f1239] hover:text-[#be123c] transition-colors font-body active:scale-95"
                 >
                   Forgot password?
                 </Link>
@@ -159,7 +174,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-[#9f1239]/50 flex items-center justify-center gap-2"
+                className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-[#9f1239]/50 flex items-center justify-center gap-2 active:scale-95"
               >
                 {isLoading ? (
                   <>
@@ -186,10 +201,10 @@ export default function LoginPage() {
 
             {/* Sign Up Link */}
             <p className="text-center text-neutral-400 font-body">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link 
                 href="/signup" 
-                className="text-[#9f1239] hover:text-[#be123c] font-medium transition-colors"
+                className="text-[#9f1239] hover:text-[#be123c] font-medium transition-colors active:scale-95 inline-block"
               >
                 Create one
               </Link>

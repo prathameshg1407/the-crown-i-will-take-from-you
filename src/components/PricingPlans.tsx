@@ -1,33 +1,77 @@
 // components/PricingPlans.tsx
 "use client"
 
+
 import { pricingPlans, PRICING } from "@/data/chapters"
-import { Check, Crown, Sparkles, Zap, CreditCard, Globe, AlertCircle } from "lucide-react"
+import { Check, Crown, Sparkles, Zap, CreditCard, AlertCircle } from "lucide-react"  // NO Globe here!
 import { useAuth } from "@/lib/auth/AuthContext"
 import { useRazorpay } from "@/lib/razorpay/hooks"
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import dynamic from 'next/dynamic'
 
-// Dynamic import for PayPal button to avoid SSR issues
-const PayPalButton = dynamic(() => import('./PayPalButton'), {
-  ssr: false,
-  loading: () => (
-    <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse" />
-  ),
-})
+// PayPal imports commented out
+// import dynamic from 'next/dynamic'
+// const PayPalButton = dynamic(() => import('./PayPalButton'), {
+//   ssr: false,
+//   loading: () => (
+//     <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse" />
+//   ),
+// })
 
-type PaymentMethod = 'razorpay' | 'paypal'
+// type PaymentMethod = 'razorpay' | 'paypal'
 
 // Currency conversion rate (update periodically)
-const USD_TO_INR = 83.5
+// const USD_TO_INR = 83.5
+
+// Separate loading skeleton component
+function PricingPlansSkeleton() {
+  return (
+    <section id="pricing" className="w-full max-w-7xl mx-auto px-6 md:px-8 py-20 md:py-32">
+      <div className="text-center mb-16">
+        <div className="mb-6 inline-flex items-center gap-2 px-5 py-2 border border-amber-900/30 rounded-full bg-amber-950/10 backdrop-blur-sm">
+          <Crown className="w-4 h-4 text-amber-400" />
+          <span className="text-amber-200/60 text-[9px] font-ui tracking-[0.45em] uppercase font-light">
+            Premium Access
+          </span>
+        </div>
+        
+        <h2 className="text-4xl md:text-6xl font-heading text-neutral-100 mb-6 tracking-tight">
+          Unlock the Complete <span className="gradient-text italic">Story</span>
+        </h2>
+        
+        <p className="text-lg md:text-xl text-neutral-400 font-body max-w-2xl mx-auto">
+          One-time payment. Lifetime access. No subscriptions.
+        </p>
+      </div>
+
+      {/* Loading skeleton */}
+      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        {[1, 2].map((i) => (
+          <div
+            key={i}
+            className="bg-neutral-900/40 backdrop-blur-sm border border-neutral-800/60 rounded-2xl p-8"
+          >
+            <div className="h-8 bg-neutral-800/50 rounded w-32 mb-4 animate-pulse" />
+            <div className="h-16 bg-neutral-800/50 rounded w-24 mb-6 animate-pulse" />
+            <div className="space-y-3 mb-8">
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="h-4 bg-neutral-800/50 rounded animate-pulse" />
+              ))}
+            </div>
+            <div className="h-12 bg-neutral-800/50 rounded animate-pulse" />
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
 
 export default function PricingPlans() {
   const [mounted, setMounted] = useState(false)
   const { user, isAuthenticated } = useAuth()
   const { initializePayment, isProcessing: isRazorpayProcessing } = useRazorpay()
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages')
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('razorpay')
+  // const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('razorpay')
   const [error, setError] = useState<string | null>(null)
 
   // Handle hydration
@@ -35,10 +79,10 @@ export default function PricingPlans() {
     setMounted(true)
   }, [])
 
-  // Safe user tier access
-  const userTier = user?.tier || 'free'
-  const hasCompletePack = userTier === 'complete'
-  const ownedChaptersCount = user?.ownedChapters?.length ?? 0
+  // Safe user tier access - only use after mounted
+  const userTier = mounted ? (user?.tier || 'free') : 'free'
+  const hasCompletePack = mounted ? (userTier === 'complete') : false
+  const ownedChaptersCount = mounted ? (user?.ownedChapters?.length ?? 0) : 0
 
   const handleRazorpayPurchase = useCallback(async () => {
     if (!isAuthenticated) {
@@ -61,71 +105,31 @@ export default function PricingPlans() {
     }
   }, [isAuthenticated, initializePayment])
 
-  const handlePaymentSuccess = useCallback(() => {
-    // Show success message before reload
-    const successMsg = document.createElement('div')
-    successMsg.className = 'fixed top-4 right-4 z-[9999] bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg animate-in slide-in-from-top'
-    successMsg.textContent = '✓ Purchase successful! Reloading...'
-    document.body.appendChild(successMsg)
-    
-    setTimeout(() => {
-      window.location.reload()
-    }, 1500)
-  }, [])
+  // PayPal success handler commented out
+  // const handlePaymentSuccess = useCallback(() => {
+  //   const successMsg = document.createElement('div')
+  //   successMsg.className = 'fixed top-4 right-4 z-[9999] bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg animate-in slide-in-from-top'
+  //   successMsg.textContent = '✓ Purchase successful! Reloading...'
+  //   document.body.appendChild(successMsg)
+  //   
+  //   setTimeout(() => {
+  //     window.location.reload()
+  //   }, 1500)
+  // }, [])
 
-  const formatPrice = useCallback((inrPrice: number, method: PaymentMethod) => {
+  const formatPrice = useCallback((inrPrice: number) => {
     if (inrPrice === 0) return 'Free'
-    if (method === 'razorpay') return `₹${inrPrice.toLocaleString('en-IN')}`
-    return `$${(inrPrice / USD_TO_INR).toFixed(2)}`
+    return `₹${inrPrice.toLocaleString('en-IN')}`
   }, [])
 
-  const formatPricePerChapter = useCallback((inrPrice: number | undefined, method: PaymentMethod) => {
+  const formatPricePerChapter = useCallback((inrPrice: number | undefined) => {
     if (!inrPrice) return null
-    if (method === 'razorpay') return `₹${inrPrice}/chapter`
-    return `$${(inrPrice / USD_TO_INR).toFixed(2)}/chapter`
+    return `₹${inrPrice}/chapter`
   }, [])
 
   // Show loading state during hydration
   if (!mounted) {
-    return (
-      <section id="pricing" className="w-full max-w-7xl mx-auto px-6 md:px-8 py-20 md:py-32">
-        <div className="text-center mb-16">
-          <div className="mb-6 inline-flex items-center gap-2 px-5 py-2 border border-amber-900/30 rounded-full bg-amber-950/10 backdrop-blur-sm">
-            <Crown className="w-4 h-4 text-amber-400" />
-            <span className="text-amber-200/60 text-[9px] font-ui tracking-[0.45em] uppercase font-light">
-              Premium Access
-            </span>
-          </div>
-          
-          <h2 className="text-4xl md:text-6xl font-heading text-neutral-100 mb-6 tracking-tight">
-            Unlock the Complete <span className="gradient-text italic">Story</span>
-          </h2>
-          
-          <p className="text-lg md:text-xl text-neutral-400 font-body max-w-2xl mx-auto">
-            One-time payment. Lifetime access. No subscriptions.
-          </p>
-        </div>
-
-        {/* Loading skeleton */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {[1, 2].map((i) => (
-            <div
-              key={i}
-              className="bg-neutral-900/40 backdrop-blur-sm border border-neutral-800/60 rounded-2xl p-8"
-            >
-              <div className="h-8 bg-neutral-800/50 rounded w-32 mb-4 animate-pulse" />
-              <div className="h-16 bg-neutral-800/50 rounded w-24 mb-6 animate-pulse" />
-              <div className="space-y-3 mb-8">
-                {[1, 2, 3].map((j) => (
-                  <div key={j} className="h-4 bg-neutral-800/50 rounded animate-pulse" />
-                ))}
-              </div>
-              <div className="h-12 bg-neutral-800/50 rounded animate-pulse" />
-            </div>
-          ))}
-        </div>
-      </section>
-    )
+    return <PricingPlansSkeleton />
   }
 
   return (
@@ -150,7 +154,7 @@ export default function PricingPlans() {
           One-time payment. Lifetime access. No subscriptions.
         </p>
 
-        {/* User Status */}
+        {/* User Status - only show when mounted and authenticated */}
         {isAuthenticated && user && (
           <div className="mt-8 inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-800/50 rounded-full">
             <div className="relative">
@@ -190,8 +194,8 @@ export default function PricingPlans() {
         )}
       </div>
 
-      {/* Payment Method Selector */}
-      <div className="flex justify-center mb-8">
+      {/* Payment Method Selector - Commented out, only Razorpay now */}
+      {/* <div className="flex justify-center mb-8">
         <div className="inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5 gap-1">
           <button
             onClick={() => setPaymentMethod('razorpay')}
@@ -220,19 +224,13 @@ export default function PricingPlans() {
             <span className="sm:hidden">PayPal</span>
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Payment Method Info */}
       <div className="text-center mb-12">
-        {paymentMethod === 'razorpay' ? (
-          <p className="text-xs md:text-sm text-neutral-500 font-body">
-            Pay with UPI, Credit/Debit Cards, Net Banking • Prices in <strong className="text-neutral-400">INR (₹)</strong>
-          </p>
-        ) : (
-          <p className="text-xs md:text-sm text-neutral-500 font-body">
-            Pay with PayPal, Credit/Debit Cards • Prices in <strong className="text-neutral-400">USD ($)</strong>
-          </p>
-        )}
+        <p className="text-xs md:text-sm text-neutral-500 font-body">
+          Pay with UPI, Credit/Debit Cards, Net Banking • Prices in <strong className="text-neutral-400">INR (₹)</strong>
+        </p>
       </div>
 
       {/* Tabs */}
@@ -319,12 +317,12 @@ export default function PricingPlans() {
                 <div className="mb-6 md:mb-8">
                   <div className="flex items-baseline gap-2 mb-2">
                     <span className="text-4xl md:text-5xl lg:text-6xl font-heading text-neutral-100">
-                      {formatPrice(plan.price, paymentMethod)}
+                      {formatPrice(plan.price)}
                     </span>
                   </div>
                   {plan.pricePerChapter && (
                     <div className="text-xs md:text-sm text-neutral-500 font-body">
-                      {formatPricePerChapter(plan.pricePerChapter, paymentMethod)}
+                      {formatPricePerChapter(plan.pricePerChapter)}
                     </div>
                   )}
                 </div>
@@ -349,7 +347,7 @@ export default function PricingPlans() {
                   ))}
                 </ul>
 
-                {/* Action Buttons */}
+                {/* Action Buttons - Only Razorpay now */}
                 {isFree ? (
                   <Link
                     href="#chapters"
@@ -372,7 +370,7 @@ export default function PricingPlans() {
                   >
                     Login to Purchase
                   </Link>
-                ) : paymentMethod === 'razorpay' ? (
+                ) : (
                   <button
                     onClick={handleRazorpayPurchase}
                     disabled={isRazorpayProcessing}
@@ -393,12 +391,15 @@ export default function PricingPlans() {
                       </>
                     )}
                   </button>
-                ) : (
+                )}
+                
+                {/* PayPal button commented out */}
+                {/* {paymentMethod === 'paypal' && (
                   <PayPalButton
                     purchaseType="complete"
                     onSuccess={handlePaymentSuccess}
                   />
-                )}
+                )} */}
               </div>
             )
           })}
@@ -414,10 +415,10 @@ export default function PricingPlans() {
               Custom Chapter Selection
             </h3>
             <p className="text-sm md:text-base text-neutral-400 font-body mb-4 md:mb-6">
-              Pick exactly which chapters you want • {formatPricePerChapter(PRICING.CUSTOM_SELECTION.pricePerChapter, paymentMethod)}
+              Pick exactly which chapters you want • {formatPricePerChapter(PRICING.CUSTOM_SELECTION.pricePerChapter)}
             </p>
             <p className="text-xs md:text-sm text-neutral-500 font-body mb-6 md:mb-8">
-              Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters ({formatPrice(PRICING.CUSTOM_SELECTION.minAmount, paymentMethod)})
+              Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters ({formatPrice(PRICING.CUSTOM_SELECTION.minAmount)})
             </p>
             
             {!isAuthenticated ? (
@@ -429,7 +430,7 @@ export default function PricingPlans() {
               </Link>
             ) : (
               <Link
-                href={`/custom-selection?payment=${paymentMethod}`}
+                href="/custom-selection"
                 className="inline-block px-6 md:px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all shadow-lg hover:shadow-red-900/20"
               >
                 Select Chapters
@@ -447,15 +448,11 @@ export default function PricingPlans() {
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-[10px] md:text-xs text-neutral-600 px-4">
           <span className="flex items-center gap-2">
             <CreditCard className="w-3 h-3 md:w-4 md:h-4" aria-hidden="true" />
-            Razorpay (India)
-          </span>
-          <span className="flex items-center gap-2">
-            <Globe className="w-3 h-3 md:w-4 md:h-4" aria-hidden="true" />
-            PayPal (International)
+            UPI • Cards • Net Banking
           </span>
         </div>
         <p className="text-[10px] md:text-xs text-neutral-600 font-body px-4">
-          🔒 100% secure and encrypted payments
+          🔒 100% secure payments powered by Razorpay
         </p>
       </div>
     </section>

@@ -32,7 +32,7 @@ export interface PricingPlan {
 --------------------------*/
 export const PRICING = {
   COMPLETE_PACK: {
-    price: 1699,
+    price: 1,
     chapters: MAX_CHAPTER_ID - 80, // Premium chapters (81-378)
     startChapterId: 81,
     endChapterId: MAX_CHAPTER_ID,

@@ -12,18 +12,27 @@ interface RazorpayOptions {
   currency: string
   name: string
   description: string
+  image?: string
   order_id: string
   prefill: {
     name?: string
     email: string
+    contact?: string
+  }
+  notes?: {
+    purchaseType: string
+    tier?: string
+    chapterCount?: number
   }
   theme: {
     color: string
+    backdrop_color?: string
   }
   modal: {
     ondismiss: () => void
     escape: boolean
     confirm_close: boolean
+    backdropclose: boolean
   }
   handler: (response: any) => void
 }
@@ -120,30 +129,57 @@ export function useRazorpay() {
 
       toast.dismiss(loadingToast)
 
+      // Build cleaner description
+      const chapterCount = options.customChapters?.length
+      const description = purchaseType === 'complete' 
+        ? 'Complete Story Access - All Chapters'
+        : `${chapterCount} Custom ${chapterCount === 1 ? 'Chapter' : 'Chapters'}`
+
       const razorpayOptions: RazorpayOptions = {
         key: keyId,
         amount: amount,
         currency: currency,
-        name: 'The Crown I Will Take From You',
-        description: purchaseType === 'complete' 
-          ? 'Complete Story Pack'
-          : `Custom Selection (${options.customChapters?.length} chapters)`,
+        name: 'The Crown I Will Take',
+        description: description,
+        
+        // Add your logo/icon here (square PNG, min 256x256)
+        image: '/logo-square.png', // Place in /public folder
+        
         order_id: orderId,
+        
+        // Prefill all available user data
         prefill: {
-          name: user.name || undefined,
+          name: user.name || user.email.split('@')[0] || '',
           email: user.email,
         },
-        theme: {
-          color: '#9f1239',
+        
+        // Add metadata for tracking
+        notes: {
+          purchaseType,
+          tier: options.tier || '',
+          chapterCount: chapterCount || 0,
         },
+        
+        // Brand colors matching your site
+        theme: {
+          color: '#9f1239',           // Your primary red
+          backdrop_color: '#0a0a0a',  // Dark backdrop matching your BG
+        },
+        
+        // Better modal behavior
         modal: {
           ondismiss: () => {
             setIsProcessing(false)
-            toast('Payment cancelled', { icon: 'ℹ️' })
+            toast('Payment cancelled', { 
+              icon: 'ℹ️',
+              duration: 3000 
+            })
           },
-          escape: true,
-          confirm_close: false,
+          escape: true,          // Allow ESC to close
+          confirm_close: false,  // Don't ask for confirmation
+          backdropclose: true,   // Allow clicking outside to close
         },
+        
         handler: async (response) => {
           await handlePaymentSuccess(response)
         },
@@ -169,7 +205,7 @@ export function useRazorpay() {
     const verifyingToast = toast.loading('Verifying payment...')
     
     try {
-      const verifyResponse = await fetch('/api/payments/verify', {
+      const verifyResponse = await fetch('/api/payments/razorpay-verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -189,23 +225,37 @@ export function useRazorpay() {
       }
 
       toast.dismiss(verifyingToast)
+      
+      // Refresh user data to get updated tier/chapters
       await refreshUser()
 
+      // Success feedback
       toast.success('🎉 Payment successful! Your content has been unlocked.', {
         duration: 6000,
+        style: {
+          background: '#065f46',
+          color: '#fff',
+        },
       })
       
+      // Smooth scroll to chapters after short delay
       setTimeout(() => {
         const chaptersSection = document.getElementById('chapters')
         if (chaptersSection) {
-          chaptersSection.scrollIntoView({ behavior: 'smooth' })
+          chaptersSection.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+          })
         }
       }, 1500)
 
     } catch (error) {
       console.error('Payment verification error:', error)
       toast.dismiss(verifyingToast)
-      toast.error(error instanceof Error ? error.message : 'Payment verification failed')
+      toast.error(
+        error instanceof Error ? error.message : 'Payment verification failed. Please contact support if amount was deducted.',
+        { duration: 7000 }
+      )
     } finally {
       setIsProcessing(false)
     }
@@ -213,9 +263,30 @@ export function useRazorpay() {
 
   const handlePaymentFailure = (error: any) => {
     console.error('Payment failure:', error)
-    toast.error(error.description || error.reason || 'Payment failed. Please try again.', {
+    
+    // Better error messages
+    let errorMessage = 'Payment failed. Please try again.'
+    
+    if (error.code === 'BAD_REQUEST_ERROR') {
+      errorMessage = 'Invalid payment details. Please check and retry.'
+    } else if (error.code === 'GATEWAY_ERROR') {
+      errorMessage = 'Payment gateway error. Please try again in a moment.'
+    } else if (error.code === 'SERVER_ERROR') {
+      errorMessage = 'Server error. Please try again or contact support.'
+    } else if (error.description) {
+      errorMessage = error.description
+    } else if (error.reason) {
+      errorMessage = error.reason
+    }
+    
+    toast.error(errorMessage, {
       duration: 5000,
+      style: {
+        background: '#7f1d1d',
+        color: '#fff',
+      },
     })
+    
     setIsProcessing(false)
   }
 

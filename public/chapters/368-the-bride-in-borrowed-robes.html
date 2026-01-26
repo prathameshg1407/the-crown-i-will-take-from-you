@@ -1,577 +1,845 @@
-<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Bride in Borrowed Robes</title>
-<!-- Self-hosted fonts -->
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Chapter 368: The Bride in Borrowed Robes</title>
+    
+    <!-- Self-hosted fonts -->
     <link rel="stylesheet" href="/fonts/fonts.css">
     
     <style>
-    /* ============================================
-       CSS Variables
-       ============================================ */
-    :root {
-      --font-heading: 'Cinzel', serif;
-      --font-body: 'Cormorant Garamond', serif;
-      --font-ui: 'Lato', sans-serif;
-    }
-    
-    /* ============================================
-       Reset & Base
-       ============================================ */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    html {
-      scroll-behavior: smooth;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    
-    body {
-      background-color: #050505;
-      color: #a3a3a3;
-      font-family: var(--font-body);
-      line-height: 1.75;
-      overflow-x: hidden;
-      padding-bottom: 100px;
-    }
-    
-    ::selection {
-      background-color: #881337;
-      color: #fff;
-    }
-    
-    /* Hide scrollbars */
-    ::-webkit-scrollbar {
-      display: none;
-    }
-    
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    
-    /* ============================================
-       Background
-       ============================================ */
-    .bg-gradient {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
-      z-index: -1;
-      pointer-events: none;
-    }
-    
-    /* ============================================
-       Main Container
-       ============================================ */
-    main {
-      position: relative;
-      min-height: 100vh;
-      padding-bottom: 10rem;
-    }
-    
-    /* ============================================
-       Header
-       ============================================ */
-    header {
-      min-height: 60vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 3rem 1.5rem 2rem;
-      text-align: center;
-      position: relative;
-    }
-    
-    @media (max-width: 768px) {
-      header {
-        min-height: 50vh;
-        padding: 2rem 1rem;
-      }
-    }
-    
-    .chapter-badge {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      padding: 0.25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, 0.5);
-      border-radius: 9999px;
-      background-color: rgba(24, 24, 27, 0.7);
-      backdrop-filter: blur(4px);
-    }
-    
-    .chapter-badge span {
-      color: #fee2e2;
-      font-size: 0.625rem;
-      font-family: var(--font-ui);
-      letter-spacing: 0.4em;
-      text-transform: uppercase;
-    }
-    
-    h1 {
-      font-family: var(--font-heading);
-      font-size: clamp(2.25rem, 7vw, 4rem);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      color: #e5e5e5;
-      margin-bottom: 1.5rem;
-    }
-    
-    .gradient-text {
-      background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-style: italic;
-    }
-    
-    header p {
-      font-family: var(--font-body);
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
-      font-style: italic;
-      max-width: 30rem;
-    }
-    
-    /* ============================================
-       Article Container
-       ============================================ */
-    article {
-      max-width: 42rem;
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-    
-    @media (max-width: 768px) {
-      article {
-        padding: 0 1rem;
-      }
-    }
-    
-    /* ============================================
-       ALL Paragraphs - Center by default
-       ============================================ */
-    article p {
-      line-height: 2.1;
-      margin-bottom: 1.5em;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      article p {
-        font-size: 1.1rem;
-        line-height: 2;
-      }
-    }
-    
-    /* Prose paragraphs */
-    .prose p {
-      line-height: 2.1;
-      margin-bottom: 1.75em;
-      font-size: 1.2rem;
-      color: #a3a3a3;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      .prose p {
-        font-size: 1.1rem;
-        line-height: 2;
-        margin-bottom: 1.5em;
-      }
-    }
-    
-    /* ============================================
-       Drop Cap
-       ============================================ */
-    .drop-cap {
-      text-align: left;
-    }
-    
-    .drop-cap::first-letter {
-      font-family: var(--font-heading);
-      float: left;
-      font-size: 4rem;
-      line-height: 0.8;
-      margin-right: 0.75rem;
-      margin-top: 0.15rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
-    }
-    
-    @media (max-width: 640px) {
-      .drop-cap::first-letter {
-        font-size: 3.5rem;
-        margin-right: 0.5rem;
-      }
-    }
-    
-    /* ============================================
-       Dialogue
-       ============================================ */
-    .dialogue {
-      color: #e2e8f0;
-      font-style: normal;
-      position: relative;
-      padding: 1rem 1.5rem;
-      border-left: 2px solid rgba(136, 19, 55, 0.3);
-      text-align: center;
-      display: block;
-      margin: 1.5rem auto;
-      max-width: 90%;
-      line-height: 1.9;
-    }
-    
-    @media (max-width: 480px) {
-      .dialogue {
-        padding: 0.75rem 1rem;
-        max-width: 95%;
-      }
-    }
-    
-    /* ============================================
-       Thought Box
-       ============================================ */
-    .thought {
-      color: #c4b5fd;
-      font-style: italic;
-      border-left: 2px solid rgba(196, 181, 253, 0.3);
-      padding: 1.5rem 2rem;
-      margin: 2rem auto;
-      max-width: 90%;
-      background: rgba(88, 28, 135, 0.05);
-      border-radius: 4px;
-      text-align: center;
-    }
-    
-    .thought p {
-      margin-bottom: 1rem;
-      line-height: 1.8;
-      text-align: center;
-    }
-    
-    .thought p:last-child {
-      margin-bottom: 0;
-    }
-    
-    /* ============================================
-       Reveal containers - center all content
-       ============================================ */
-    .reveal {
-      opacity: 1;
-      transform: translateY(0);
-      text-align: center;
-    }
-    
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    .reveal p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Special Content Boxes
-       ============================================ */
-    .my-20,
-    .my-24 {
-      text-align: center;
-    }
-    
-    .my-20 > p,
-    .my-24 > p {
-      text-align: center;
-    }
-    
-    /* Gradient boxes */
-    [class*="bg-gradient-to"] {
-      text-align: center;
-    }
-    
-    [class*="bg-gradient-to"] p {
-      text-align: center;
-    }
-    
-    /* Border boxes */
-    [class*="border-l-"] {
-      text-align: center;
-    }
-    
-    [class*="border-l-"] p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Scene Elements
-       ============================================ */
-    .scene-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
-      margin: 4rem 0;
-    }
-    
-    .section-divider {
-      font-family: var(--font-heading);
-      text-align: center;
-      color: #525252;
-      font-size: 0.875rem;
-      letter-spacing: 0.3em;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .time-marker {
-      background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
-      border-top: 1px solid rgba(159, 18, 57, 0.3);
-      border-bottom: 1px solid rgba(159, 18, 57, 0.3);
-      padding: 1.5rem 0;
-      margin: 3rem 0;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Action Line & Narrator
-       ============================================ */
-    .action-line {
-      font-style: italic;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      text-align: center;
-      margin: 1.5rem 0;
-    }
-    
-    .narrator {
-      color: #a3a3a3;
-      font-style: italic;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Space-y containers
-       ============================================ */
-    .space-y-4,
-    .space-y-6,
-    .space-y-8 {
-      text-align: center;
-    }
-    
-    .space-y-4 > *,
-    .space-y-6 > *,
-    .space-y-8 > * {
-      text-align: center;
-    }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    /* ============================================
-       Final Box / Ending
-       ============================================ */
-    .final-box,
-    [class*="mt-32"][class*="mb-40"] {
-      margin: 6rem auto 4rem;
-      text-align: center;
-    }
-    
-    [class*="border-t"][class*="border-neutral"] {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Utility Classes
-       ============================================ */
-    .text-center { text-align: center !important; }
-    .italic { font-style: italic; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    .font-body { font-family: var(--font-body); }
-    .font-ui { font-family: var(--font-ui); }
-    
-    /* Text Sizes */
-    .text-sm { font-size: 0.875rem; }
-    .text-base { font-size: 1rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-4xl { font-size: 2.25rem; }
-    .text-6xl { font-size: 3.75rem; }
-    .text-8xl { font-size: 6rem; }
-    .text-9xl { font-size: 8rem; }
-    
-    /* Responsive text */
-    @media (min-width: 768px) {
-      .md\:text-8xl { font-size: 6rem; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:text-9xl { font-size: 8rem; }
-    }
-    
-    /* Margins */
-    .m-0 { margin: 0; }
-    .mb-4 { margin-bottom: 1rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-32 { margin-top: 8rem; }
-    .mb-40 { margin-bottom: 10rem; }
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
-    
-    /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-neutral-600 { color: #525252; }
-    .text-neutral-700 { color: #404040; }
-    .text-neutral-800 { color: #262626; }
-    .text-white { color: #ffffff; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-green-100 { color: #dcfce7; }
-    .text-green-200 { color: #bbf7d0; }
-    .text-green-300 { color: #86efac; }
-    .text-green-700 { color: #15803d; }
-    .text-green-800 { color: #166534; }
-    .text-green-900 { color: #14532d; }
-    .text-rose-200 { color: #fecdd3; }
-    .text-amber-100 { color: #fef3c7; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-red-800 { color: #991b1b; }
-    .text-slate-200 { color: #e2e8f0; }
-    .text-slate-400 { color: #94a3b8; }
-    
-    /* Leading & Tracking */
-    .leading-tight { line-height: 1.25; }
-    .leading-relaxed { line-height: 1.625; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-tighter { letter-spacing: -0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    /* Padding */
-    .p-6 { padding: 1.5rem; }
-    .p-8 { padding: 2rem; }
-    .p-10 { padding: 2.5rem; }
-    .p-12 { padding: 3rem; }
-    .pl-4 { padding-left: 1rem; }
-    .pl-6 { padding-left: 1.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .px-8 { padding-left: 2rem; padding-right: 2rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .pt-16 { padding-top: 4rem; }
-    .pb-40 { padding-bottom: 10rem; }
-    
-    /* Borders */
-    .border { border-width: 1px; border-style: solid; }
-    .border-2 { border-width: 2px; border-style: solid; }
-    .border-t { border-top-width: 1px; border-top-style: solid; }
-    .border-l-2 { border-left-width: 2px; border-left-style: solid; }
-    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
-    .rounded-full { border-radius: 9999px; }
-    
-    .border-neutral-800 { border-color: #262626; }
-    .border-green-500 { border-color: #22c55e; }
-    .border-green-800 { border-color: #166534; }
-    .border-amber-700 { border-color: #b45309; }
-    .border-red-800 { border-color: #991b1b; }
-    .border-purple-800 { border-color: #6b21a8; }
-    
-    /* Flex */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    
-    /* Position */
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .fixed { position: fixed; }
-    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-    .bottom-10 { bottom: 2.5rem; }
-    .z-10 { z-index: 10; }
-    .-z-10 { z-index: -10; }
-    
-    /* Width/Height */
-    .w-2 { width: 0.5rem; }
-    .h-2 { height: 0.5rem; }
-    .h-px { height: 1px; }
-    .w-full { width: 100%; }
-    .h-screen { height: 100vh; }
-    .min-h-screen { min-height: 100vh; }
-    .max-w-2xl { max-width: 42rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    
-    /* Backgrounds */
-    .bg-green-700 { background-color: #15803d; }
-    .bg-green-800 { background-color: #166534; }
-    .bg-green-900 { background-color: #14532d; }
-    .bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
-    .bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
-    .bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
-    .bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
-    
-    /* Backdrop */
-    .backdrop-blur-sm { backdrop-filter: blur(4px); }
-    
-    /* Overflow */
-    .overflow-x-hidden { overflow-x: hidden; }
-    
-    /* Animation */
-    .animate-fade-up {
-      animation: fadeUp 1s ease-out;
-    }
-    
-    .animate-bounce {
-      animation: bounce 1s infinite;
-    }
-    
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes bounce {
-      0%, 100% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-      }
-      50% {
-        transform: translateY(0);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-      }
-    }
+        *,
+        ::after,
+        ::before {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-  </style></head><body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
-  <div class="bg-gradient"></div>
-<main class="relative min-h-screen pb-40"><div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10"></div><header class="h-screen flex flex-col items-center justify-center relative p-6"><div class="animate-fade-up flex flex-col items-center"><div class="mb-6 px-4 py-1 border border-blood-800/50 rounded-full bg-blood-950/20 backdrop-blur-sm"><span class="text-blood-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 368</span></div><h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tighter mb-8">The Bride in<br><span class="gradient-text italic pr-2">Borrowed Robes</span></h1><p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-lg text-center">"You certainly look happier than before."</p></div><div class="absolute bottom-10 animate-bounce text-neutral-600"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div></header><article class="max-w-2xl mx-auto px-8 relative z-10"><div class="prose prose-invert prose-xl reveal"><p class="drop-cap text-neutral-300"><em>Dea. I swore I would stand beside you.</em></p><p>But then the Emperor had died.</p><p>Circumstance had left Cesare no choice but to inherit Katzen's throne. The chaos that followed—the enemies circling at every turn—and through it all, Medea had been forced to bear the burden alone.</p><p>The knowledge was unbearable.</p><p class="internal-thought">I promised I would protect her.</p><p>Had he not dared to claim her side, believing himself the only one capable of shielding her completely?</p><p>Yet that oracle had betrayed them so cruelly. Cesare could no longer contain his fury—at the world, at fate, at himself.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="internal-thought">If this is how it ends... then nothing has changed.</p><p>Memory overlaid the present—the image of a young Valdinian princess enduring the Queen Mother's punishment alone in the rain, abandoned by all who should have protected her.</p><p class="dialogue">"Damn it... for something as pathetic as divine punishment..."</p><p>Why had he not endured it? Even if it had cost him his life on the spot, he should never have succumbed.</p><p>The north wind cut across his sculpted features.</p><p>That he had lost consciousness while fighting the punishment to the very end—that he had refused the oracle with his last breath—offered him no solace now. It only proved his own weakness.</p><p>His grip on the reins tightened until the leather groaned in protest.</p></div><div class="bg-blood-950/10 border-l-4 border-blood-800/50 p-8 my-12 rounded-r-lg reveal"><div class="prose prose-invert prose-xl"><p class="internal-thought m-0">Why does the Goddess...?</p><p class="mt-4">The flames of his rage spread to the source of the divine punishment itself.</p><p class="internal-thought">Why do You push her to such extremes?</p><p>Even when he had been dying from the Curse of the Beginning, Cesare had never blamed the divine. He neither believed in nor relied upon any god.</p><p>When the Holy Kingdom had spoken of Medea as a Saintess—as the Goddess's chosen agent—he had simply thought it fitting. Compensation, perhaps, for the wounds she had suffered in her previous life.</p><p>But now, for the first time, fury toward the heavens welled up from the depths of his heart.</p></div></div><div class="prose prose-invert prose-xl reveal"><p class="internal-thought">You called her Your child.</p><p class="internal-thought">If she is truly the daughter of Venus, Your representative on earth—</p><p class="internal-thought">Then why do You permit frauds and falsehoods to flourish? Why do You use Your own name to drive us apart?</p><p>An oracle commanding her husband to take another wife.</p><p>Forcing Medea to relive the most agonizing nightmare of her past life—pushing her once more to the precipice.</p><p>Cesare's teeth ground together. Perhaps his blasphemous thoughts had drawn divine attention, for a crimson glow flickered across the back of his hand where it gripped the reins, leaving a fresh scar.</p><p class="dialogue">"Hah!"</p><p>A cloud of white dust erupted behind the black horse as he drove his heels into its flanks once more.</p></div><div class="my-24 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-blood-800 w-16"></div><span class="mx-4 text-blood-800 font-ui text-xs tracking-widest">✦ ✦ ✦</span><div class="h-px bg-blood-800 w-16"></div></div></div><div class="prose prose-invert prose-xl reveal"><p class="text-neutral-500 italic text-center text-2xl mb-8">Dong... Dong...</p><p>At that same hour, within Katzen's cathedral, the ceremonial bells tolled to herald the coronation.</p><p>The nobles of Katzen claimed their seats first. The royal family—the Fourth Princess among them—stood at the fore, with the aristocracy arrayed behind. Each face was a mask of suppressed anxiety, tension, and veiled anticipation as they studied one another's expressions.</p><p>Shortly thereafter, the foreign delegations made their entrance.</p><p>The cathedral's somber grandeur was enriched by costumes representing the patterns and origins of a dozen nations.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue text-neutral-400">"How long has it been since we last met in such circumstances? The Imperial Council at the Central Temple, was it not?"</p><p class="dialogue text-neutral-400">"Ah, I was actually in Katzen quite recently—the late Emperor's birthday banquet. I never imagined it would all end so... abruptly."</p><p>The envoy from a minor kingdom clicked his tongue.</p><p class="dialogue text-neutral-400">"But setting aside the coronation itself—is it not strange that another oracle has emerged so soon?"</p><p>A cautious question, voiced as the conversation deepened.</p><p class="dialogue text-neutral-400">"It has been scarcely a year since the first prophecy was delivered. Has there ever been a time in continental history when two oracles followed so closely upon one another?"</p><p class="dialogue text-neutral-400">"Perhaps because they are connected? The first oracle named the Princess of Valdina as the bride of evil incarnate. The second names her husband as the Saintess's destined consort."</p><p class="dialogue text-neutral-400">"Then does the second not contradict the first?"</p><p>Another envoy tilted his head, troubled.</p><p>As a devout believer, the inconsistency was difficult to accept.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue text-neutral-400">"Two oracles, when obtaining even one is nearly impossible? How can such a thing be?"</p><p>The speaker noticed attention shifting toward their conversation and hastily lowered his voice.</p><p class="dialogue text-neutral-400">"If it is the will of the Goddess, what choice do we have? We can only observe for now."</p><p>Eyes drifted toward the Valdinian delegation.</p><p>The young Emperor of Valdina—known until now only through fearsome rumors—sat flanked by knights whose savage reputations preceded them. The tension in the cathedral thickened palpably.</p><p class="dialogue text-neutral-400">"Still... I cannot shake this unease. If this oracle is truly as the scriptures describe, why does it fill me with such dread?"</p><p class="dialogue text-neutral-400">"Hush! Do you wish to be excommunicated for such blasphemy reaching the Holy Kingdom's ears? What power does a minor nation like ours possess? We must follow the current, not swim against it."</p><p>A sudden intake of breath.</p><p class="dialogue text-neutral-400">"Ah—there! Look!"</p></div><div class="my-16 reveal"><div class="flex items-center justify-center py-6"><div class="h-px bg-blood-800 w-20"></div><div class="w-2 h-2 bg-blood-800 rotate-45 mx-4"></div><div class="h-px bg-blood-800 w-20"></div></div></div><div class="prose prose-invert prose-xl reveal"><p>A cream-colored carriage drew to a halt before the cathedral's great doors.</p><p class="dialogue text-neutral-400">"The Holy Kingdom has arrived! The Lady Rachel has come!"</p><p>Conversation ceased.</p><p>The first to descend was Pope Paul, resplendent in priestly vestments far more ornate than customary. He drew every eye before turning to extend his hand toward the carriage.</p><p>First came the hem of a soft ivory gown. Then, emerging into the light, a golden-haired woman.</p><p class="dialogue">"Your Eminence Paul. Lady Rachel."</p><p>The one who greeted them was Marquis de Leniard himself.</p><p>That he should personally attend to their protocol at a coronation witnessed by dignitaries from across the continent was a clear signal: he recognized Rachel's status absolutely.</p><p>More than that—it was an open declaration that he, the pillar of the First Prince's faction, had abandoned the First Prince's wife and aligned himself with this new power.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The faces of the Holy Kingdom delegation brightened visibly.</p><p class="dialogue">"Please, allow me to escort you inside. As I mentioned, I must apologize once more that His Highness the First Prince was unable to attend the ceremony."</p><p class="dialogue">"Your Excellency is too gracious. We shall soon be family, after all. If we cannot extend such consideration to one another, even the Goddess would reproach us."</p><p>Paul—or rather, the warlock masquerading as Paul—was delighted.</p><p class="internal-thought">If I had been forced to face that infamous conqueror who annihilated my brethren, concealing my anxiety through today's grand undertaking would have been... challenging.</p><p>Far better to conduct this ceremony with the groom's seat empty than to confront someone possessed of such beastly instincts.</p><p class="internal-thought">Once the oracle is fulfilled, none of it will matter.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"If our Saintess's ascension to the throne is assured, what difficulties could possibly remain?"</p><p>Let the First Prince wake in fury—by then, everything would be irreversibly decided.</p><p class="dialogue">"Indeed. That much is certain, Your Eminence. You may rest assured."</p><p class="dialogue">"Ha! I only wish I had a chisel."</p><p>The implication was unmistakable: he wished to scrape away Medea's name, already carved into the Oath Stone.</p><p>Marquis Leniard's expression hardened—but only for an instant. The Holy Kingdom's delegation noticed nothing.</p><p class="dialogue">"Worry not. Once the Saintess's name is inscribed upon the Oath Stone, all will know who the true consort is."</p><p class="dialogue">"As expected from a great patriot! You speak with perfect understanding. Please—this way!"</p><p>Paul strode briskly toward the cathedral's interior.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The moment Rachel appeared, she commanded universal attention.</p><p class="dialogue text-neutral-400">"My lady, I am the Duke of Nova from Suses. We met once before, at Valdina's Imperial Proclamation Ceremony."</p><p>Nobles rushed to greet her, vying to catch her eye. After her prolonged absence, she had returned as the sole representative of the Holy Kingdom—and as the woman who would soon become Katzen's next Empress.</p><p class="dialogue">"Of course, Your Grace. Thank you for attending. May the Goddess grant peace to you and your house."</p><p>Rachel responded to each supplicant with a voice sweet as honeyed wine.</p><p>Her bearing was a peculiar blend of arrogance and serenity—as though she were already the mistress of this place.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Then her gaze fell upon a figure ahead, and her smile deepened.</p><p>The handsome man with the pleasant expression wore a crimson tunic. Upon his breast, a metal brooch bore the pattern of the Katzen imperial family.</p><p class="dialogue">"Grand Duke Castullo. It has been too long."</p><p class="dialogue">"I am relieved to see the Saintess has arrived safely."</p><p>Jason inclined his head.</p><p>For a moment, the two exchanged a glance weighted with unspoken understanding.</p><p class="dialogue">"It is thanks to the Grand Duke's kindness. The Goddess teaches that we must always repay those who show us favor."</p><p>Rachel's smile turned meaningful.</p><p>She knew of Jason's obsession with Medea. These words were her covenant—a promise to the co-conspirator who had joined her in this grand design.</p><p class="dialogue">"As the Goddess's representative, I can assure you: the day approaches when Your Highness will achieve your heart's desire."</p><p>A promise to deliver Medea into his hands.</p><p class="dialogue">"I shall do everything in my power to assist. It will be simpler once you are acknowledged as a member of the royal family."</p><p>Pride and arrogance dripped from every syllable.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"...Saintess."</p><p>His crimson eyes studied her with unsettling intensity.</p><p>They traced the Katzen imperial crest embroidered upon her beige robe. The elaborate tiara crowning her golden hair—set with jewels of five colors, far too ostentatious for any religious ceremony. The diamond-studded veil draped over her shoulders, its opulence verging on vulgarity.</p><p>From head to toe, she was dressed as a bride.</p><p>A bride who seemed, somehow, slightly... frivolous.</p><p class="dialogue text-neutral-400">"Grand Duke? Why do you stare so? Is something amiss with my appearance?"</p><p>Rachel, sensing the scattered glances around her, asked with a note of irritation.</p><p>The corners of Jason's mouth curved—something that might have been a smile, though it reached nowhere near his eyes.</p><p>Contempt flickered through his crimson gaze. And beneath it, something almost like regret.</p><p class="dialogue">"It seems that with a change of circumstances comes a change of countenance. Perhaps... this is the Saintess's true face."</p><p class="dialogue text-neutral-400">"What?"</p><p class="dialogue">"You certainly look happier than before."</p><p class="dialogue text-neutral-400">"Before? What time are you referring to?"</p><p>Rachel's confusion was evident, but Jason had already withdrawn into his own thoughts, his attention drifting elsewhere.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue text-neutral-400">"Saintess, please proceed to your seat."</p><p>Paul approached and extended his hand. Rachel accepted it, allowing herself to be led forward once more.</p><p class="internal-thought">Hmph. That brooding fool came all this way just to spout nonsense.</p><p>A faint smile lingered in her eyes as she glanced toward where Jason sat.</p><p class="dialogue text-neutral-400">"Ah—! Over there—!"</p><p>And then, at last, the First Princess made her entrance.</p></div><div class="my-16 text-center reveal"><div class="inline-block p-8 border border-blood-800/30 rounded-lg bg-blood-950/10"><p class="text-neutral-400 italic mb-4">The cathedral fell silent.</p><p class="text-2xl font-heading text-neutral-300 tracking-wider">"..."</p><p class="mt-6 text-neutral-500">Every voice stilled. Every eye turned.</p></div></div><div class="mt-32 mb-40 reveal relative"><div class="absolute -inset-0.5 bg-gradient-to-r from-blood-800 to-black rounded-lg blur opacity-50 animate-pulse-slow"></div><div class="relative bg-black border border-blood-800/50 p-12 rounded-lg text-center shadow-2xl"><div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-blood-800/50 rounded text-xs tracking-widest text-blood-100 font-ui uppercase">End Chapter 268</div><h2 class="text-3xl md:text-4xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">The Bride in Borrowed Robes</h2><div class="w-full h-px bg-gradient-to-r from-transparent via-red-800 to-transparent my-8"></div><p class="text-slate-500 font-serif italic text-xl">"Some wear crowns they have not earned."</p><p class="mt-8 text-slate-600 text-sm font-ui tracking-widest uppercase">[ Continue to Chapter 269 ]</p></div></div></article></main><script>const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1});document.querySelectorAll(".reveal").forEach(e=>observer.observe(e))</script></body></html>
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background-color: #050505;
+            color: #a3a3a3;
+            line-height: 1.8;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        ::selection {
+            background-color: #881337;
+            color: #fff;
+        }
+
+        .font-heading {
+            font-family: Cinzel, serif;
+        }
+
+        .font-body {
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .font-ui {
+            font-family: Lato, sans-serif;
+        }
+
+        /* Theme Colors - Crimson/Blood for Cesare, Violet for Rachel */
+        .text-blood-100 { color: #ffe4e6; }
+        .text-blood-200 { color: #fecdd3; }
+        .text-blood-300 { color: #fda4af; }
+        .text-blood-400 { color: #fb7185; }
+        .text-blood-800 { color: #9f1239; }
+        .text-blood-900 { color: #881337; }
+
+        .text-violet-100 { color: #ede9fe; }
+        .text-violet-200 { color: #ddd6fe; }
+        .text-violet-300 { color: #c4b5fd; }
+        .text-violet-400 { color: #a78bfa; }
+
+        .text-gold-200 { color: #fde68a; }
+        .text-gold-300 { color: #fcd34d; }
+        .text-gold-400 { color: #fbbf24; }
+
+        .gradient-text {
+            background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-text-violet {
+            background: linear-gradient(180deg, #a78bfa 0%, #5b21b6 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .container {
+            max-width: 42rem;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at top, rgba(127, 29, 29, .12), #000 50%, #000);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .chapter-badge {
+            margin-bottom: 1.5rem;
+            padding: .25rem 1.25rem;
+            border: 1px solid rgba(248, 113, 113, .4);
+            border-radius: 9999px;
+            background-color: rgba(127, 29, 29, .2);
+            backdrop-filter: blur(4px);
+        }
+
+        .chapter-badge span {
+            color: #fecdd3;
+            font-size: 10px;
+            font-family: Lato, sans-serif;
+            letter-spacing: .4em;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            font-family: Cinzel, serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            line-height: 1.1;
+            letter-spacing: -.02em;
+            color: #f5f5f5;
+            margin-bottom: 2rem;
+        }
+
+        .hero-quote {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.125rem, 3vw, 1.5rem);
+            color: #737373;
+            font-style: italic;
+            max-width: 28rem;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2.5rem;
+            color: #525252;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Prose Styling */
+        .prose {
+            color: #a3a3a3;
+        }
+
+        .prose p {
+            font-size: 1.25rem;
+            line-height: 2.1;
+            margin-bottom: 2em;
+        }
+
+        .drop-cap::first-letter {
+            font-family: Cinzel, serif;
+            float: left;
+            font-size: 4.5rem;
+            line-height: .8;
+            margin-right: .75rem;
+            margin-top: .25rem;
+            color: #9f1239;
+            text-shadow: 0 0 20px rgba(159, 18, 57, .4);
+        }
+
+        /* Dialogue Styling */
+        .dialogue {
+            color: #e2e8f0;
+            font-style: normal;
+            position: relative;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(136, 19, 55, .3);
+        }
+
+        .dialogue-whisper {
+            color: #94a3b8;
+            border-left-color: rgba(100, 116, 139, .3);
+        }
+
+        .dialogue-rachel {
+            border-left-color: rgba(167, 139, 250, .4);
+        }
+
+        .dialogue-jason {
+            border-left-color: rgba(220, 38, 38, .4);
+        }
+
+        .dialogue-paul {
+            border-left-color: rgba(245, 158, 11, .4);
+        }
+
+        /* Cesare's Thought Box */
+        .cesare-thought-box {
+            background-color: rgba(127, 29, 29, .1);
+            border-left: 4px solid rgba(239, 68, 68, .4);
+            padding: 2rem;
+            margin: 3rem 0;
+            border-radius: 0 .5rem .5rem 0;
+        }
+
+        .cesare-thought-box p {
+            color: #fca5a5;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .cesare-thought-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Rachel's Thought Box */
+        .rachel-thought-box {
+            background-color: rgba(88, 28, 135, .1);
+            border-left: 4px solid rgba(167, 139, 250, .4);
+            padding: 2rem;
+            margin: 3rem 0;
+            border-radius: 0 .5rem .5rem 0;
+        }
+
+        .rachel-thought-box p {
+            color: #c4b5fd;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .rachel-thought-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Paul/Jason Thought Box */
+        .schemer-thought-box {
+            background-color: rgba(120, 53, 15, .1);
+            border-left: 4px solid rgba(245, 158, 11, .4);
+            padding: 2rem;
+            margin: 3rem 0;
+            border-radius: 0 .5rem .5rem 0;
+        }
+
+        .schemer-thought-box p {
+            color: #fcd34d;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .schemer-thought-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Highlight Boxes */
+        .highlight-box {
+            background-color: rgba(127, 29, 29, .12);
+            border-left: 4px solid rgba(239, 68, 68, .4);
+            padding: 2rem;
+            margin: 3rem 0;
+            border-radius: 0 .5rem .5rem 0;
+        }
+
+        .highlight-box-violet {
+            background-color: rgba(88, 28, 135, .12);
+            border-left-color: rgba(167, 139, 250, .4);
+        }
+
+        /* Dividers */
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .divider-line {
+            height: 1px;
+            width: 6rem;
+            background-color: #9f1239;
+        }
+
+        .divider-symbol {
+            color: #9f1239;
+            font-family: Lato, sans-serif;
+            font-size: .75rem;
+            letter-spacing: .2em;
+        }
+
+        .divider-diamond {
+            width: .5rem;
+            height: .5rem;
+            background-color: #9f1239;
+            transform: rotate(45deg);
+        }
+
+        /* Sound Effect */
+        .sound-effect {
+            font-family: Cinzel, serif;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            color: #737373;
+            letter-spacing: .2em;
+            text-align: center;
+            margin: 2rem 0;
+            font-style: italic;
+        }
+
+        /* Scene Transition */
+        .scene-transition {
+            background: linear-gradient(90deg, transparent, rgba(100, 116, 139, .1), transparent);
+            border-top: 1px solid rgba(100, 116, 139, .2);
+            border-bottom: 1px solid rgba(100, 116, 139, .2);
+            padding: 1.5rem 0;
+            margin: 4rem 0;
+            text-align: center;
+        }
+
+        .scene-transition p {
+            color: #64748b;
+            font-style: italic;
+            font-size: 1.125rem;
+            font-family: Lato, sans-serif;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+        }
+
+        /* Arrival Box */
+        .arrival-box {
+            background: linear-gradient(135deg, rgba(167, 139, 250, .08), rgba(0, 0, 0, .8));
+            border: 2px solid rgba(167, 139, 250, .3);
+            padding: 3rem 2rem;
+            margin: 3rem 0;
+            border-radius: .75rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .arrival-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(167, 139, 250, .5), transparent);
+        }
+
+        /* Silence Box */
+        .silence-box {
+            background-color: rgba(0, 0, 0, .6);
+            border: 1px solid rgba(100, 116, 139, .3);
+            padding: 2.5rem 2rem;
+            margin: 4rem 0;
+            border-radius: .5rem;
+            text-align: center;
+        }
+
+        /* End Card */
+        .end-card {
+            margin: 6rem 0 4rem;
+            position: relative;
+        }
+
+        .end-card-glow {
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(to right, #881337, #000, #5b21b6);
+            border-radius: .5rem;
+            filter: blur(12px);
+            opacity: .4;
+            animation: pulse 4s cubic-bezier(.4, 0, .6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: .4; }
+            50% { opacity: .2; }
+        }
+
+        .end-card-content {
+            position: relative;
+            background-color: #000;
+            border: 1px solid rgba(159, 18, 57, .4);
+            padding: 3rem;
+            border-radius: .5rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, .5);
+        }
+
+        .end-card-label {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #000;
+            padding: 0 1rem;
+            border: 1px solid rgba(159, 18, 57, .4);
+            border-radius: .25rem;
+            font-family: Lato, sans-serif;
+            font-size: .75rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #fda4af;
+        }
+
+        .end-card-title {
+            font-family: Cinzel, serif;
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+            background: linear-gradient(to bottom, #ef4444, #7f1d1d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            margin-bottom: 1.5rem;
+        }
+
+        .end-card-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #9f1239, transparent);
+            margin: 2rem 0;
+        }
+
+        .end-card-quote {
+            color: #64748b;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 1.25rem;
+        }
+
+        .end-card-continue {
+            margin-top: 2rem;
+            color: #52525b;
+            font-family: Lato, sans-serif;
+            font-size: .875rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        /* Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity .8s ease-out, transform .8s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .animate-fade-up {
+            animation: fadeUp 1s cubic-bezier(.2, .8, .2, 1) forwards;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .italic { font-style: italic; }
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        
+        .mt-8 { margin-top: 2rem; }
+        .mt-12 { margin-top: 3rem; }
+        .mt-16 { margin-top: 4rem; }
+        .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
+        .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
+        .my-16 { margin-top: 4rem; margin-bottom: 4rem; }
+        .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        
+        .text-neutral-300 { color: #d4d4d4; }
+        .text-neutral-400 { color: #a3a3a3; }
+        .text-neutral-500 { color: #737373; }
+        .text-neutral-600 { color: #525252; }
+        
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+
+        .leading-relaxed { line-height: 1.625; }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container {
+                padding: 0 1.5rem;
+            }
+
+            .prose p {
+                font-size: 1.125rem;
+            }
+
+            .drop-cap::first-letter {
+                font-size: 3.5rem;
+            }
+
+            .arrival-box,
+            .silence-box {
+                padding: 2rem 1.5rem;
+            }
+
+            .highlight-box,
+            .cesare-thought-box,
+            .rachel-thought-box,
+            .schemer-thought-box {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        * {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <main style="position:relative;min-height:100vh;padding-bottom:6rem">
+        <!-- Hero Section -->
+        <header class="hero">
+            <div class="animate-fade-up" style="display:flex;flex-direction:column;align-items:center">
+                <div class="chapter-badge">
+                    <span>Chapter 368</span>
+                </div>
+                <h1 class="hero-title">
+                    The Bride in<br>
+                    <span class="gradient-text italic">Borrowed Robes</span>
+                </h1>
+                <p class="hero-quote">"You certainly look happier than before."</p>
+            </div>
+            <div class="scroll-indicator">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                </svg>
+            </div>
+        </header>
+
+        <article class="container">
+            <!-- Cesare's Anguish -->
+            <section class="prose reveal">
+                <p class="drop-cap text-neutral-300"><em>Dea. I swore I would stand beside you.</em></p>
+                <p>But then the Emperor had died.</p>
+                <p>Circumstance had left Cesare no choice but to inherit Katzen's throne. The chaos that followed—the enemies circling at every turn—and through it all, Medea had been forced to bear the burden alone.</p>
+                <p>The knowledge was unbearable.</p>
+            </section>
+
+            <div class="cesare-thought-box reveal">
+                <p class="text-xl font-semibold">I promised I would protect her.</p>
+                <p>Had he not dared to claim her side, believing himself the only one capable of shielding her completely?</p>
+                <p>Yet that oracle had betrayed them so cruelly. Cesare could no longer contain his fury—at the world, at fate, at himself.</p>
+            </div>
+
+            <section class="prose reveal">
+                <p class="italic" style="color:#fca5a5">If this is how it ends... then nothing has changed.</p>
+                <p>Memory overlaid the present—the image of a young Valdinian princess enduring the Queen Mother's punishment alone in the rain, abandoned by all who should have protected her.</p>
+                <p class="dialogue dialogue-jason">"Damn it... for something as pathetic as divine punishment..."</p>
+                <p>Why had he not endured it? Even if it had cost him his life on the spot, he should never have succumbed.</p>
+                <p>The north wind cut across his sculpted features.</p>
+            </section>
+
+            <section class="prose mt-12 reveal">
+                <p>That he had lost consciousness while fighting the punishment to the very end—that he had refused the oracle with his last breath—offered him no solace now. It only proved his own weakness.</p>
+                <p>His grip on the reins tightened until the leather groaned in protest.</p>
+            </section>
+
+            <!-- Cesare's Fury at the Divine -->
+            <div class="highlight-box my-12 reveal">
+                <div class="space-y-6">
+                    <p class="italic" style="color:#fca5a5;margin:0">Why does the Goddess...?</p>
+                    <p style="color:#d4d4d4;margin:0">The flames of his rage spread to the source of the divine punishment itself.</p>
+                    <p class="italic" style="color:#fca5a5;margin:0">Why do You push her to such extremes?</p>
+                    <p style="color:#a3a3a3;margin:0">Even when he had been dying from the Curse of the Beginning, Cesare had never blamed the divine. He neither believed in nor relied upon any god.</p>
+                    <p style="color:#a3a3a3;margin:0">When the Holy Kingdom had spoken of Medea as a Saintess—as the Goddess's chosen agent—he had simply thought it fitting. Compensation, perhaps, for the wounds she had suffered in her previous life.</p>
+                    <p style="color:#d4d4d4;margin:0">But now, for the first time, fury toward the heavens welled up from the depths of his heart.</p>
+                </div>
+            </div>
+
+            <section class="prose reveal">
+                <p class="italic" style="color:#fca5a5">You called her Your child.</p>
+                <p class="italic" style="color:#fca5a5">If she is truly the daughter of Venus, Your representative on earth—</p>
+                <p class="italic" style="color:#fca5a5">Then why do You permit frauds and falsehoods to flourish? Why do You use Your own name to drive us apart?</p>
+                <p>An oracle commanding her husband to take another wife.</p>
+                <p>Forcing Medea to relive the most agonizing nightmare of her past life—pushing her once more to the precipice.</p>
+            </section>
+
+            <section class="prose mt-12 reveal">
+                <p>Cesare's teeth ground together. Perhaps his blasphemous thoughts had drawn divine attention, for a crimson glow flickered across the back of his hand where it gripped the reins, leaving a fresh scar.</p>
+                <p class="dialogue dialogue-jason">"Hah!"</p>
+                <p>A cloud of white dust erupted behind the black horse as he drove his heels into its flanks once more.</p>
+            </section>
+
+            <div class="divider my-24 reveal">
+                <div class="divider-line"></div>
+                <span class="divider-symbol">✦ ✦ ✦</span>
+                <div class="divider-line"></div>
+            </div>
+
+            <!-- Scene: The Cathedral -->
+            <section class="prose reveal">
+                <p class="sound-effect">Dong... Dong...</p>
+                <p>At that same hour, within Katzen's cathedral, the ceremonial bells tolled to herald the coronation.</p>
+                <p>The nobles of Katzen claimed their seats first. The royal family—the Fourth Princess among them—stood at the fore, with the aristocracy arrayed behind. Each face was a mask of suppressed anxiety, tension, and veiled anticipation as they studied one another's expressions.</p>
+                <p>Shortly thereafter, the foreign delegations made their entrance.</p>
+                <p>The cathedral's somber grandeur was enriched by costumes representing the patterns and origins of a dozen nations.</p>
+            </section>
+
+            <!-- Diplomatic Whispers -->
+            <section class="prose mt-12 reveal">
+                <p class="dialogue dialogue-whisper">"How long has it been since we last met in such circumstances? The Imperial Council at the Central Temple, was it not?"</p>
+                <p class="dialogue dialogue-whisper">"Ah, I was actually in Katzen quite recently—the late Emperor's birthday banquet. I never imagined it would all end so... abruptly."</p>
+                <p>The envoy from a minor kingdom clicked his tongue.</p>
+                <p class="dialogue dialogue-whisper">"But setting aside the coronation itself—is it not strange that another oracle has emerged so soon?"</p>
+                <p>A cautious question, voiced as the conversation deepened.</p>
+            </section>
+
+            <section class="prose mt-12 reveal">
+                <p class="dialogue dialogue-whisper">"It has been scarcely a year since the first prophecy was delivered. Has there ever been a time in continental history when two oracles followed so closely upon one another?"</p>
+                <p class="dialogue dialogue-whisper">"Perhaps because they are connected? The first oracle named the Princess of Valdina as the bride of evil incarnate. The second names her husband as the Saintess's destined consort."</p>
+                <p class="dialogue dialogue-whisper">"Then does the second not contradict the first?"</p>
+                <p>Another envoy tilted his head, troubled.</p>
+                <p>As a devout believer, the inconsistency was difficult to accept.</p>
+            </section>
+
+            <section class="prose mt-12 reveal">
+                <p class="dialogue dialogue-whisper">"Two oracles, when obtaining even one is nearly impossible? How can such a thing be?"</p>
+                <p>The speaker noticed attention shifting toward their conversation and hastily lowered his voice.</p>
+                <p class="dialogue dialogue-whisper">"If it is the will of the Goddess, what choice do we have? We can only observe for now."</p>
+                <p>Eyes drifted toward the Valdinian delegation.</p>
+                <p>The young Emperor of Valdina—known until now only through fearsome rumors—sat flanked by knights whose savage reputations preceded them. The tension in the cathedral thickened palpably.</p>
+            </section>
+
+            <section class="prose mt-12 reveal">
+                <p class="dialogue dialogue-whisper">"Still... I cannot shake this unease. If this oracle is truly as the scriptures describe, why does it fill me with such dread?"</p>
+                <p class="dialogue dialogue-whisper">"Hush! Do you wish to be excommunicated for such blasphemy reaching the Holy Kingdom's ears? What power does a minor nation like ours possess? We must follow the current, not swim against it."</p>
+                <p>A sudden intake of breath.</p>
+                <p class="dialogue dialogue-whisper">"Ah—there! Look!"</p>
+            </section>
+
+            <div class="divider my-16 reveal">
+                <div class="divider-line"></div>
+                <div class="divider-diamond"></div>
+                <div class="divider-line"></div>
+            </div>
+
+            <!-- Rachel's Arrival -->
+            <section class="prose reveal">
+                <p>A cream-colored carriage drew to a halt before the cathedral's great doors.</p>
+                <p class="dialogue dialogue-whisper">"The Holy Kingdom has arrived! The Lady Rachel has come!"</p>
+                <p>Conversation ceased.</p>
+            </section>
+
+            <div class="arrival-box my-12 reveal">
+                <p class="text-neutral-400 italic mb-4" style="font-size:1.125rem">The first to descend was Pope Paul, resplendent in priestly vestments far more ornate than customary.</p>
+                <p class="text-neutral-300 mb-4">He drew every eye before turning to extend his hand toward the carriage.</p>
+                <p class="text-violet-300" style="font-size:1.25rem">First came the hem of a soft ivory gown.<br>Then, emerging into the light, a golden-haired woman.</p>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue">"Your Eminence Paul. Lady Rachel."</p>
+                <p>The one who greeted them was Marquis de Leniard himself.</p>
+                <p>That he should personally attend to their protocol at a coronation witnessed by dignitaries from across the continent was a clear signal: he recognized Rachel's status absolutely.</p>
+                <p class="italic text-neutral-500">More than that—it was an open declaration that he, the pillar of the First Prince's faction, had abandoned the First Prince's wife and aligned himself with this new power.</p>
+            </section>
+
+            <section class="prose mt-12 reveal">
+                <p>The faces of the Holy Kingdom delegation brightened visibly.</p>
+                <p class="dialogue dialogue-paul">"Please, allow me to escort you inside. As I mentioned, I must apologize once more that His Highness the First Prince was unable to attend the ceremony."</p>
+                <p class="dialogue dialogue-rachel">"Your Excellency is too gracious. We shall soon be family, after all. If we cannot extend such consideration to one another, even the Goddess would reproach us."</p>
+            </section>
+
+            <div class="schemer-thought-box reveal">
+                <p>If I had been forced to face that infamous conqueror who annihilated my brethren, concealing my anxiety through today's grand undertaking would have been... challenging.</p>
+                <p>Far better to conduct this ceremony with the groom's seat empty than to confront someone possessed of such beastly instincts.</p>
+                <p class="text-xl font-semibold">Once the oracle is fulfilled, none of it will matter.</p>
+            </div>
+
+            <section class="prose reveal">
+                <p class="dialogue dialogue-paul">"If our Saintess's ascension to the throne is assured, what difficulties could possibly remain?"</p>
+                <p>Let the First Prince wake in fury—by then, everything would be irreversibly decided.</p>
+                <p class="dialogue">"Indeed. That much is certain, Your Eminence. You may rest assured."</p>
+                <p class="dialogue dialogue-paul">"Ha! I only wish I had a chisel."</p>
+                <p>The implication was unmistakable: he wished to scrape away Medea's name, already carved into the Oath Stone.</p>
+                <p>Marquis Leniard's expression hardened—but only for an instant. The Holy Kingdom's delegation noticed nothing.</p>
+            </section>
+
+            <section class="prose mt-12 reveal">
+                <p class="dialogue">"Worry not. Once the Saintess's name is inscribed upon the Oath Stone, all will know who the true consort is."</p>
+                <p class="dialogue dialogue-paul">"As expected from a great patriot! You speak with perfect understanding. Please—this way!"</p>
+                <p>Paul strode briskly toward the cathedral's interior.</p>
+            </section>
+
+            <div class="divider my-16 reveal">
+                <div class="divider-line" style="background-color:#6b21a8"></div>
+                <div class="divider-diamond" style="background-color:#6b21a8"></div>
+                <div class="divider-line" style="background-color:#6b21a8"></div>
+            </div>
+
+            <!-- Rachel in the Spotlight -->
+            <section class="prose reveal">
+                <p>The moment Rachel appeared, she commanded universal attention.</p>
+                <p class="dialogue dialogue-whisper">"My lady, I am the Duke of Nova from Suses. We met once before, at Valdina's Imperial Proclamation Ceremony."</p>
+                <p>Nobles rushed to greet her, vying to catch her eye. After her prolonged absence, she had returned as the sole representative of the Holy Kingdom—and as the woman who would soon become Katzen's next Empress.</p>
+                <p class="dialogue dialogue-rachel">"Of course, Your Grace. Thank you for attending. May the Goddess grant peace to you and your house."</p>
+                <p>Rachel responded to each supplicant with a voice sweet as honeyed wine.</p>
+                <p class="italic text-violet-300">Her bearing was a peculiar blend of arrogance and serenity—as though she were already the mistress of this place.</p>
+            </section>
+
+            <!-- Rachel and Jason -->
+            <section class="prose mt-12 reveal">
+                <p>Then her gaze fell upon a figure ahead, and her smile deepened.</p>
+                <p>The handsome man with the pleasant expression wore a crimson tunic. Upon his breast, a metal brooch bore the pattern of the Katzen imperial family.</p>
+                <p class="dialogue dialogue-rachel">"Grand Duke Castullo. It has been too long."</p>
+                <p class="dialogue dialogue-jason">"I am relieved to see the Saintess has arrived safely."</p>
+                <p>Jason inclined his head.</p>
+                <p>For a moment, the two exchanged a glance weighted with unspoken understanding.</p>
+            </section>
+
+            <section class="prose mt-12 reveal">
+                <p class="dialogue dialogue-rachel">"It is thanks to the Grand Duke's kindness. The Goddess teaches that we must always repay those who show us favor."</p>
+                <p>Rachel's smile turned meaningful.</p>
+                <p>She knew of Jason's obsession with Medea. These words were her covenant—a promise to the co-conspirator who had joined her in this grand design.</p>
+                <p class="dialogue dialogue-rachel">"As the Goddess's representative, I can assure you: the day approaches when Your Highness will achieve your heart's desire."</p>
+                <p class="italic text-neutral-500">A promise to deliver Medea into his hands.</p>
+                <p class="dialogue dialogue-rachel">"I shall do everything in my power to assist. It will be simpler once you are acknowledged as a member of the royal family."</p>
+                <p>Pride and arrogance dripped from every syllable.</p>
+            </section>
+
+            <!-- Jason's Contempt -->
+            <section class="prose mt-12 reveal">
+                <p class="dialogue dialogue-jason">"...Saintess."</p>
+                <p>His crimson eyes studied her with unsettling intensity.</p>
+                <p>They traced the Katzen imperial crest embroidered upon her beige robe. The elaborate tiara crowning her golden hair—set with jewels of five colors, far too ostentatious for any religious ceremony. The diamond-studded veil draped over her shoulders, its opulence verging on vulgarity.</p>
+                <p class="italic text-neutral-400">From head to toe, she was dressed as a bride.</p>
+                <p class="italic text-neutral-500">A bride who seemed, somehow, slightly... frivolous.</p>
+            </section>
+
+            <section class="prose mt-12 reveal">
+                <p class="dialogue dialogue-rachel">"Grand Duke? Why do you stare so? Is something amiss with my appearance?"</p>
+                <p>Rachel, sensing the scattered glances around her, asked with a note of irritation.</p>
+                <p>The corners of Jason's mouth curved—something that might have been a smile, though it reached nowhere near his eyes.</p>
+                <p class="italic text-neutral-500">Contempt flickered through his crimson gaze. And beneath it, something almost like regret.</p>
+            </section>
+
+            <div class="highlight-box-violet my-12 reveal" style="background-color:rgba(88,28,135,.08);border-left:4px solid rgba(220,38,38,.4);padding:2rem;border-radius:0 .5rem .5rem 0">
+                <p class="dialogue dialogue-jason" style="font-size:1.25rem;margin:0">"It seems that with a change of circumstances comes a change of countenance. Perhaps... this is the Saintess's true face."</p>
+                <p class="dialogue dialogue-rachel" style="margin-top:1rem;margin-bottom:0">"What?"</p>
+                <p class="dialogue dialogue-jason text-xl" style="margin-top:1rem;margin-bottom:0;font-weight:600">"You certainly look happier than before."</p>
+                <p class="dialogue dialogue-rachel" style="margin-top:1rem;margin-bottom:0">"Before? What time are you referring to?"</p>
+                <p style="color:#a3a3a3;margin-top:1rem;margin-bottom:0">Rachel's confusion was evident, but Jason had already withdrawn into his own thoughts, his attention drifting elsewhere.</p>
+            </div>
+
+            <!-- Paul Interrupts -->
+            <section class="prose reveal">
+                <p class="dialogue dialogue-whisper">"Saintess, please proceed to your seat."</p>
+                <p>Paul approached and extended his hand. Rachel accepted it, allowing herself to be led forward once more.</p>
+            </section>
+
+            <div class="rachel-thought-box reveal">
+                <p>Hmph. That brooding fool came all this way just to spout nonsense.</p>
+            </div>
+
+            <section class="prose reveal">
+                <p>A faint smile lingered in her eyes as she glanced toward where Jason sat.</p>
+                <p class="dialogue dialogue-whisper">"Ah—! Over there—!"</p>
+                <p class="text-xl italic text-neutral-300">And then, at last, the First Princess made her entrance.</p>
+            </section>
+
+            <!-- The Silence -->
+            <div class="silence-box my-16 reveal">
+                <p class="text-neutral-500 italic mb-4">The cathedral fell silent.</p>
+                <p class="font-heading text-2xl text-neutral-300" style="letter-spacing:.1em">"..."</p>
+                <p class="text-neutral-500 mt-6">Every voice stilled. Every eye turned.</p>
+            </div>
+
+            <!-- End Card -->
+            <div class="end-card reveal">
+                <div class="end-card-glow"></div>
+                <div class="end-card-content">
+                    <div class="end-card-label">End Chapter 368</div>
+                    <h2 class="end-card-title">The Bride in Borrowed Robes</h2>
+                    <div class="end-card-divider"></div>
+                    <p class="end-card-quote">"Some wear crowns they have not earned."</p>
+                    <p class="end-card-continue">[ Continue to Chapter 369 ]</p>
+                </div>
+            </div>
+        </article>
+    </main>
+
+    <script>
+        function initReveal() {
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("active");
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: "50px"
+            });
+
+            document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initReveal);
+        } else {
+            initReveal();
+        }
+
+        window.addEventListener("load", initReveal);
+    </script>
+</body>
+
+</html>

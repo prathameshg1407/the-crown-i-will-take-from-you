@@ -4,8 +4,22 @@
 import { useEffect, useState, useCallback, useRef, useMemo, memo } from "react"
 import { createPortal } from "react-dom"
 import { chapters, isChapterLocked, PRICING } from "@/data"
-import { X, ArrowLeft, ArrowRight, Lock, Loader2, Crown, BookOpen, Sparkles, Zap, Menu, Check } from "lucide-react"
-import { useAuth } from "@/lib/auth/AuthContext"
+import {
+  X,
+  ArrowLeft,
+  ArrowRight,
+  Lock,
+  Loader2,
+  Crown,
+  BookOpen,
+  Sparkles,
+  Zap,
+  Menu,
+  Check,
+  Maximize2,
+  Minimize2,
+  Type
+} from "lucide-react"
 import { useRazorpay } from "@/lib/razorpay/hooks"
 
 // ============================================================================
@@ -49,6 +63,7 @@ interface ChapterListItemProps {
 }
 
 type Chapter = typeof chapters[number]
+type FontSize = "small" | "medium" | "large"
 
 // ============================================================================
 // Constants
@@ -56,6 +71,12 @@ type Chapter = typeof chapters[number]
 
 const LOAD_TIMEOUT_MS = 15000
 const FOCUSABLE_ELEMENTS = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
+const FONT_CONFIG = {
+  small: { prose: "1.18rem", line: "2.1", drop: "4.2rem", scream: "5.8rem" },
+  medium: { prose: "1.35rem", line: "2.3", drop: "5rem", scream: "7rem" },
+  large: { prose: "1.55rem", line: "2.5", drop: "5.8rem", scream: "8.5rem" }
+}
 
 // ============================================================================
 // Utility Hooks
@@ -117,7 +138,7 @@ function useModalHistory(isOpen: boolean, onClose: () => void) {
       hasAddedHistoryRef.current = true
     }
 
-    const handlePopState = (e: PopStateEvent) => {
+    const handlePopState = () => {
       onClose()
     }
 
@@ -229,7 +250,6 @@ const ChapterListSidebar = memo(function ChapterListSidebar({
 
   useFocusTrap(sidebarRef, isOpen)
 
-  // Keyboard handling
   useEffect(() => {
     if (!isOpen) return
 
@@ -244,7 +264,6 @@ const ChapterListSidebar = memo(function ChapterListSidebar({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
 
-  // Separate chapters into free and locked
   const { freeChapters, lockedChapters } = useMemo(() => {
     const free: Chapter[] = []
     const locked: Chapter[] = []
@@ -264,7 +283,6 @@ const ChapterListSidebar = memo(function ChapterListSidebar({
 
   const sidebarContent = (
     <>
-      {/* Backdrop (mobile only) */}
       {!isDesktop && (
         <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] lg:hidden"
@@ -273,7 +291,6 @@ const ChapterListSidebar = memo(function ChapterListSidebar({
         />
       )}
 
-      {/* Sidebar */}
       <aside
         ref={sidebarRef}
         className={`
@@ -284,7 +301,6 @@ const ChapterListSidebar = memo(function ChapterListSidebar({
         role="complementary"
         aria-label="Chapter list"
       >
-        {/* Header */}
         <header className="flex-shrink-0 px-5 py-4 border-b border-neutral-800/50 bg-neutral-950/50 backdrop-blur-md">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2.5">
@@ -305,7 +321,6 @@ const ChapterListSidebar = memo(function ChapterListSidebar({
             </button>
           </div>
 
-          {/* Stats */}
           <div className="flex items-center gap-4 text-xs font-ui">
             <div className="flex items-center gap-1.5 text-neutral-400">
               <div className="w-2 h-2 rounded-full bg-green-500/50" aria-hidden="true" />
@@ -320,10 +335,8 @@ const ChapterListSidebar = memo(function ChapterListSidebar({
           </div>
         </header>
 
-        {/* Chapter List */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">
           <div className="space-y-2">
-            {/* Available Chapters */}
             {freeChapters.map((chapter) => (
               <ChapterListItem
                 key={chapter.id}
@@ -335,7 +348,6 @@ const ChapterListSidebar = memo(function ChapterListSidebar({
               />
             ))}
 
-            {/* Locked Chapters Section */}
             {lockedChapters.length > 0 && (
               <>
                 <div className="pt-4 pb-2 px-1">
@@ -360,7 +372,6 @@ const ChapterListSidebar = memo(function ChapterListSidebar({
           </div>
         </div>
 
-        {/* Footer - Unlock CTA (if locked chapters exist) */}
         {lockedChapters.length > 0 && (
           <footer className="flex-shrink-0 p-4 border-t border-neutral-800/50 bg-neutral-950/50">
             <button
@@ -663,6 +674,9 @@ export default function ChapterReader({
   const [hasError, setHasError] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [fontSize, setFontSize] = useState<FontSize>("medium")
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showFontMenu, setShowFontMenu] = useState(false)
 
   // Refs
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -678,6 +692,29 @@ export default function ChapterReader({
 
   useFocusTrap(containerRef, mounted && !isLoading && !isSidebarOpen)
   useModalHistory(mounted, onClose)
+
+  // Load saved font size
+  useEffect(() => {
+    const saved = localStorage.getItem("reader-font-size") as FontSize | null
+    if (saved && ["small", "medium", "large"].includes(saved)) {
+      setFontSize(saved)
+    }
+  }, [])
+
+  // Fullscreen handler
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener("fullscreenchange", handler)
+    return () => document.removeEventListener("fullscreenchange", handler)
+  }, [])
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      document.documentElement.requestFullscreen().catch(() => { })
+    }
+  }, [])
 
   // Memoized Values
   const currentChapter = useMemo(
@@ -727,6 +764,39 @@ export default function ChapterReader({
       loadTimeoutRef.current = null
     }
   }, [])
+
+  const applyFontSize = useCallback((doc: Document) => {
+    if (!doc) return
+    const config = FONT_CONFIG[fontSize]
+    let style = doc.getElementById("reader-font-styles") as HTMLStyleElement
+    if (!style) {
+      style = doc.createElement("style")
+      style.id = "reader-font-styles"
+      doc.head.appendChild(style)
+    }
+
+    style.textContent = `
+      .prose p, .dialogue, .quote-block blockquote, .vow-box p, 
+      .hero-quote, .end-card-quote, .highlight-box p {
+        font-size: ${config.prose} !important;
+        line-height: ${config.line} !important;
+      }
+      .drop-cap::first-letter {
+        font-size: ${config.drop} !important;
+      }
+      .scream-text {
+        font-size: clamp(3.5rem, 12vw, ${config.scream}) !important;
+      }
+      .hero-title {
+        font-size: clamp(3.5rem, 10vw, 7.5rem) !important;
+      }
+      @media (max-width: 640px) {
+        .prose p, .dialogue, .quote-block blockquote {
+          font-size: calc(${config.prose} * 0.9) !important;
+        }
+      }
+    `
+  }, [fontSize])
 
   const handleRetry = useCallback(() => {
     setHasError(false)
@@ -778,13 +848,14 @@ export default function ChapterReader({
             }
             
             body {
-              padding-bottom: 80px !important;
+              padding-bottom: 180px !important;
               margin: 0 auto !important;
-              max-width: 65ch !important;
+              max-width: 52rem !important;
               width: 100% !important;
-              padding-left: 1.5rem !important;
-              padding-right: 1.5rem !important;
+              padding-left: 2rem !important;
+              padding-right: 2rem !important;
               box-sizing: border-box !important;
+              background: #050505;
             }
             
             body > main,
@@ -798,24 +869,40 @@ export default function ChapterReader({
               width: 100% !important;
             }
             
-            .prose p,
-            article p {
-              line-height: 1.9 !important;
+            .container {
+              padding: 0 !important;
+              max-width: 100% !important;
             }
             
             ::-webkit-scrollbar {
-              display: none;
+              width: 8px;
+              height: 8px;
+            }
+            
+            ::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            
+            ::-webkit-scrollbar-thumb {
+              background: rgba(159, 18, 57, 0.3);
+              border-radius: 4px;
+            }
+            
+            ::-webkit-scrollbar-thumb:hover {
+              background: rgba(159, 18, 57, 0.6);
             }
             
             * {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
+              scrollbar-width: thin;
+              scrollbar-color: rgba(159, 18, 57, 0.3) transparent;
             }
-            
-            .reveal,
-            .reveal.active {
-              opacity: 1 !important;
-              transform: none !important;
+
+            @media (max-width: 640px) {
+              body {
+                padding-left: 1.5rem !important;
+                padding-right: 1.5rem !important;
+                padding-bottom: 160px !important;
+              }
             }
           `
           iframeDoc.head.appendChild(style)
@@ -823,11 +910,14 @@ export default function ChapterReader({
           iframeDoc.documentElement.scrollTop = 0
           iframeDoc.body.scrollTop = 0
         }
+
+        // Apply font size
+        applyFontSize(iframeDoc!)
       } catch {
         console.debug("Could not inject iframe styles (CORS)")
       }
     }
-  }, [chapterSlug, clearLoadTimeout])
+  }, [chapterSlug, clearLoadTimeout, applyFontSize])
 
   const handleIframeError = useCallback(() => {
     if (loadingChapterRef.current !== chapterSlug) {
@@ -859,9 +949,19 @@ export default function ChapterReader({
     setIsSidebarOpen(prev => !prev)
   }, [])
 
+  const handleFontSizeChange = useCallback((size: FontSize) => {
+    setFontSize(size)
+    localStorage.setItem("reader-font-size", size)
+    setShowFontMenu(false)
+
+    // Re-apply to current iframe
+    if (!isLoading && !hasError && iframeRef.current?.contentDocument) {
+      applyFontSize(iframeRef.current.contentDocument)
+    }
+  }, [isLoading, hasError, applyFontSize])
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Don't handle if sidebar is open (it has its own escape handler)
-    if (isSidebarOpen) return
+    if (isSidebarOpen || showFontMenu) return
 
     if (e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLTextAreaElement ||
@@ -888,12 +988,16 @@ export default function ChapterReader({
         break
       case "m":
       case "M":
-        // Toggle chapter list with 'm' key
         e.preventDefault()
         setIsSidebarOpen(prev => !prev)
         break
+      case "f":
+      case "F":
+        e.preventDefault()
+        toggleFullscreen()
+        break
     }
-  }, [prevChapter, nextChapter, isNextLocked, isPrevLocked, isSidebarOpen, stableOnClose, stableOnNavigate])
+  }, [prevChapter, nextChapter, isNextLocked, isPrevLocked, isSidebarOpen, showFontMenu, stableOnClose, stableOnNavigate, toggleFullscreen])
 
   // Effects
   useEffect(() => {
@@ -968,14 +1072,14 @@ export default function ChapterReader({
         </div>
 
         {/* Top Navigation Bar */}
-        <header className="flex-shrink-0 bg-black/95 backdrop-blur-md border-b border-neutral-800/50 z-20">
-          <div className="max-w-5xl mx-auto px-4 md:px-6 py-2 md:py-2.5">
+        <header className="flex-shrink-0 bg-black/95 backdrop-blur-xl border-b border-neutral-800/60 z-20">
+          <div className="max-w-5xl mx-auto px-4 md:px-6 py-3">
             <div className="flex items-center justify-between gap-4">
               {/* Left - Back */}
-              <div className="flex-shrink-0 w-[100px] md:w-[120px]">
+              <div className="flex-shrink-0">
                 <button
                   onClick={onClose}
-                  className="flex items-center gap-1.5 text-neutral-400 hover:text-white transition-all p-1.5 -ml-1.5 rounded-lg hover:bg-neutral-800/50"
+                  className="flex items-center gap-2 text-neutral-400 hover:text-white transition-all p-2 -ml-2 rounded-lg hover:bg-neutral-800/50 active:scale-95"
                   aria-label="Back to chapters"
                 >
                   <ArrowLeft className="w-4 h-4" aria-hidden="true" />
@@ -985,30 +1089,95 @@ export default function ChapterReader({
 
               {/* Center - Chapter info */}
               <div className="text-center flex-1 px-2 min-w-0">
-                <div className="text-[8px] md:text-[9px] font-ui tracking-[0.3em] uppercase text-neutral-500 mb-0.5">
+                <div className="text-[9px] font-ui tracking-[0.3em] uppercase text-neutral-600 mb-0.5">
                   {currentChapter.number}
                 </div>
                 <h1
                   id="chapter-title"
-                  className="text-xs md:text-sm font-heading text-neutral-200 truncate leading-tight"
+                  className="text-sm md:text-base font-heading text-neutral-200 truncate leading-tight"
                 >
                   {currentChapter.title}
                 </h1>
               </div>
 
-              {/* Right - Menu & Close */}
-              <div className="flex-shrink-0 w-[100px] md:w-[120px] flex items-center justify-end gap-1">
+              {/* Right - Controls */}
+              <div className="flex-shrink-0 flex items-center gap-1">
+                {/* Font Size (Desktop) */}
+                <div className="hidden md:flex items-center gap-0.5 bg-neutral-900/50 rounded-lg p-0.5 border border-neutral-800/50">
+                  {(["small", "medium", "large"] as FontSize[]).map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => handleFontSizeChange(size)}
+                      className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${fontSize === size
+                        ? "bg-[#9f1239]/30 text-[#ffcdd2] border border-[#9f1239]/50"
+                        : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/30"
+                        }`}
+                      aria-label={`Font size ${size}`}
+                    >
+                      <Type className={`w-3 h-3 ${size === "large" ? "w-4 h-4" : size === "small" ? "w-2.5 h-2.5" : ""}`} />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Font Size (Mobile) */}
+                <div className="md:hidden relative">
+                  <button
+                    onClick={() => setShowFontMenu(!showFontMenu)}
+                    className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition"
+                    aria-label="Font size options"
+                  >
+                    <Type className="w-4 h-4" />
+                  </button>
+
+                  {showFontMenu && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-[115]"
+                        onClick={() => setShowFontMenu(false)}
+                      />
+                      <div className="absolute top-full right-0 mt-2 bg-black border border-neutral-800 rounded-lg shadow-xl z-[120] overflow-hidden">
+                        {(["small", "medium", "large"] as FontSize[]).map((size) => (
+                          <button
+                            key={size}
+                            onClick={() => handleFontSizeChange(size)}
+                            className={`w-full px-4 py-2.5 text-left text-sm font-ui transition-colors flex items-center gap-3 ${fontSize === size
+                              ? "bg-[#9f1239]/20 text-white"
+                              : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
+                              }`}
+                          >
+                            <Type className={`${size === "large" ? "w-5 h-5" : size === "small" ? "w-3 h-3" : "w-4 h-4"}`} />
+                            <span className="capitalize">{size}</span>
+                            {fontSize === size && <Check className="w-3 h-3 ml-auto text-[#9f1239]" />}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Fullscreen */}
+                <button
+                  onClick={toggleFullscreen}
+                  className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition active:scale-95"
+                  aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                >
+                  {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </button>
+
+                {/* Chapter list */}
                 <button
                   onClick={toggleSidebar}
-                  className="text-neutral-400 hover:text-white transition-all p-1.5 rounded-lg hover:bg-neutral-800/50"
+                  className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition active:scale-95"
                   aria-label="Toggle chapter list"
                   aria-expanded={isSidebarOpen}
                 >
                   <Menu className="w-4 h-4" aria-hidden="true" />
                 </button>
+
+                {/* Close */}
                 <button
                   onClick={onClose}
-                  className="text-neutral-400 hover:text-white transition-all p-1.5 -mr-1.5 rounded-lg hover:bg-neutral-800/50"
+                  className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition active:scale-95"
                   aria-label="Close reader"
                 >
                   <X className="w-4 h-4" aria-hidden="true" />
@@ -1043,10 +1212,10 @@ export default function ChapterReader({
                 className="w-full h-full border-0"
                 title={`${currentChapter.number}: ${currentChapter.title}`}
                 loading="eager"
-                sandbox="allow-scripts"
+                sandbox="allow-scripts allow-same-origin"
                 style={{
                   opacity: isLoading ? 0 : 1,
-                  transition: "opacity 0.3s ease-in-out"
+                  transition: "opacity 0.4s ease-in-out"
                 }}
               />
             </>
@@ -1055,10 +1224,10 @@ export default function ChapterReader({
 
         {/* Bottom Navigation */}
         <nav
-          className="flex-shrink-0 bg-black/95 backdrop-blur-md border-t border-neutral-800/50 z-20"
+          className="flex-shrink-0 bg-black/95 backdrop-blur-xl border-t border-neutral-800/60 z-20"
           aria-label="Chapter navigation"
         >
-          <div className="max-w-5xl mx-auto px-4 md:px-6 py-2 md:py-2.5">
+          <div className="max-w-5xl mx-auto px-4 md:px-6 py-3">
             <div className="flex items-center justify-between">
               <NavigationButton
                 direction="prev"
