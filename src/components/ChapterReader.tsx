@@ -1,4 +1,3 @@
-// components/ChapterReader.tsx
 "use client"
 
 import { useEffect, useState, useCallback, useRef, useMemo, memo } from "react"
@@ -68,9 +67,21 @@ type FontSize = "small" | "medium" | "large"
 // ============================================================================
 // Constants
 // ============================================================================
-
 const LOAD_TIMEOUT_MS = 15000
 const FOCUSABLE_ELEMENTS = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
+/**
+ * STRATEGY FOR ALIGNMENT:
+ * 1. Parent containers (Header/Footer/Main) must be flex-col with items-center.
+ * 2. Inner "Width Guards" must have the same Max-Width.
+ * 3. Iframe body must have box-sizing: border-box and identical padding to the Header.
+ */
+const CONTENT_MAX_WIDTH = "42rem" 
+
+const CONTENT_PADDING = {
+  mobile: "px-6",   // 1.5rem
+  desktop: "sm:px-8" // 2rem
+}
 
 const FONT_CONFIG = {
   small: { prose: "1.18rem", line: "2.1", drop: "4.2rem", scream: "5.8rem" },
@@ -829,6 +840,7 @@ export default function ChapterReader({
         if (iframeDoc?.head && !iframeDoc.getElementById('reader-injected-styles')) {
           const style = iframeDoc.createElement("style")
           style.id = 'reader-injected-styles'
+          
           style.textContent = `
             .fixed-nav,
             .ambient-indicator,
@@ -839,6 +851,7 @@ export default function ChapterReader({
             
             html {
               scroll-behavior: smooth;
+              scrollbar-gutter: stable; /* CRITICAL: Prevents layout shift when scrollbar appears */
             }
             
             html, body {
@@ -850,12 +863,13 @@ export default function ChapterReader({
             body {
               padding-bottom: 180px !important;
               margin: 0 auto !important;
-              max-width: 52rem !important;
+              max-width: ${CONTENT_MAX_WIDTH} !important;
               width: 100% !important;
-              padding-left: 2rem !important;
+              box-sizing: border-box !important; /* Ensure padding doesn't add to width */
+              padding-left: 2rem !important;   /* Matches desktop padding */
               padding-right: 2rem !important;
-              box-sizing: border-box !important;
               background: #050505;
+              overflow-x: hidden;
             }
             
             body > main,
@@ -872,6 +886,10 @@ export default function ChapterReader({
             .container {
               padding: 0 !important;
               max-width: 100% !important;
+            }
+            
+            .hero {
+              min-height: 60vh !important;
             }
             
             ::-webkit-scrollbar {
@@ -891,15 +909,10 @@ export default function ChapterReader({
             ::-webkit-scrollbar-thumb:hover {
               background: rgba(159, 18, 57, 0.6);
             }
-            
-            * {
-              scrollbar-width: thin;
-              scrollbar-color: rgba(159, 18, 57, 0.3) transparent;
-            }
 
             @media (max-width: 640px) {
               body {
-                padding-left: 1.5rem !important;
+                padding-left: 1.5rem !important; /* Matches mobile padding */
                 padding-right: 1.5rem !important;
                 padding-bottom: 160px !important;
               }
@@ -911,7 +924,6 @@ export default function ChapterReader({
           iframeDoc.body.scrollTop = 0
         }
 
-        // Apply font size
         applyFontSize(iframeDoc!)
       } catch {
         console.debug("Could not inject iframe styles (CORS)")
@@ -954,7 +966,6 @@ export default function ChapterReader({
     localStorage.setItem("reader-font-size", size)
     setShowFontMenu(false)
 
-    // Re-apply to current iframe
     if (!isLoading && !hasError && iframeRef.current?.contentDocument) {
       applyFontSize(iframeRef.current.contentDocument)
     }
@@ -1061,7 +1072,7 @@ export default function ChapterReader({
     <>
       <div
         ref={containerRef}
-        className="fixed inset-0 z-[100] bg-[#050505] flex flex-col overflow-hidden"
+        className="fixed inset-0 z-[100] bg-[#050505] flex flex-col items-center overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-labelledby="chapter-title"
@@ -1071,191 +1082,173 @@ export default function ChapterReader({
           {!isLoading && !hasError && !isLocked && `${currentChapter.title} loaded`}
         </div>
 
-        {/* Top Navigation Bar */}
-        <header className="flex-shrink-0 bg-black/95 backdrop-blur-xl border-b border-neutral-800/60 z-20">
-          <div className="max-w-5xl mx-auto px-4 md:px-6 py-3">
-            <div className="flex items-center justify-between gap-4">
-              {/* Left - Back */}
-              <div className="flex-shrink-0">
-                <button
-                  onClick={onClose}
-                  className="flex items-center gap-2 text-neutral-400 hover:text-white transition-all p-2 -ml-2 rounded-lg hover:bg-neutral-800/50 active:scale-95"
-                  aria-label="Back to chapters"
-                >
-                  <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-                  <span className="text-xs font-ui tracking-wide hidden sm:inline">Back</span>
-                </button>
-              </div>
+ {/* Top Navigation Bar - FIXED */}
+<header className="w-full flex-shrink-0 bg-black/95 backdrop-blur-xl border-b border-neutral-800/60 z-20 flex justify-center">
+  <div 
+    className={`w-full ${CONTENT_PADDING.mobile} ${CONTENT_PADDING.desktop} py-3 flex items-center justify-between relative`}
+    style={{ maxWidth: CONTENT_MAX_WIDTH }}
+  >
+    {/* Left - Back */}
+    <div className="flex-shrink-0 z-10">
+      <button
+        onClick={onClose}
+        className="flex items-center gap-2 text-neutral-400 hover:text-white transition-all p-2 -ml-2 rounded-lg hover:bg-neutral-800/50 active:scale-95"
+        aria-label="Back to chapters"
+      >
+        <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+        <span className="text-xs font-ui tracking-wide hidden sm:inline">Back</span>
+      </button>
+    </div>
 
-              {/* Center - Chapter info */}
-              <div className="text-center flex-1 px-2 min-w-0">
-                <div className="text-[9px] font-ui tracking-[0.3em] uppercase text-neutral-600 mb-0.5">
-                  {currentChapter.number}
-                </div>
-                <h1
-                  id="chapter-title"
-                  className="text-sm md:text-base font-heading text-neutral-200 truncate leading-tight"
-                >
-                  {currentChapter.title}
-                </h1>
-              </div>
+ <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+  <div className="text-center w-full max-w-[120px] sm:max-w-[180px] md:max-w-[260px] lg:max-w-[320px]">
+    <div className="text-[9px] font-ui tracking-[0.2em] sm:tracking-[0.3em] uppercase text-neutral-600 mb-0.5 truncate">
+      {currentChapter.number}
+    </div>
+    <h1
+      id="chapter-title"
+      className="text-xs sm:text-sm md:text-base font-heading text-neutral-200 leading-tight truncate"
+      title={currentChapter.title} /* Shows full title on hover */
+    >
+      {currentChapter.title}
+    </h1>
+  </div>
+</div>
 
-              {/* Right - Controls */}
-              <div className="flex-shrink-0 flex items-center gap-1">
-                {/* Font Size (Desktop) */}
-                <div className="hidden md:flex items-center gap-0.5 bg-neutral-900/50 rounded-lg p-0.5 border border-neutral-800/50">
-                  {(["small", "medium", "large"] as FontSize[]).map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => handleFontSizeChange(size)}
-                      className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${fontSize === size
-                        ? "bg-[#9f1239]/30 text-[#ffcdd2] border border-[#9f1239]/50"
-                        : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/30"
-                        }`}
-                      aria-label={`Font size ${size}`}
-                    >
-                      <Type className={`w-3 h-3 ${size === "large" ? "w-4 h-4" : size === "small" ? "w-2.5 h-2.5" : ""}`} />
-                    </button>
-                  ))}
-                </div>
+    {/* Right - Controls */}
+    <div className="flex-shrink-0 flex items-center gap-0.5 z-10">
+      {/* Font Size +/- Control */}
+      <div className="flex items-center bg-neutral-900/50 rounded-lg border border-neutral-800/50 overflow-hidden">
+        <button
+          onClick={() => {
+            const sizes: FontSize[] = ["small", "medium", "large"]
+            const currentIdx = sizes.indexOf(fontSize)
+            if (currentIdx > 0) {
+              handleFontSizeChange(sizes[currentIdx - 1])
+            }
+          }}
+          disabled={fontSize === "small"}
+          className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800/50 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+          aria-label="Decrease font size"
+        >
+          <span className="text-sm font-medium leading-none">A-</span>
+        </button>
+        
+        <div className="w-px h-4 bg-neutral-800" aria-hidden="true" />
+        
+        <button
+          onClick={() => {
+            const sizes: FontSize[] = ["small", "medium", "large"]
+            const currentIdx = sizes.indexOf(fontSize)
+            if (currentIdx < sizes.length - 1) {
+              handleFontSizeChange(sizes[currentIdx + 1])
+            }
+          }}
+          disabled={fontSize === "large"}
+          className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800/50 transition disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+          aria-label="Increase font size"
+        >
+          <span className="text-base font-medium leading-none">A+</span>
+        </button>
+      </div>
 
-                {/* Font Size (Mobile) */}
-                <div className="md:hidden relative">
-                  <button
-                    onClick={() => setShowFontMenu(!showFontMenu)}
-                    className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition"
-                    aria-label="Font size options"
-                  >
-                    <Type className="w-4 h-4" />
-                  </button>
+      <button
+        onClick={toggleFullscreen}
+        className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition active:scale-95"
+        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+      >
+        {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+      </button>
 
-                  {showFontMenu && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-[115]"
-                        onClick={() => setShowFontMenu(false)}
-                      />
-                      <div className="absolute top-full right-0 mt-2 bg-black border border-neutral-800 rounded-lg shadow-xl z-[120] overflow-hidden">
-                        {(["small", "medium", "large"] as FontSize[]).map((size) => (
-                          <button
-                            key={size}
-                            onClick={() => handleFontSizeChange(size)}
-                            className={`w-full px-4 py-2.5 text-left text-sm font-ui transition-colors flex items-center gap-3 ${fontSize === size
-                              ? "bg-[#9f1239]/20 text-white"
-                              : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
-                              }`}
-                          >
-                            <Type className={`${size === "large" ? "w-5 h-5" : size === "small" ? "w-3 h-3" : "w-4 h-4"}`} />
-                            <span className="capitalize">{size}</span>
-                            {fontSize === size && <Check className="w-3 h-3 ml-auto text-[#9f1239]" />}
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
+      <button
+        onClick={toggleSidebar}
+        className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition active:scale-95"
+        aria-label="Toggle chapter list"
+      >
+        <Menu className="w-4 h-4" aria-hidden="true" />
+      </button>
 
-                {/* Fullscreen */}
-                <button
-                  onClick={toggleFullscreen}
-                  className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition active:scale-95"
-                  aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-                >
-                  {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                </button>
-
-                {/* Chapter list */}
-                <button
-                  onClick={toggleSidebar}
-                  className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition active:scale-95"
-                  aria-label="Toggle chapter list"
-                  aria-expanded={isSidebarOpen}
-                >
-                  <Menu className="w-4 h-4" aria-hidden="true" />
-                </button>
-
-                {/* Close */}
-                <button
-                  onClick={onClose}
-                  className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition active:scale-95"
-                  aria-label="Close reader"
-                >
-                  <X className="w-4 h-4" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
+      <button
+        onClick={onClose}
+        className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800/50 transition active:scale-95"
+        aria-label="Close reader"
+      >
+        <X className="w-4 h-4" aria-hidden="true" />
+      </button>
+    </div>
+  </div>
+</header>
 
         {/* Main Content */}
-        <main className="flex-1 relative overflow-hidden bg-gradient-to-b from-[#050505] to-black">
-          {isLocked ? (
-            <LockedScreen
-              onUnlock={handleUnlock}
-              isProcessing={isProcessing}
-              onClose={onClose}
-            />
-          ) : hasError ? (
-            <ErrorScreen
-              onRetry={handleRetry}
-              onClose={onClose}
-            />
-          ) : (
-            <>
-              {isLoading && <LoadingScreen />}
-
-              <iframe
-                ref={iframeRef}
-                src={chapterPath}
-                onLoad={handleIframeLoad}
-                onError={handleIframeError}
-                className="w-full h-full border-0"
-                title={`${currentChapter.number}: ${currentChapter.title}`}
-                loading="eager"
-                sandbox="allow-scripts allow-same-origin"
-                style={{
-                  opacity: isLoading ? 0 : 1,
-                  transition: "opacity 0.4s ease-in-out"
-                }}
+        <main className="w-full flex-1 relative overflow-hidden bg-gradient-to-b from-[#050505] to-black flex justify-center">
+          <div className="w-full h-full relative" style={{ maxWidth: "100%" }}>
+            {isLocked ? (
+              <LockedScreen
+                onUnlock={handleUnlock}
+                isProcessing={isProcessing}
+                onClose={onClose}
               />
-            </>
-          )}
+            ) : hasError ? (
+              <ErrorScreen
+                onRetry={handleRetry}
+                onClose={onClose}
+              />
+            ) : (
+              <>
+                {isLoading && <LoadingScreen />}
+                <iframe
+                  ref={iframeRef}
+                  src={chapterPath}
+                  onLoad={handleIframeLoad}
+                  onError={handleIframeError}
+                  className="w-full h-full border-0"
+                  title={`${currentChapter.number}: ${currentChapter.title}`}
+                  loading="eager"
+                  sandbox="allow-scripts allow-same-origin"
+                  style={{
+                    opacity: isLoading ? 0 : 1,
+                    transition: "opacity 0.4s ease-in-out"
+                  }}
+                />
+              </>
+            )}
+          </div>
         </main>
 
-        {/* Bottom Navigation */}
+        {/* Bottom Navigation - FIXED */}
         <nav
-          className="flex-shrink-0 bg-black/95 backdrop-blur-xl border-t border-neutral-800/60 z-20"
+          className="w-full flex-shrink-0 bg-black/95 backdrop-blur-xl border-t border-neutral-800/60 z-20 flex justify-center"
           aria-label="Chapter navigation"
         >
-          <div className="max-w-5xl mx-auto px-4 md:px-6 py-3">
-            <div className="flex items-center justify-between">
-              <NavigationButton
-                direction="prev"
-                chapter={prevChapter}
-                isLocked={isPrevLocked}
-                onNavigate={onNavigate}
-                onViewPricing={handleViewPricing}
-              />
+          <div 
+            className={`w-full ${CONTENT_PADDING.mobile} ${CONTENT_PADDING.desktop} py-3 flex items-center justify-between`}
+            style={{ maxWidth: CONTENT_MAX_WIDTH }}
+          >
+            <NavigationButton
+              direction="prev"
+              chapter={prevChapter}
+              isLocked={isPrevLocked}
+              onNavigate={onNavigate}
+              onViewPricing={handleViewPricing}
+            />
 
-              <div className="text-center" aria-label={`Chapter ${currentIndex + 1} of ${chapters.length}`}>
-                <div className="text-[9px] font-ui text-neutral-500 tracking-wider">
-                  {currentIndex + 1} / {chapters.length}
-                </div>
+            <div className="text-center" aria-label={`Chapter ${currentIndex + 1} of ${chapters.length}`}>
+              <div className="text-[9px] font-ui text-neutral-500 tracking-wider">
+                {currentIndex + 1} / {chapters.length}
               </div>
-
-              <NavigationButton
-                direction="next"
-                chapter={nextChapter}
-                isLocked={isNextLocked}
-                onNavigate={onNavigate}
-                onViewPricing={handleViewPricing}
-              />
             </div>
+
+            <NavigationButton
+              direction="next"
+              chapter={nextChapter}
+              isLocked={isNextLocked}
+              onNavigate={onNavigate}
+              onViewPricing={handleViewPricing}
+            />
           </div>
         </nav>
       </div>
 
-      {/* Chapter List Sidebar */}
       <ChapterListSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
