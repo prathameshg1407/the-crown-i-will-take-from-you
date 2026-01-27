@@ -1,21 +1,94 @@
-<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Silver and Shadows</title>
-<!-- Self-hosted fonts -->
-    <link rel="stylesheet" href="/fonts/fonts.css">
-    
-    <style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Chapter 77: Silver and Shadows - A dark literary tale">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Silver and Shadows | Chapter 77</title>
+  
+  <link rel="preconnect" href="/fonts" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  
+  <style>
     /* ============================================
-       CSS Variables
+       Design Tokens
        ============================================ */
     :root {
-      --font-heading: 'Cinzel', serif;
-      --font-body: 'Cormorant Garamond', serif;
-      --font-ui: 'Lato', sans-serif;
+      /* Typography */
+      --font-heading: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', serif;
+      --font-body: 'Cormorant Garamond', 'Garamond', 'Times New Roman', serif;
+      --font-ui: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      
+      /* Type Scale (1.25 ratio) */
+      --text-xs: 0.75rem;
+      --text-sm: 0.875rem;
+      --text-base: 1rem;
+      --text-lg: 1.125rem;
+      --text-xl: 1.25rem;
+      --text-2xl: 1.5rem;
+      --text-3xl: 1.875rem;
+      --text-4xl: 2.25rem;
+      --text-5xl: 3rem;
+      --text-6xl: 3.75rem;
+      --text-7xl: 4.5rem;
+      
+      /* Spacing (8px base) */
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+      --space-20: 5rem;
+      --space-24: 6rem;
+      
+      /* Colors - Dark Gothic */
+      --bg-primary: #0a0a0a;
+      --bg-elevated: #111111;
+      --bg-surface: #1a1a1a;
+      
+      --text-primary: #c4c4c4;
+      --text-muted: #8a8a8a;
+      --text-subtle: #5a5a5a;
+      --text-emphasis: #ebebeb;
+      --text-bright: #ffffff;
+      
+      /* Accent - Crimson */
+      --accent: #dc2626;
+      --accent-dark: #991b1b;
+      --accent-darker: #7f1d1d;
+      --accent-light: #fecaca;
+      --accent-glow: rgba(220, 38, 38, 0.15);
+      
+      /* Semantic Colors */
+      --dialogue-text: #e8edf5;
+      --dialogue-border: rgba(220, 38, 38, 0.25);
+      --thought-text: #d4c4f0;
+      --thought-border: rgba(212, 196, 240, 0.25);
+      --thought-bg: rgba(140, 80, 180, 0.04);
+      
+      --border-default: #262626;
+      --border-subtle: #1c1c1c;
+      
+      /* Effects */
+      --shadow-glow: 0 0 60px rgba(220, 38, 38, 0.12);
+      --transition-fast: 150ms ease;
+      --transition-base: 300ms ease;
+      
+      /* Layout */
+      --content-max: 40rem;
+      --content-padding: var(--space-6);
     }
     
     /* ============================================
-       Reset & Base
+       Reset
        ============================================ */
-    * {
+    *, *::before, *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
@@ -28,165 +101,166 @@
     }
     
     body {
-      background-color: #050505;
-      color: #a3a3a3;
+      background: var(--bg-primary);
+      color: var(--text-primary);
       font-family: var(--font-body);
-      line-height: 1.75;
+      font-size: var(--text-lg);
+      line-height: 1.85;
       overflow-x: hidden;
-      padding-bottom: 100px;
+      min-height: 100vh;
     }
     
     ::selection {
-      background-color: #881337;
-      color: #fff;
+      background: var(--accent-dark);
+      color: var(--text-bright);
     }
     
-    /* Hide scrollbars */
-    ::-webkit-scrollbar {
-      display: none;
+    /* Minimal Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { 
+      background: var(--border-default); 
+      border-radius: 3px; 
     }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); }
     
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    /* Focus States */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
     }
     
     /* ============================================
-       Background
+       Background Ambient
        ============================================ */
-    .bg-gradient {
+    .bg-ambient {
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
-      z-index: -1;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -10%, var(--accent-glow), transparent),
+        radial-gradient(circle at 15% 80%, rgba(80, 80, 120, 0.04), transparent 40%);
       pointer-events: none;
+      z-index: -1;
     }
     
     /* ============================================
-       Main Container
+       Layout
        ============================================ */
     main {
       position: relative;
       min-height: 100vh;
-      padding-bottom: 10rem;
+      padding-bottom: var(--space-24);
+    }
+    
+    article {
+      max-width: var(--content-max);
+      margin: 0 auto;
+      padding: 0 var(--content-padding);
     }
     
     /* ============================================
-       Header
+       Hero Section
        ============================================ */
-    header {
-      min-height: 60vh;
+    .hero {
+      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem 1.5rem 2rem;
+      padding: var(--space-8);
       text-align: center;
       position: relative;
     }
     
-    @media (max-width: 768px) {
-      header {
-        min-height: 50vh;
-        padding: 2rem 1rem;
-      }
+    .hero-inner {
+      animation: fadeIn 1s ease-out;
     }
     
-    .chapter-badge {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      padding: 0.25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, 0.5);
-      border-radius: 9999px;
-      background-color: rgba(24, 24, 27, 0.7);
-      backdrop-filter: blur(4px);
+    .badge {
+      display: inline-flex;
+      padding: var(--space-2) var(--space-5);
+      margin-bottom: var(--space-8);
+      border: 1px solid var(--accent-darker);
+      border-radius: 100px;
+      background: var(--accent-glow);
+      backdrop-filter: blur(12px);
     }
     
-    .chapter-badge span {
-      color: #fee2e2;
-      font-size: 0.625rem;
+    .badge-text {
       font-family: var(--font-ui);
-      letter-spacing: 0.4em;
+      font-size: var(--text-xs);
+      font-weight: 500;
+      letter-spacing: 0.35em;
       text-transform: uppercase;
+      color: var(--accent-light);
     }
     
-    h1 {
+    .hero-title {
       font-family: var(--font-heading);
-      font-size: clamp(2.25rem, 7vw, 4rem);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      color: #e5e5e5;
-      margin-bottom: 1.5rem;
+      font-size: clamp(var(--text-4xl), 9vw, var(--text-7xl));
+      font-weight: 400;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--text-emphasis);
+      margin-bottom: var(--space-8);
     }
     
-    .gradient-text {
-      background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+    .hero-title .accent {
+      display: block;
+      background: linear-gradient(180deg, var(--accent) 20%, var(--accent-darker) 100%);
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
       background-clip: text;
+      -webkit-text-fill-color: transparent;
       font-style: italic;
     }
     
-    header p {
-      font-family: var(--font-body);
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
+    .hero-tagline {
+      font-size: clamp(var(--text-base), 2.5vw, var(--text-xl));
+      color: var(--text-muted);
       font-style: italic;
-      max-width: 30rem;
+      max-width: 28rem;
+      line-height: 1.7;
+    }
+    
+    .scroll-hint {
+      position: absolute;
+      bottom: var(--space-10);
+      color: var(--text-subtle);
+      animation: float 2.5s ease-in-out infinite;
+    }
+    
+    .scroll-hint svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 1.5;
     }
     
     /* ============================================
-       Article Container
+       Prose Typography
        ============================================ */
-    article {
-      max-width: 42rem;
-      margin: 0 auto;
-      padding: 0 1.5rem;
+    .prose {
+      --prose-gap: var(--space-6);
     }
     
-    @media (max-width: 768px) {
-      article {
-        padding: 0 1rem;
-      }
-    }
-    
-    /* ============================================
-       ALL Paragraphs - Center by default
-       ============================================ */
-    article p {
-      line-height: 2.1;
-      margin-bottom: 1.5em;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      article p {
-        font-size: 1.1rem;
-        line-height: 2;
-      }
-    }
-    
-    /* Prose paragraphs */
     .prose p {
-      line-height: 2.1;
-      margin-bottom: 1.75em;
-      font-size: 1.2rem;
-      color: #a3a3a3;
+      margin-bottom: var(--prose-gap);
       text-align: center;
     }
     
-    @media (max-width: 768px) {
-      .prose p {
-        font-size: 1.1rem;
-        line-height: 2;
-        margin-bottom: 1.5em;
-      }
+    .prose p:last-child {
+      margin-bottom: 0;
     }
     
-    /* ============================================
-       Drop Cap
-       ============================================ */
+    .prose em {
+      color: var(--text-muted);
+    }
+    
+    .text-emphasis {
+      color: var(--text-emphasis);
+    }
+    
+    /* Drop Cap */
     .drop-cap {
       text-align: left;
     }
@@ -194,62 +268,44 @@
     .drop-cap::first-letter {
       font-family: var(--font-heading);
       float: left;
-      font-size: 4rem;
-      line-height: 0.8;
-      margin-right: 0.75rem;
-      margin-top: 0.15rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
-    }
-    
-    @media (max-width: 640px) {
-      .drop-cap::first-letter {
-        font-size: 3.5rem;
-        margin-right: 0.5rem;
-      }
+      font-size: 4.2em;
+      line-height: 0.78;
+      margin-right: var(--space-4);
+      margin-top: 0.08em;
+      color: var(--accent);
+      text-shadow: var(--shadow-glow);
     }
     
     /* ============================================
        Dialogue
        ============================================ */
     .dialogue {
-      color: #e2e8f0;
-      font-style: normal;
-      position: relative;
-      padding: 1rem 1.5rem;
-      border-left: 2px solid rgba(136, 19, 55, 0.3);
-      text-align: center;
-      display: block;
-      margin: 1.5rem auto;
-      max-width: 90%;
-      line-height: 1.9;
-    }
-    
-    @media (max-width: 480px) {
-      .dialogue {
-        padding: 0.75rem 1rem;
-        max-width: 95%;
-      }
+      color: var(--dialogue-text);
+      padding: var(--space-4) var(--space-6);
+      margin: var(--space-5) auto;
+      max-width: 88%;
+      border-left: 2px solid var(--dialogue-border);
+      background: linear-gradient(90deg, rgba(220, 38, 38, 0.05), transparent 80%);
+      border-radius: 0 var(--space-1) var(--space-1) 0;
     }
     
     /* ============================================
-       Thought Box
+       Thought Blocks
        ============================================ */
     .thought {
-      color: #c4b5fd;
+      color: var(--thought-text);
       font-style: italic;
-      border-left: 2px solid rgba(196, 181, 253, 0.3);
-      padding: 1.5rem 2rem;
-      margin: 2rem auto;
+      padding: var(--space-5) var(--space-6);
+      margin: var(--space-6) auto;
       max-width: 90%;
-      background: rgba(88, 28, 135, 0.05);
-      border-radius: 4px;
-      text-align: center;
+      border-left: 2px solid var(--thought-border);
+      background: var(--thought-bg);
+      border-radius: 0 var(--space-1) var(--space-1) 0;
     }
     
     .thought p {
-      margin-bottom: 1rem;
-      line-height: 1.8;
+      margin-bottom: var(--space-3);
+      color: inherit;
       text-align: center;
     }
     
@@ -258,320 +314,552 @@
     }
     
     /* ============================================
-       Reveal containers - center all content
+       Content Box (Highlighted)
+       ============================================ */
+    .content-box {
+      background: var(--bg-elevated);
+      border-left: 3px solid var(--accent-dark);
+      padding: var(--space-8);
+      margin: var(--space-10) 0;
+      border-radius: 0 var(--space-2) var(--space-2) 0;
+    }
+    
+    .content-box .dialogue {
+      margin: 0 0 var(--space-4);
+      max-width: 100%;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    
+    .content-box p:last-child {
+      margin-bottom: 0;
+    }
+    
+    /* ============================================
+       Sound Effect
+       ============================================ */
+    .sfx {
+      font-style: italic;
+      font-size: var(--text-2xl);
+      color: var(--text-emphasis);
+      text-align: center;
+      margin: var(--space-8) 0;
+      letter-spacing: 0.05em;
+    }
+    
+    /* ============================================
+       Scene Divider
+       ============================================ */
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-12) 0;
+    }
+    
+    .divider::before,
+    .divider::after {
+      content: '';
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-default));
+    }
+    
+    .divider::after {
+      background: linear-gradient(90deg, var(--border-default), transparent);
+    }
+    
+    .divider-diamond {
+      width: 7px;
+      height: 7px;
+      margin: 0 var(--space-4);
+      background: var(--text-subtle);
+      transform: rotate(45deg);
+    }
+    
+    /* ============================================
+       Section Spacing
+       ============================================ */
+    .section {
+      margin-top: var(--space-10);
+    }
+    
+    .section-lg {
+      margin-top: var(--space-16);
+    }
+    
+    /* ============================================
+       Chapter End
+       ============================================ */
+    .chapter-end {
+      margin: var(--space-24) 0 var(--space-16);
+      position: relative;
+    }
+    
+    .chapter-end-glow {
+      position: absolute;
+      inset: -4px;
+      background: linear-gradient(135deg, var(--accent-dark), transparent 50%, var(--accent-darker));
+      border-radius: 16px;
+      opacity: 0.25;
+      filter: blur(30px);
+      animation: pulse 4s ease-in-out infinite;
+    }
+    
+    .chapter-end-card {
+      position: relative;
+      background: var(--bg-primary);
+      border: 1px solid var(--accent-darker);
+      padding: var(--space-16) var(--space-8);
+      border-radius: 12px;
+      text-align: center;
+    }
+    
+    .chapter-end-label {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--bg-primary);
+      padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--accent-darker);
+      border-radius: var(--space-1);
+      font-family: var(--font-ui);
+      font-size: var(--text-xs);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    
+    .chapter-end-title {
+      font-family: var(--font-heading);
+      font-size: clamp(var(--text-2xl), 5vw, var(--text-4xl));
+      background: linear-gradient(180deg, var(--accent) 0%, var(--accent-darker) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: var(--space-6);
+    }
+    
+    .chapter-end-line {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dark), transparent);
+      margin: var(--space-8) 0;
+    }
+    
+    .chapter-end-quote {
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: var(--text-lg);
+      max-width: 24rem;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+    
+    .chapter-end-nav {
+      margin-top: var(--space-10);
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-subtle);
+      transition: color var(--transition-fast);
+      cursor: pointer;
+    }
+    
+    .chapter-end-nav:hover {
+      color: var(--text-muted);
+    }
+    
+    /* ============================================
+       Reveal Animation
        ============================================ */
     .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    
+    .reveal.visible {
       opacity: 1;
       transform: translateY(0);
-      text-align: center;
-    }
-    
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    .reveal p {
-      text-align: center;
     }
     
     /* ============================================
-       Special Content Boxes
+       Keyframes
        ============================================ */
-    .my-20,
-    .my-24 {
-      text-align: center;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
-    .my-20 > p,
-    .my-24 > p {
-      text-align: center;
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
     }
     
-    /* Gradient boxes */
-    [class*="bg-gradient-to"] {
-      text-align: center;
-    }
-    
-    [class*="bg-gradient-to"] p {
-      text-align: center;
-    }
-    
-    /* Border boxes */
-    [class*="border-l-"] {
-      text-align: center;
-    }
-    
-    [class*="border-l-"] p {
-      text-align: center;
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.35; }
     }
     
     /* ============================================
-       Scene Elements
+       Responsive
        ============================================ */
-    .scene-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
-      margin: 4rem 0;
-    }
-    
-    .section-divider {
-      font-family: var(--font-heading);
-      text-align: center;
-      color: #525252;
-      font-size: 0.875rem;
-      letter-spacing: 0.3em;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .time-marker {
-      background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
-      border-top: 1px solid rgba(159, 18, 57, 0.3);
-      border-bottom: 1px solid rgba(159, 18, 57, 0.3);
-      padding: 1.5rem 0;
-      margin: 3rem 0;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Action Line & Narrator
-       ============================================ */
-    .action-line {
-      font-style: italic;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      text-align: center;
-      margin: 1.5rem 0;
-    }
-    
-    .narrator {
-      color: #a3a3a3;
-      font-style: italic;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Space-y containers
-       ============================================ */
-    .space-y-4,
-    .space-y-6,
-    .space-y-8 {
-      text-align: center;
-    }
-    
-    .space-y-4 > *,
-    .space-y-6 > *,
-    .space-y-8 > * {
-      text-align: center;
-    }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    /* ============================================
-       Final Box / Ending
-       ============================================ */
-    .final-box,
-    [class*="mt-32"][class*="mb-40"] {
-      margin: 6rem auto 4rem;
-      text-align: center;
-    }
-    
-    [class*="border-t"][class*="border-neutral"] {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Utility Classes
-       ============================================ */
-    .text-center { text-align: center !important; }
-    .italic { font-style: italic; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    .font-body { font-family: var(--font-body); }
-    .font-ui { font-family: var(--font-ui); }
-    
-    /* Text Sizes */
-    .text-sm { font-size: 0.875rem; }
-    .text-base { font-size: 1rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-4xl { font-size: 2.25rem; }
-    .text-6xl { font-size: 3.75rem; }
-    .text-8xl { font-size: 6rem; }
-    .text-9xl { font-size: 8rem; }
-    
-    /* Responsive text */
-    @media (min-width: 768px) {
-      .md\:text-8xl { font-size: 6rem; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:text-9xl { font-size: 8rem; }
-    }
-    
-    /* Margins */
-    .m-0 { margin: 0; }
-    .mb-4 { margin-bottom: 1rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-32 { margin-top: 8rem; }
-    .mb-40 { margin-bottom: 10rem; }
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
-    
-    /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-neutral-600 { color: #525252; }
-    .text-neutral-700 { color: #404040; }
-    .text-neutral-800 { color: #262626; }
-    .text-white { color: #ffffff; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-green-100 { color: #dcfce7; }
-    .text-green-200 { color: #bbf7d0; }
-    .text-green-300 { color: #86efac; }
-    .text-green-700 { color: #15803d; }
-    .text-green-800 { color: #166534; }
-    .text-green-900 { color: #14532d; }
-    .text-rose-200 { color: #fecdd3; }
-    .text-amber-100 { color: #fef3c7; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-red-800 { color: #991b1b; }
-    .text-slate-200 { color: #e2e8f0; }
-    .text-slate-400 { color: #94a3b8; }
-    
-    /* Leading & Tracking */
-    .leading-tight { line-height: 1.25; }
-    .leading-relaxed { line-height: 1.625; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-tighter { letter-spacing: -0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    /* Padding */
-    .p-6 { padding: 1.5rem; }
-    .p-8 { padding: 2rem; }
-    .p-10 { padding: 2.5rem; }
-    .p-12 { padding: 3rem; }
-    .pl-4 { padding-left: 1rem; }
-    .pl-6 { padding-left: 1.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .px-8 { padding-left: 2rem; padding-right: 2rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .pt-16 { padding-top: 4rem; }
-    .pb-40 { padding-bottom: 10rem; }
-    
-    /* Borders */
-    .border { border-width: 1px; border-style: solid; }
-    .border-2 { border-width: 2px; border-style: solid; }
-    .border-t { border-top-width: 1px; border-top-style: solid; }
-    .border-l-2 { border-left-width: 2px; border-left-style: solid; }
-    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
-    .rounded-full { border-radius: 9999px; }
-    
-    .border-neutral-800 { border-color: #262626; }
-    .border-green-500 { border-color: #22c55e; }
-    .border-green-800 { border-color: #166534; }
-    .border-amber-700 { border-color: #b45309; }
-    .border-red-800 { border-color: #991b1b; }
-    .border-purple-800 { border-color: #6b21a8; }
-    
-    /* Flex */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    
-    /* Position */
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .fixed { position: fixed; }
-    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-    .bottom-10 { bottom: 2.5rem; }
-    .z-10 { z-index: 10; }
-    .-z-10 { z-index: -10; }
-    
-    /* Width/Height */
-    .w-2 { width: 0.5rem; }
-    .h-2 { height: 0.5rem; }
-    .h-px { height: 1px; }
-    .w-full { width: 100%; }
-    .h-screen { height: 100vh; }
-    .min-h-screen { min-height: 100vh; }
-    .max-w-2xl { max-width: 42rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    
-    /* Backgrounds */
-    .bg-green-700 { background-color: #15803d; }
-    .bg-green-800 { background-color: #166534; }
-    .bg-green-900 { background-color: #14532d; }
-    .bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
-    .bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
-    .bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
-    .bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
-    
-    /* Backdrop */
-    .backdrop-blur-sm { backdrop-filter: blur(4px); }
-    
-    /* Overflow */
-    .overflow-x-hidden { overflow-x: hidden; }
-    
-    /* Animation */
-    .animate-fade-up {
-      animation: fadeUp 1s ease-out;
-    }
-    
-    .animate-bounce {
-      animation: bounce 1s infinite;
-    }
-    
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
+    @media (max-width: 768px) {
+      :root {
+        --content-padding: var(--space-5);
       }
-      to {
+      
+      .hero {
+        min-height: 90vh;
+        padding: var(--space-6);
+      }
+      
+      .drop-cap::first-letter {
+        font-size: 3.5em;
+        margin-right: var(--space-3);
+      }
+      
+      .dialogue, .thought {
+        max-width: 95%;
+        padding: var(--space-4) var(--space-5);
+      }
+      
+      .content-box {
+        padding: var(--space-6);
+      }
+      
+      .chapter-end-card {
+        padding: var(--space-10) var(--space-5);
+      }
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        font-size: var(--text-base);
+        line-height: 1.9;
+      }
+      
+      .badge-text {
+        letter-spacing: 0.25em;
+      }
+      
+      .divider::before,
+      .divider::after {
+        width: 40px;
+      }
+      
+      .sfx {
+        font-size: var(--text-xl);
+      }
+    }
+    
+    /* ============================================
+       Reduced Motion
+       ============================================ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+      
+      html { scroll-behavior: auto; }
+      
+      .reveal {
         opacity: 1;
-        transform: translateY(0);
+        transform: none;
       }
     }
     
-    @keyframes bounce {
-      0%, 100% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-      }
-      50% {
-        transform: translateY(0);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-      }
+    /* ============================================
+       Print Styles
+       ============================================ */
+    @media print {
+      .bg-ambient, .scroll-hint, .chapter-end-glow { display: none; }
+      body { background: #fff; color: #000; }
+      .hero { min-height: auto; page-break-after: always; }
     }
-
-  </style></head><body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
-  <div class="bg-gradient"></div>
-<main class="relative min-h-screen pb-40"><div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10"></div><header class="h-screen flex flex-col items-center justify-center relative p-6"><div class="animate-fade-up flex flex-col items-center"><div class="mb-6 px-4 py-1 border border-blood-800/50 rounded-full bg-blood-950/20 backdrop-blur-sm"><span class="text-blood-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 77</span></div><h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tighter mb-8">Silver and<br><span class="gradient-text">Shadows</span></h1><p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">"Some ghosts walk among the living, haunting those who made them."</p></div><div class="absolute bottom-10 animate-bounce text-neutral-600"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div></header><article class="max-w-2xl mx-auto px-8 relative z-10"><div class="prose prose-invert prose-xl reveal"><p class="drop-cap text-neutral-300">"I believe that's quite enough."</p><p>The young woman's expression remained completely neutral. She showed no fear whatsoever despite confronting armed knights.</p><p class="dialogue">"How dare you interfere with my punishment, you insolent wretch! Seize her at once!"</p><p class="dialogue">"Yes, Your Highness!"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Though he could hear the Princess shrieking viciously, Jason couldn't tear his eyes away from the stranger before him.</p><p>The Princess's escort knight advanced toward the young woman without hesitation.</p><p>However, before he could even open his mouth to threaten her, a blade pressed against his throat. A female knight had materialized beside the silver-haired woman.</p><p class="dialogue">"Stand back."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The speed was extraordinary. The Princess's knight hadn't even seen his opponent draw her sword.</p><p class="dialogue">"Is Valdina populated entirely by scum? How dare a lowborn woman interfere here?"</p><p>The Princess's face flushed an even deeper crimson when her guard faltered.</p><p class="dialogue">"Who insults Valdina with every breath they take? Either you're a traitor ignorant of your nation's honor, or you're not from this country at all."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"What—what?! How dare you! I belong to a great empire!"</p><p>As the Princess, baited by the provocation, nearly revealed her true identity, Kensington seized her arm and whispered urgently.</p><p class="dialogue">"Stop. Have you forgotten where you are, Your Highness?"</p><p>Regardless of what was said behind closed doors, they had to conceal the identities of those responsible for today's chaos.</p><p>While muffling the Princess's protests, Kensington regarded the silver-haired stranger with deep suspicion.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"This is your fault for being incompetent! I should have killed her from the start!"</p><p>Meanwhile, the Princess—furious at being constrained—pinched her guard viciously and kicked his shin.</p><p>Though tears nearly welled from the brutal blow, the escort couldn't protest.</p><p>The young woman maintained her composure throughout, making the contrast between them painfully obvious to all observers.</p><p>Princess Angelique scowled.</p><p class="dialogue">"Damn this wretched place! I have no power here—let's leave!"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Once the volatile Princess departed, tranquility finally returned to the street.</p><p class="dialogue">"Thank you! Because of you, Tippy and I survived."</p><p class="dialogue">"Peeee! Peeee!"</p><p>The tiger cub added its own grateful cry.</p><p>The young woman nodded with cool indifference and immediately turned to leave.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Jason, who'd been watching as if entranced, took a hurried step forward.</p><p class="dialogue">"Your Highness? Where are you going?"</p><p>He didn't even register his knight's voice calling from behind. Emerging from the tent, he spotted the young woman walking not far ahead.</p><p class="dialogue">"Wait—please, wait a moment!"</p><p>Jason pursued her urgently. Something about her silver hair flowing like silk made his mouth run dry.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Pardon me, might I know the lady's name?"</p><p>Watching her retreating back felt somehow devastating, as though something precious were slipping through his trembling fingers.</p><p class="thought">The courage to stop ruthless cruelty when no one else would act. The composure that silenced even arrogant Angelique.</p><p>This woman was both beautiful and wise.</p><p>"..."</p><p class="thought">Please—stop for just a moment and look back at me.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>At the very instant Jason silently wished it, the young woman's steps halted.</p><p class="thought">Ah, thank God.</p><p>An inexplicable wave of relief washed through Jason's chest.</p><p class="dialogue">"The person who created such chaos is my cousin. She was raised too preciously and never learned proper manners. Please allow me to apologize on her behalf."</p><p>His voice emerged sweet and thoughtful—perfectly calibrated to dissolve another person's wariness.</p><p>Finally, the woman who'd stopped turned around.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The moment Jason beheld those beautiful green eyes, he was utterly mesmerized.</p><p>And simultaneously, a fierce sensation of mortal danger swept past the back of his neck.</p><p class="dialogue">"What—?"</p><p>Shocked, Jason whipped his head around, scanning the surroundings. The killing intent had been so vivid he wondered if an assassin lurked nearby.</p><p>Yet he discovered no trace and refocused on the woman before him.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>For a split second, those large green eyes trembled with shock. Fear, rage, and inexplicable regret—all flashed past in an instant.</p><p class="dialogue">"My lady? Are you well?"</p><p class="thought">How strange. Why would she be startled to see me?</p><p>Jason was surprised by the variety of emotions flickering through her gaze. He searched his memory, wondering if they'd met somewhere before.</p><p class="thought">No. If I'd seen a face like this, there's no possibility I could forget it.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"My lady..."</p><p>Jason extended his hand. He swore he meant no offense.</p><p>It simply seemed unbearable that moisture trembled in her eyes, hanging precariously as though it might fall at any moment.</p><p class="dialogue">"I only—"</p><p class="italic text-2xl text-center my-8">SLAP!</p></div><div class="bg-blood-950/20 border-l-4 border-blood-800 p-8 my-12 rounded-r-lg reveal"><div class="prose prose-invert prose-xl"><p>His outstretched hand was struck away coldly.</p><p>Stinging pain lingered on the back of his hand. Jason realized she'd slapped it aside.</p><p class="dialogue">"It doesn't hurt. Please don't worry."</p><p class="mt-4">Jason murmured unconsciously, attempting to reassure her.</p></div></div><div class="prose prose-invert prose-xl reveal"><p>Meanwhile, the woman had resumed her expressionless demeanor, as though nothing had occurred.</p><p>The moisture that had gathered in her eyes had long since evaporated. Nothing could be read on that pale face—it was as though a thick veil had been drawn across it.</p><p>The emotions revealed in that split-second were so fleeting that Jason clenched his fists without realizing it.</p><p class="thought">If only you would look at me with those eyes again. Just once more.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"I had no intention of alarming you. I merely wished to apologize on my cousin's behalf. I would also be grateful if you could tell me the lady's name—"</p><p class="italic">Ha.</p><p>He thought he heard a derisive snort from somewhere.</p><p class="thought">Did I mishear?</p><p>That was when Jason began to wonder.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"What purpose does belated gratitude or apology serve?"</p><p>The woman's response was ice-cold.</p><p class="dialogue">"Forgive my candor, but if you witnessed that incident from the beginning, shouldn't you have stopped your cousin? Rather than simply observing and pretending it wasn't your concern?"</p><p class="dialogue">"I... what?"</p><p class="dialogue">"If you have time to spare, examine yourself first. Your words and actions don't match."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>He was still a Grand Duke of the Empire.</p><p>This was the first time he'd received such a reprimand—he who'd been raised in a bloodline second only to the Emperor himself.</p><p>When the dazed Jason regained his senses and searched for the woman, she'd already vanished.</p></div><div class="my-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-neutral-700 w-24"></div><div class="w-2 h-2 bg-neutral-700 rotate-45 mx-4"></div><div class="h-px bg-neutral-700 w-24"></div></div></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap">From the emerald-hued building housing Façade's branch office, Gallo observed the entire commotion Angelique had created.</p><p class="dialogue">"The Fourth Princess never changes. She's the same whether in Katzen or Valdina—I suppose I should commend her consistency."</p><p class="dialogue">"Checkmate."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Cesare's frigid voice rang out. He didn't even glance at the disturbance outside, as though it held no interest whatsoever.</p><p>A chessboard sat in full play on the table beside the window where they were positioned.</p><p>Black had devoured nearly all of White's pieces—only a scattered few remained.</p><p class="dialogue">"Boss, show some mercy! You're utterly dominating me."</p><p>Gallo practically wept, dramatically tearing at his hair.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Oh—there's Grand Duke Castullo down there too. Look, Boss!"</p><p>As if attempting to divert Cesare's attention, Gallo poked his head out the window.</p><p class="dialogue">"He's been secretly collaborating with the Prince Regent, and it appears he brought General Jared along on this trip to Valdina."</p><p class="dialogue">"Jason? Jared?"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Cesare's eyebrows rose fractionally. Soon, as if comprehending everything, he chuckled softly.</p><p class="dialogue">"It seems my dear cousin is beginning to spread his wings, doesn't it?"</p><p>He saw through Jason's ambition at a glance.</p><p class="dialogue">"He's been skulking like a rat all this time, but with you absent, Boss, he's sneaking around both inside and outside Katzen. If he secures Jared and the Regent's backing, they won't be able to ignore him anymore."</p><p>Gallo grumbled as though annoyed.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Well, he'll have to spend his time now groveling before the Fourth Princess, so it won't be entirely comfortable for— Wait."</p><p>Gallo tilted his head.</p><p class="dialogue">"Isn't that the Princess down there?"</p><p>The hand moving a chess piece froze mid-motion.</p><p>Cesare looked up sharply. Silver hair flickered beyond the window, then vanished.</p><p class="dialogue">"Did I see wrong? She couldn't possibly be here, could she, Boss...?"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>When Gallo turned around, Cesare had already departed.</p><p class="dialogue">"You're abandoning our chess match to rush off somewhere?!"</p><p>Gallo shouted at his retreating back, receiving no response.</p><p class="dialogue">"Hey! Checkmate! I said checkmate!"</p></div><div class="mt-32 mb-40 reveal relative"><div class="absolute -inset-0.5 bg-gradient-to-r from-blood-900 to-black rounded-lg blur opacity-50 animate-pulse-slow"></div><div class="relative bg-black border border-blood-800/50 p-12 rounded-lg text-center shadow-2xl"><div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-blood-800/50 rounded text-xs tracking-widest text-red-400 font-ui uppercase">End Chapter 8</div><h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">Silver and Shadows</h2><div class="w-full h-px bg-gradient-to-r from-transparent via-red-800 to-transparent my-8"></div><p class="text-slate-500 font-serif italic text-xl">"The past walks among us, wearing familiar faces."</p><p class="mt-8 text-slate-600 text-sm font-ui tracking-widest uppercase">[ Continue to Chapter 9 ]</p></div></div></article></main><script>const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1});document.querySelectorAll(".reveal").forEach(e=>observer.observe(e))</script></body></html>
+  </style>
+</head>
+<body>
+  <div class="bg-ambient" aria-hidden="true"></div>
+  
+  <main>
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="badge">
+          <span class="badge-text">Chapter 77</span>
+        </div>
+        
+        <h1 class="hero-title">
+          Silver and
+          <span class="accent">Shadows</span>
+        </h1>
+        
+        <p class="hero-tagline">
+          "Some ghosts walk among the living, haunting those who made them."
+        </p>
+      </div>
+      
+      <div class="scroll-hint" aria-hidden="true">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+      </div>
+    </header>
+    
+    <article>
+      <!-- Opening Confrontation -->
+      <section class="prose reveal">
+        <p class="drop-cap text-emphasis">"I believe that's quite enough."</p>
+        <p>The young woman's expression remained completely neutral. She showed no fear whatsoever despite confronting armed knights.</p>
+        <p class="dialogue">"How dare you interfere with my punishment, you insolent wretch! Seize her at once!"</p>
+        <p class="dialogue">"Yes, Your Highness!"</p>
+      </section>
+      
+      <!-- The Stranger -->
+      <section class="prose section reveal">
+        <p>Though he could hear the Princess shrieking viciously, Jason couldn't tear his eyes away from the stranger before him.</p>
+        <p>The Princess's escort knight advanced toward the young woman without hesitation.</p>
+        <p>However, before he could even open his mouth to threaten her, a blade pressed against his throat. A female knight had materialized beside the silver-haired woman.</p>
+        <p class="dialogue">"Stand back."</p>
+      </section>
+      
+      <!-- Swift Defense -->
+      <section class="prose section reveal">
+        <p>The speed was extraordinary. The Princess's knight hadn't even seen his opponent draw her sword.</p>
+        <p class="dialogue">"Is Valdina populated entirely by scum? How dare a lowborn woman interfere here?"</p>
+        <p>The Princess's face flushed an even deeper crimson when her guard faltered.</p>
+        <p class="dialogue">"Who insults Valdina with every breath they take? Either you're a traitor ignorant of your nation's honor, or you're not from this country at all."</p>
+      </section>
+      
+      <!-- Near Exposure -->
+      <section class="prose section reveal">
+        <p class="dialogue">"What—what?! How dare you! I belong to a great empire!"</p>
+        <p>As the Princess, baited by the provocation, nearly revealed her true identity, Kensington seized her arm and whispered urgently.</p>
+        <p class="dialogue">"Stop. Have you forgotten where you are, Your Highness?"</p>
+        <p>Regardless of what was said behind closed doors, they had to conceal the identities of those responsible for today's chaos.</p>
+        <p>While muffling the Princess's protests, Kensington regarded the silver-haired stranger with deep suspicion.</p>
+      </section>
+      
+      <!-- Retreat -->
+      <section class="prose section reveal">
+        <p class="dialogue">"This is your fault for being incompetent! I should have killed her from the start!"</p>
+        <p>Meanwhile, the Princess—furious at being constrained—pinched her guard viciously and kicked his shin.</p>
+        <p>Though tears nearly welled from the brutal blow, the escort couldn't protest.</p>
+        <p>The young woman maintained her composure throughout, making the contrast between them painfully obvious to all observers.</p>
+        <p>Princess Angelique scowled.</p>
+        <p class="dialogue">"Damn this wretched place! I have no power here—let's leave!"</p>
+      </section>
+      
+      <!-- Gratitude -->
+      <section class="prose section reveal">
+        <p>Once the volatile Princess departed, tranquility finally returned to the street.</p>
+        <p class="dialogue">"Thank you! Because of you, Tippy and I survived."</p>
+        <p class="dialogue">"Peeee! Peeee!"</p>
+        <p>The tiger cub added its own grateful cry.</p>
+        <p>The young woman nodded with cool indifference and immediately turned to leave.</p>
+      </section>
+      
+      <!-- Pursuit -->
+      <section class="prose section reveal">
+        <p>Jason, who'd been watching as if entranced, took a hurried step forward.</p>
+        <p class="dialogue">"Your Highness? Where are you going?"</p>
+        <p>He didn't even register his knight's voice calling from behind. Emerging from the tent, he spotted the young woman walking not far ahead.</p>
+        <p class="dialogue">"Wait—please, wait a moment!"</p>
+        <p>Jason pursued her urgently. Something about her silver hair flowing like silk made his mouth run dry.</p>
+      </section>
+      
+      <!-- Desperation -->
+      <section class="prose section reveal">
+        <p class="dialogue">"Pardon me, might I know the lady's name?"</p>
+        <p>Watching her retreating back felt somehow devastating, as though something precious were slipping through his trembling fingers.</p>
+        <div class="thought">
+          <p>The courage to stop ruthless cruelty when no one else would act. The composure that silenced even arrogant Angelique.</p>
+        </div>
+        <p>This woman was both beautiful and wise.</p>
+        <div class="thought">
+          <p>Please—stop for just a moment and look back at me.</p>
+        </div>
+      </section>
+      
+      <!-- The Turn -->
+      <section class="prose section reveal">
+        <p>At the very instant Jason silently wished it, the young woman's steps halted.</p>
+        <div class="thought">
+          <p>Ah, thank God.</p>
+        </div>
+        <p>An inexplicable wave of relief washed through Jason's chest.</p>
+        <p class="dialogue">"The person who created such chaos is my cousin. She was raised too preciously and never learned proper manners. Please allow me to apologize on her behalf."</p>
+        <p>His voice emerged sweet and thoughtful—perfectly calibrated to dissolve another person's wariness.</p>
+        <p>Finally, the woman who'd stopped turned around.</p>
+      </section>
+      
+      <!-- Green Eyes -->
+      <section class="prose section reveal">
+        <p>The moment Jason beheld those beautiful green eyes, he was utterly mesmerized.</p>
+        <p>And simultaneously, a fierce sensation of mortal danger swept past the back of his neck.</p>
+        <p class="dialogue">"What—?"</p>
+        <p>Shocked, Jason whipped his head around, scanning the surroundings. The killing intent had been so vivid he wondered if an assassin lurked nearby.</p>
+        <p>Yet he discovered no trace and refocused on the woman before him.</p>
+      </section>
+      
+      <!-- Recognition -->
+      <section class="prose section reveal">
+        <p>For a split second, those large green eyes trembled with shock. Fear, rage, and inexplicable regret—all flashed past in an instant.</p>
+        <p class="dialogue">"My lady? Are you well?"</p>
+        <div class="thought">
+          <p>How strange. Why would she be startled to see me?</p>
+        </div>
+        <p>Jason was surprised by the variety of emotions flickering through her gaze. He searched his memory, wondering if they'd met somewhere before.</p>
+        <div class="thought">
+          <p>No. If I'd seen a face like this, there's no possibility I could forget it.</p>
+        </div>
+      </section>
+      
+      <!-- The Slap -->
+      <section class="prose section reveal">
+        <p class="dialogue">"My lady..."</p>
+        <p>Jason extended his hand. He swore he meant no offense.</p>
+        <p>It simply seemed unbearable that moisture trembled in her eyes, hanging precariously as though it might fall at any moment.</p>
+        <p class="dialogue">"I only—"</p>
+        <p class="sfx">SLAP!</p>
+      </section>
+      
+      <!-- Aftermath -->
+      <div class="content-box reveal">
+        <div class="prose">
+          <p>His outstretched hand was struck away coldly.</p>
+          <p>Stinging pain lingered on the back of his hand. Jason realized she'd slapped it aside.</p>
+          <p class="dialogue">"It doesn't hurt. Please don't worry."</p>
+          <p>Jason murmured unconsciously, attempting to reassure her.</p>
+        </div>
+      </div>
+      
+      <!-- Mask -->
+      <section class="prose reveal">
+        <p>Meanwhile, the woman had resumed her expressionless demeanor, as though nothing had occurred.</p>
+        <p>The moisture that had gathered in her eyes had long since evaporated. Nothing could be read on that pale face—it was as though a thick veil had been drawn across it.</p>
+        <p>The emotions revealed in that split-second were so fleeting that Jason clenched his fists without realizing it.</p>
+        <div class="thought">
+          <p>If only you would look at me with those eyes again. Just once more.</p>
+        </div>
+      </section>
+      
+      <!-- Attempt -->
+      <section class="prose section reveal">
+        <p class="dialogue">"I had no intention of alarming you. I merely wished to apologize on my cousin's behalf. I would also be grateful if you could tell me the lady's name—"</p>
+        <p><em>Ha.</em></p>
+        <p>He thought he heard a derisive snort from somewhere.</p>
+        <div class="thought">
+          <p>Did I mishear?</p>
+        </div>
+        <p>That was when Jason began to wonder.</p>
+      </section>
+      
+      <!-- The Rebuke -->
+      <section class="prose section reveal">
+        <p class="dialogue">"What purpose does belated gratitude or apology serve?"</p>
+        <p>The woman's response was ice-cold.</p>
+        <p class="dialogue">"Forgive my candor, but if you witnessed that incident from the beginning, shouldn't you have stopped your cousin? Rather than simply observing and pretending it wasn't your concern?"</p>
+        <p class="dialogue">"I... what?"</p>
+        <p class="dialogue">"If you have time to spare, examine yourself first. Your words and actions don't match."</p>
+      </section>
+      
+      <!-- Vanished -->
+      <section class="prose section reveal">
+        <p>He was still a Grand Duke of the Empire.</p>
+        <p>This was the first time he'd received such a reprimand—he who'd been raised in a bloodline second only to the Emperor himself.</p>
+        <p>When the dazed Jason regained his senses and searched for the woman, she'd already vanished.</p>
+      </section>
+      
+      <!-- Divider -->
+      <div class="divider reveal" role="separator" aria-hidden="true">
+        <span class="divider-diamond"></span>
+      </div>
+      
+      <!-- Observer -->
+      <section class="prose reveal">
+        <p class="drop-cap">From the emerald-hued building housing Façade's branch office, Gallo observed the entire commotion Angelique had created.</p>
+        <p class="dialogue">"The Fourth Princess never changes. She's the same whether in Katzen or Valdina—I suppose I should commend her consistency."</p>
+        <p class="dialogue">"Checkmate."</p>
+      </section>
+      
+      <!-- Chess Game -->
+      <section class="prose section reveal">
+        <p>Cesare's frigid voice rang out. He didn't even glance at the disturbance outside, as though it held no interest whatsoever.</p>
+        <p>A chessboard sat in full play on the table beside the window where they were positioned.</p>
+        <p>Black had devoured nearly all of White's pieces—only a scattered few remained.</p>
+        <p class="dialogue">"Boss, show some mercy! You're utterly dominating me."</p>
+        <p>Gallo practically wept, dramatically tearing at his hair.</p>
+      </section>
+      
+      <!-- Intelligence -->
+      <section class="prose section reveal">
+        <p class="dialogue">"Oh—there's Grand Duke Castullo down there too. Look, Boss!"</p>
+        <p>As if attempting to divert Cesare's attention, Gallo poked his head out the window.</p>
+        <p class="dialogue">"He's been secretly collaborating with the Prince Regent, and it appears he brought General Jared along on this trip to Valdina."</p>
+        <p class="dialogue">"Jason? Jared?"</p>
+      </section>
+      
+      <!-- Insight -->
+      <section class="prose section reveal">
+        <p>Cesare's eyebrows rose fractionally. Soon, as if comprehending everything, he chuckled softly.</p>
+        <p class="dialogue">"It seems my dear cousin is beginning to spread his wings, doesn't it?"</p>
+        <p>He saw through Jason's ambition at a glance.</p>
+        <p class="dialogue">"He's been skulking like a rat all this time, but with you absent, Boss, he's sneaking around both inside and outside Katzen. If he secures Jared and the Regent's backing, they won't be able to ignore him anymore."</p>
+        <p>Gallo grumbled as though annoyed.</p>
+      </section>
+      
+      <!-- Discovery -->
+      <section class="prose section reveal">
+        <p class="dialogue">"Well, he'll have to spend his time now groveling before the Fourth Princess, so it won't be entirely comfortable for— Wait."</p>
+        <p>Gallo tilted his head.</p>
+        <p class="dialogue">"Isn't that the Princess down there?"</p>
+        <p>The hand moving a chess piece froze mid-motion.</p>
+        <p>Cesare looked up sharply. Silver hair flickered beyond the window, then vanished.</p>
+        <p class="dialogue">"Did I see wrong? She couldn't possibly be here, could she, Boss...?"</p>
+      </section>
+      
+      <!-- Departure -->
+      <section class="prose section reveal">
+        <p>When Gallo turned around, Cesare had already departed.</p>
+        <p class="dialogue">"You're abandoning our chess match to rush off somewhere?!"</p>
+        <p>Gallo shouted at his retreating back, receiving no response.</p>
+        <p class="dialogue">"Hey! Checkmate! I said checkmate!"</p>
+      </section>
+      
+      <!-- Chapter End -->
+      <aside class="chapter-end reveal" aria-label="End of chapter">
+        <div class="chapter-end-glow" aria-hidden="true"></div>
+        <div class="chapter-end-card">
+          <span class="chapter-end-label">End Chapter 77</span>
+          <h2 class="chapter-end-title">Silver and Shadows</h2>
+          <div class="chapter-end-line" aria-hidden="true"></div>
+          <p class="chapter-end-quote">"The past walks among us, wearing familiar faces."</p>
+          <p class="chapter-end-nav" role="button" tabindex="0">[ Continue to Chapter 78 ]</p>
+        </div>
+      </aside>
+    </article>
+  </main>
+  
+  <script>
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    );
+    
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  </script>
+</body>
+</html>

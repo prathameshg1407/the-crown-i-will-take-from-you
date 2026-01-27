@@ -1,577 +1,733 @@
-<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Price of Treachery</title>
-<!-- Self-hosted fonts -->
-    <link rel="stylesheet" href="/fonts/fonts.css">
-    
-    <style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The Price of Treachery — Chapter 71</title>
+
+  <!-- Self-hosted fonts -->
+  <link rel="stylesheet" href="/fonts/fonts.css" />
+
+  <style>
     /* ============================================
-       CSS Variables
+       CUSTOM PROPERTIES
        ============================================ */
     :root {
-      --font-heading: 'Cinzel', serif;
-      --font-body: 'Cormorant Garamond', serif;
-      --font-ui: 'Lato', sans-serif;
+      /* Typography */
+      --font-heading: 'Cinzel', Georgia, serif;
+      --font-body: 'Cormorant Garamond', Georgia, serif;
+      --font-ui: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+      /* Spacing (8px base) */
+      --space-1: 0.5rem;   /* 8px  */
+      --space-2: 1rem;     /* 16px */
+      --space-3: 1.5rem;   /* 24px */
+      --space-4: 2rem;     /* 32px */
+      --space-5: 2.5rem;   /* 40px */
+      --space-6: 3rem;     /* 48px */
+      --space-8: 4rem;     /* 64px */
+      --space-10: 5rem;    /* 80px */
+      --space-12: 6rem;    /* 96px */
+
+      /* Colors */
+      --color-bg: #050505;
+      --color-surface: #111111;
+      --color-surface-soft: #18181b;
+      --color-text-primary: #e5e5e5;
+      --color-text-secondary: #a3a3a3;
+      --color-text-muted: #737373;
+
+      --color-accent: #b91c1c;
+      --color-accent-light: #ef4444;
+      --color-accent-dark: #7f1d1d;
+      --color-accent-glow: rgba(185, 28, 28, 0.18);
+
+      --color-dialogue: #e2e8f0;
+      --color-thought: #c4b5fd;
+
+      /* Effects */
+      --blur-sm: 8px;
+      --transition-base: 0.25s ease;
+      --shadow-glow: 0 0 24px var(--color-accent-glow);
     }
-    
+
     /* ============================================
-       Reset & Base
+       RESET & BASE
        ============================================ */
-    * {
+    *,
+    *::before,
+    *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     html {
       scroll-behavior: smooth;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    
+
     body {
-      background-color: #050505;
-      color: #a3a3a3;
+      background-color: var(--color-bg);
+      color: var(--color-text-secondary);
       font-family: var(--font-body);
-      line-height: 1.75;
+      font-size: 1.125rem;
+      line-height: 1.8;
       overflow-x: hidden;
-      padding-bottom: 100px;
     }
-    
+
     ::selection {
-      background-color: #881337;
-      color: #fff;
+      background-color: var(--color-accent-dark);
+      color: #ffffff;
     }
-    
-    /* Hide scrollbars */
+
+    /* Hide scrollbars (non-essential) */
     ::-webkit-scrollbar {
       display: none;
     }
-    
     * {
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-    
+
     /* ============================================
-       Background
+       BACKGROUND
        ============================================ */
-    .bg-gradient {
+    .page-background {
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, var(--color-accent-glow), transparent),
+        radial-gradient(ellipse at bottom, rgba(15, 23, 42, 0.35), transparent),
+        #000;
       z-index: -1;
       pointer-events: none;
     }
-    
+
     /* ============================================
-       Main Container
+       LAYOUT
        ============================================ */
     main {
       position: relative;
       min-height: 100vh;
-      padding-bottom: 10rem;
     }
-    
+
     /* ============================================
-       Header
+       HEADER
        ============================================ */
     header {
-      min-height: 60vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem 1.5rem 2rem;
+      padding: var(--space-6) var(--space-3);
       text-align: center;
       position: relative;
     }
-    
-    @media (max-width: 768px) {
-      header {
-        min-height: 50vh;
-        padding: 2rem 1rem;
-      }
-    }
-    
+
     .chapter-badge {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      padding: 0.25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, 0.5);
-      border-radius: 9999px;
-      background-color: rgba(24, 24, 27, 0.7);
-      backdrop-filter: blur(4px);
-    }
-    
-    .chapter-badge span {
-      color: #fee2e2;
-      font-size: 0.625rem;
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: var(--space-3);
+      padding: 0.375rem var(--space-3);
+      border-radius: 999px;
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      background: rgba(24, 24, 27, 0.85);
+      backdrop-filter: blur(var(--blur-sm));
       font-family: var(--font-ui);
-      letter-spacing: 0.4em;
+      font-size: 0.6875rem;
+      letter-spacing: 0.25em;
       text-transform: uppercase;
+      color: #fee2e2;
     }
-    
+
     h1 {
       font-family: var(--font-heading);
-      font-size: clamp(2.25rem, 7vw, 4rem);
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 600;
       line-height: 1.1;
-      letter-spacing: -0.02em;
-      color: #e5e5e5;
-      margin-bottom: 1.5rem;
+      letter-spacing: -0.03em;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-3);
     }
-    
+
     .gradient-text {
-      background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+      display: block;
+      background: linear-gradient(180deg, var(--color-accent-light), var(--color-accent-dark));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       font-style: italic;
     }
-    
-    header p {
+
+    .subtitle {
       font-family: var(--font-body);
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      color: var(--color-text-muted);
       font-style: italic;
-      max-width: 30rem;
+      max-width: 32rem;
+      margin: 0 auto;
     }
-    
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: var(--space-5);
+      left: 50%;
+      transform: translateX(-50%);
+      color: #4b5563;
+      animation: float 2s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%,
+      100% {
+        transform: translate(-50%, 0);
+      }
+      50% {
+        transform: translate(-50%, 0.75rem);
+      }
+    }
+
     /* ============================================
-       Article Container
+       ARTICLE
        ============================================ */
     article {
       max-width: 42rem;
       margin: 0 auto;
-      padding: 0 1.5rem;
+      padding: var(--space-8) var(--space-3) var(--space-12);
+      position: relative;
+      z-index: 1;
     }
-    
-    @media (max-width: 768px) {
-      article {
-        padding: 0 1rem;
-      }
-    }
-    
-    /* ============================================
-       ALL Paragraphs - Center by default
-       ============================================ */
-    article p {
-      line-height: 2.1;
+
+    p {
       margin-bottom: 1.5em;
-      font-size: 1.2rem;
+      line-height: 2;
       text-align: center;
     }
-    
-    @media (max-width: 768px) {
-      article p {
-        font-size: 1.1rem;
-        line-height: 2;
-      }
-    }
-    
-    /* Prose paragraphs */
-    .prose p {
-      line-height: 2.1;
-      margin-bottom: 1.75em;
-      font-size: 1.2rem;
-      color: #a3a3a3;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      .prose p {
-        font-size: 1.1rem;
-        line-height: 2;
-        margin-bottom: 1.5em;
-      }
-    }
-    
-    /* ============================================
-       Drop Cap
-       ============================================ */
+
     .drop-cap {
       text-align: left;
     }
-    
+
     .drop-cap::first-letter {
       font-family: var(--font-heading);
       float: left;
-      font-size: 4rem;
-      line-height: 0.8;
-      margin-right: 0.75rem;
-      margin-top: 0.15rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+      font-size: 4.5rem;
+      line-height: 0.75;
+      margin: 0.1em 0.5rem 0 0;
+      color: var(--color-accent-light);
+      text-shadow: var(--shadow-glow);
     }
-    
-    @media (max-width: 640px) {
-      .drop-cap::first-letter {
-        font-size: 3.5rem;
-        margin-right: 0.5rem;
-      }
-    }
-    
-    /* ============================================
-       Dialogue
-       ============================================ */
+
+    /* Dialogue */
     .dialogue {
-      color: #e2e8f0;
-      font-style: normal;
-      position: relative;
-      padding: 1rem 1.5rem;
-      border-left: 2px solid rgba(136, 19, 55, 0.3);
-      text-align: center;
-      display: block;
-      margin: 1.5rem auto;
+      color: var(--color-dialogue);
+      padding: var(--space-2) var(--space-4);
+      border-left: 2px solid rgba(185, 28, 28, 0.3);
       max-width: 90%;
+      margin: var(--space-3) auto;
+      text-align: center;
       line-height: 1.9;
     }
-    
-    @media (max-width: 480px) {
-      .dialogue {
-        padding: 0.75rem 1rem;
-        max-width: 95%;
-      }
-    }
-    
-    /* ============================================
-       Thought Box
-       ============================================ */
+
+    /* Thought */
     .thought {
-      color: #c4b5fd;
+      color: var(--color-thought);
       font-style: italic;
       border-left: 2px solid rgba(196, 181, 253, 0.3);
-      padding: 1.5rem 2rem;
-      margin: 2rem auto;
+      padding: var(--space-4);
+      margin: var(--space-4) auto;
       max-width: 90%;
-      background: rgba(88, 28, 135, 0.05);
+      background: rgba(76, 29, 149, 0.06);
       border-radius: 4px;
       text-align: center;
     }
-    
+
     .thought p {
       margin-bottom: 1rem;
-      line-height: 1.8;
-      text-align: center;
+      line-height: 1.9;
     }
-    
+
     .thought p:last-child {
       margin-bottom: 0;
     }
-    
-    /* ============================================
-       Reveal containers - center all content
-       ============================================ */
-    .reveal {
-      opacity: 1;
-      transform: translateY(0);
+
+    /* Highlight blocks */
+    .highlight-amber {
+      background: rgba(120, 53, 15, 0.12);
+      border-left: 3px solid rgba(245, 158, 11, 0.5);
+      border-radius: 0 6px 6px 0;
+      padding: var(--space-4) var(--space-5);
+      margin: var(--space-6) 0;
+    }
+
+    .highlight-red {
+      background: rgba(69, 10, 10, 0.16);
+      border-left: 3px solid rgba(185, 28, 28, 0.7);
+      border-radius: 0 6px 6px 0;
+      padding: var(--space-4) var(--space-5);
+      margin: var(--space-6) 0;
+    }
+
+    /* Newspaper box */
+    .newspaper-box {
+      background: rgba(15, 23, 42, 0.65);
+      border-radius: 8px;
+      border: 2px solid rgba(127, 29, 29, 0.6);
+      padding: var(--space-5);
+      margin: var(--space-6) 0;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
       text-align: center;
     }
-    
+
+    .newspaper-headline {
+      font-family: var(--font-heading);
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      line-height: 1.25;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #f97373;
+      margin-bottom: var(--space-2);
+    }
+
+    .newspaper-sub {
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #9ca3af;
+    }
+
+    /* Scene divider */
+    .scene-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-3);
+      margin: var(--space-8) 0;
+    }
+
+    .scene-divider::before,
+    .scene-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #4b5563, transparent);
+    }
+
+    .scene-divider span {
+      width: 6px;
+      height: 6px;
+      background: #4b5563;
+      transform: rotate(45deg);
+    }
+
+    /* Chapter end card */
+    .chapter-end {
+      position: relative;
+      margin: var(--space-12) 0 var(--space-8);
+      padding: var(--space-8) var(--space-5);
+      background: radial-gradient(circle at top, rgba(248, 113, 113, 0.12), transparent 55%), #020617;
+      border-radius: 10px;
+      border: 1px solid rgba(127, 29, 29, 0.6);
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+    }
+
+    .chapter-end-label {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 0.375rem var(--space-2);
+      border-radius: 999px;
+      border: 1px solid rgba(127, 29, 29, 0.7);
+      background: #020617;
+      font-family: var(--font-ui);
+      font-size: 0.6875rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #fca5a5;
+    }
+
+    .chapter-end h2 {
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #f97373, #7f1d1d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--space-4);
+    }
+
+    .chapter-end-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #7f1d1d, transparent);
+      margin: var(--space-4) 0;
+    }
+
+    .chapter-end-quote {
+      color: #64748b;
+      font-style: italic;
+      font-size: 1.25rem;
+      margin-bottom: var(--space-4);
+    }
+
+    .chapter-end-continue {
+      font-family: var(--font-ui);
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+
+    /* Reveal animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
     .reveal.active {
       opacity: 1;
       transform: translateY(0);
     }
-    
-    .reveal p {
-      text-align: center;
+
+    .fade-up {
+      animation: fadeUp 1s ease forwards;
     }
-    
-    /* ============================================
-       Special Content Boxes
-       ============================================ */
-    .my-20,
-    .my-24 {
-      text-align: center;
-    }
-    
-    .my-20 > p,
-    .my-24 > p {
-      text-align: center;
-    }
-    
-    /* Gradient boxes */
-    [class*="bg-gradient-to"] {
-      text-align: center;
-    }
-    
-    [class*="bg-gradient-to"] p {
-      text-align: center;
-    }
-    
-    /* Border boxes */
-    [class*="border-l-"] {
-      text-align: center;
-    }
-    
-    [class*="border-l-"] p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Scene Elements
-       ============================================ */
-    .scene-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
-      margin: 4rem 0;
-    }
-    
-    .section-divider {
-      font-family: var(--font-heading);
-      text-align: center;
-      color: #525252;
-      font-size: 0.875rem;
-      letter-spacing: 0.3em;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .time-marker {
-      background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
-      border-top: 1px solid rgba(159, 18, 57, 0.3);
-      border-bottom: 1px solid rgba(159, 18, 57, 0.3);
-      padding: 1.5rem 0;
-      margin: 3rem 0;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Action Line & Narrator
-       ============================================ */
-    .action-line {
-      font-style: italic;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      text-align: center;
-      margin: 1.5rem 0;
-    }
-    
-    .narrator {
-      color: #a3a3a3;
-      font-style: italic;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Space-y containers
-       ============================================ */
-    .space-y-4,
-    .space-y-6,
-    .space-y-8 {
-      text-align: center;
-    }
-    
-    .space-y-4 > *,
-    .space-y-6 > *,
-    .space-y-8 > * {
-      text-align: center;
-    }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    /* ============================================
-       Final Box / Ending
-       ============================================ */
-    .final-box,
-    [class*="mt-32"][class*="mb-40"] {
-      margin: 6rem auto 4rem;
-      text-align: center;
-    }
-    
-    [class*="border-t"][class*="border-neutral"] {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Utility Classes
-       ============================================ */
-    .text-center { text-align: center !important; }
-    .italic { font-style: italic; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    .font-body { font-family: var(--font-body); }
-    .font-ui { font-family: var(--font-ui); }
-    
-    /* Text Sizes */
-    .text-sm { font-size: 0.875rem; }
-    .text-base { font-size: 1rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-4xl { font-size: 2.25rem; }
-    .text-6xl { font-size: 3.75rem; }
-    .text-8xl { font-size: 6rem; }
-    .text-9xl { font-size: 8rem; }
-    
-    /* Responsive text */
-    @media (min-width: 768px) {
-      .md\:text-8xl { font-size: 6rem; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:text-9xl { font-size: 8rem; }
-    }
-    
-    /* Margins */
-    .m-0 { margin: 0; }
-    .mb-4 { margin-bottom: 1rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-32 { margin-top: 8rem; }
-    .mb-40 { margin-bottom: 10rem; }
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
-    
-    /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-neutral-600 { color: #525252; }
-    .text-neutral-700 { color: #404040; }
-    .text-neutral-800 { color: #262626; }
-    .text-white { color: #ffffff; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-green-100 { color: #dcfce7; }
-    .text-green-200 { color: #bbf7d0; }
-    .text-green-300 { color: #86efac; }
-    .text-green-700 { color: #15803d; }
-    .text-green-800 { color: #166534; }
-    .text-green-900 { color: #14532d; }
-    .text-rose-200 { color: #fecdd3; }
-    .text-amber-100 { color: #fef3c7; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-red-800 { color: #991b1b; }
-    .text-slate-200 { color: #e2e8f0; }
-    .text-slate-400 { color: #94a3b8; }
-    
-    /* Leading & Tracking */
-    .leading-tight { line-height: 1.25; }
-    .leading-relaxed { line-height: 1.625; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-tighter { letter-spacing: -0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    /* Padding */
-    .p-6 { padding: 1.5rem; }
-    .p-8 { padding: 2rem; }
-    .p-10 { padding: 2.5rem; }
-    .p-12 { padding: 3rem; }
-    .pl-4 { padding-left: 1rem; }
-    .pl-6 { padding-left: 1.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .px-8 { padding-left: 2rem; padding-right: 2rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .pt-16 { padding-top: 4rem; }
-    .pb-40 { padding-bottom: 10rem; }
-    
-    /* Borders */
-    .border { border-width: 1px; border-style: solid; }
-    .border-2 { border-width: 2px; border-style: solid; }
-    .border-t { border-top-width: 1px; border-top-style: solid; }
-    .border-l-2 { border-left-width: 2px; border-left-style: solid; }
-    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
-    .rounded-full { border-radius: 9999px; }
-    
-    .border-neutral-800 { border-color: #262626; }
-    .border-green-500 { border-color: #22c55e; }
-    .border-green-800 { border-color: #166534; }
-    .border-amber-700 { border-color: #b45309; }
-    .border-red-800 { border-color: #991b1b; }
-    .border-purple-800 { border-color: #6b21a8; }
-    
-    /* Flex */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    
-    /* Position */
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .fixed { position: fixed; }
-    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-    .bottom-10 { bottom: 2.5rem; }
-    .z-10 { z-index: 10; }
-    .-z-10 { z-index: -10; }
-    
-    /* Width/Height */
-    .w-2 { width: 0.5rem; }
-    .h-2 { height: 0.5rem; }
-    .h-px { height: 1px; }
-    .w-full { width: 100%; }
-    .h-screen { height: 100vh; }
-    .min-h-screen { min-height: 100vh; }
-    .max-w-2xl { max-width: 42rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    
-    /* Backgrounds */
-    .bg-green-700 { background-color: #15803d; }
-    .bg-green-800 { background-color: #166534; }
-    .bg-green-900 { background-color: #14532d; }
-    .bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
-    .bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
-    .bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
-    .bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
-    
-    /* Backdrop */
-    .backdrop-blur-sm { backdrop-filter: blur(4px); }
-    
-    /* Overflow */
-    .overflow-x-hidden { overflow-x: hidden; }
-    
-    /* Animation */
-    .animate-fade-up {
-      animation: fadeUp 1s ease-out;
-    }
-    
-    .animate-bounce {
-      animation: bounce 1s infinite;
-    }
-    
+
     @keyframes fadeUp {
       from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(30px);
       }
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
-    
-    @keyframes bounce {
-      0%, 100% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 768px) {
+      header {
+        min-height: 80vh;
+        padding: var(--space-5) var(--space-2);
       }
-      50% {
-        transform: translateY(0);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+      article {
+        padding: var(--space-6) var(--space-2) var(--space-10);
+      }
+      .drop-cap::first-letter {
+        font-size: 3.5rem;
+        margin-right: 0.4rem;
+      }
+      .dialogue,
+      .thought {
+        padding: var(--space-2) var(--space-3);
+      }
+      .chapter-end {
+        padding: var(--space-6) var(--space-3);
       }
     }
 
-  </style></head><body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
-  <div class="bg-gradient"></div>
-<main class="relative min-h-screen pb-40"><div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10"></div><header class="h-screen flex flex-col items-center justify-center relative p-6"><div class="animate-fade-up flex flex-col items-center"><div class="mb-6 px-4 py-1 border border-blood-800/50 rounded-full bg-blood-950/20 backdrop-blur-sm"><span class="text-blood-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 71</span></div><h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tighter mb-8">The Price of<br><span class="gradient-text">Treachery</span></h1><p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">"When the shield becomes the sword, all must fall."</p></div><div class="absolute bottom-10 animate-bounce text-neutral-600"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div></header><article class="max-w-2xl mx-auto px-8 relative z-10"><div class="prose prose-invert prose-xl reveal"><p class="drop-cap text-neutral-300">The Prince Regent said nothing at first.</p><p>Truth be told, the same concerns had been gnawing at him.</p><p class="dialogue">"Wait—what do you mean, attacked by assassins? Is it possible someone else knows where the document is hidden?"</p><p class="dialogue">"Others were targeting the mansion as well."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Samon continued, watching his father's expression carefully.</p><p class="dialogue">"From what I've learned, they were elite—the best of the best. We captured one alive and interrogated him. He turned out to be an imperial citizen."</p><p class="dialogue">"The empire? Who from Katzen would send operatives here?"</p><p class="dialogue">"That... I wasn't able to determine. The interrogation was incomplete when I had to flee. My apologies, Father."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>If the assassin was an elite knight, he must be someone of considerable standing within the empire. But why would Katzen be involved?</p><p>The Prince Regent couldn't make sense of it.</p><p>Samon, reading his father's perplexed expression, spoke quickly.</p><p class="dialogue">"Someone in Valdina is likely trying to exploit our vulnerabilities using that certificate of acceptance. We're allied with Emperor Katzen while simultaneously courting Prince Jason, aren't we? What's to stop someone else from playing the same game?"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Not long ago, the Prince Regent and the Minister had been at each other's throats over the banquet incident.</p><p class="dialogue">"The Minister may have had a change of heart. He could have been planning to betray us."</p><p>Samon's face grew solemn.</p><p class="dialogue">"Father, you must decide. We need to deal with the Minister now. We have to move before they do if we're to survive. We must silence Etienne before they can extract more information from him."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The Prince Regent pressed his fingers against his throbbing temples.</p><p>Having to eliminate Etienne—his greatest ally—with his own hands felt like carving flesh from his own body.</p><p>Yet given the circumstances, with every path blocked, there was absolutely no other option.</p></div><div class="my-16 reveal"><div class="bg-neutral-900/30 border-l-4 border-amber-800/50 p-8 rounded-r-lg"><div class="prose prose-invert prose-xl"><p>He raised his head. A faded shield emblem hanging on the wall caught his eye—the coat of arms of House Claudio.</p><p class="dialogue text-amber-100/60 italic">"Joaquin. As your brother's shield, you will protect this country with unwavering loyalty. Your brother is so capable—even if I die, he will endure."</p><p>The Regent remembered the counsel his father had given him in his youth, when he'd been banished from the palace after his older brother ascended the throne.</p></div></div></div><div class="prose prose-invert prose-xl reveal"><p>He bit his lip as if chewing on bitter truths.</p><p class="thought">No, Father. I will not remain a shield forever.</p><p>Duke Claudio's expression hardened with determination.</p><p class="dialogue">"Very well. It shall be done."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>That night, a figure dressed entirely in black slipped out the back entrance of the Duke's estate.</p></div><div class="my-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-neutral-700 w-24"></div><div class="w-2 h-2 bg-neutral-700 rotate-45 mx-4"></div><div class="h-px bg-neutral-700 w-24"></div></div></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap">Valdina's special prison lay deep beneath the earth.</p><p>The sound of footsteps echoed against wet stone floors. The Minister, who had been dozing fitfully, suddenly jerked awake at a sharp pain.</p><p class="dialogue">"Hngh—!"</p><p>A cold blue blade pressed against his throat.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Lark Etienne. How dare you betray your master?"</p><p class="dialogue">"W-what are you talking about?"</p><p>Etienne looked around frantically, sweat pouring down his face.</p><p class="thought">Where are the jailers? The guards? Why can't I see anyone?</p><p class="dialogue">"Claudio! Are you trying to kill me again?! You treacherous bastards—you never know when to quit! You're trying to silence me!"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The man snorted at the pathetic outburst.</p><p class="dialogue">"Have you gone senile with age? You hid yourself so well I barely managed to track you down here."</p><p class="dialogue">"That's impossible! No one should have been able to get close—"</p><p>The Minister's eyes widened as realization struck.</p><p class="thought">Good God... I fell for the Princess's trap.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>But it was far too late.</p><p>By the time Etienne understood everything, the gleaming blade had already sliced clean through his throat.</p></div><div class="my-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-neutral-700 w-24"></div><div class="w-2 h-2 bg-neutral-700 rotate-45 mx-4"></div><div class="h-px bg-neutral-700 w-24"></div></div></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap">"Extra! Extra!"</p><p>Newsboys raced through the streets, their voices cutting through the morning air. A bold red headline blazed across the front page above Etienne's haggard portrait.</p></div><div class="my-16 reveal"><div class="bg-neutral-900/50 border-4 border-red-900/30 p-10 rounded shadow-2xl"><h3 class="newspaper-headline text-4xl text-red-500 text-center m-0">LARK ETIENNE<br>DIES IN PRISON!</h3><div class="mt-6 text-center text-neutral-400 text-sm font-ui tracking-widest">FORMER MINISTER FOUND DEAD • FOUL PLAY SUSPECTED</div></div></div><div class="prose prose-invert prose-xl reveal"><p class="dialogue">"Really? Is it true?"</p><p class="dialogue">"He was a minister, wasn't he? Not only did he take bribes left and right, but he abused children and sold them to foreign countries! These people never do just one evil thing!"</p><p class="dialogue">"Hmph. That wretched man—he died well. Good riddance."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The Minister was dead.</p><p>Because he'd been a criminal awaiting execution for violating military law, no funeral was held. Instead, his body was unceremoniously dumped beneath the castle walls.</p><p>Whenever passersby saw the letters spelling"Etienne," they cursed and spat on the ground.</p><p>It was an unthinkably miserable and insignificant end for someone who had lived his entire life with the pride of high nobility.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The family's property was confiscated. The title was stripped away.</p><p>House Etienne collapsed catastrophically after losing its head, but there was no one left to mourn that fact.</p><p>However, some still questioned his sudden demise.</p><p class="dialogue">"A chronic illness? Nonsense! How long has he even been in prison that he suddenly falls ill? And someone as robust as Etienne!"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Coincidentally, the tragic massacre at Count Etienne's estate—which had occurred just before the Minister's death—only deepened public suspicion.</p><p>A one-sided slaughter bordering on annihilation.</p><p>People clicked their tongues at the excessively brutal cleanup.</p><p class="dialogue">"But wasn't the Minister the Duke's greatest right-hand man, both in name and reality? They'd worked together for years, and now suddenly..."</p><p class="dialogue">"Ha! Didn't you know? This is the true nature of the man we serve."</p></div><div class="bg-blood-950/20 border-l-4 border-blood-800 p-8 my-12 rounded-r-lg reveal"><div class="prose prose-invert prose-xl"><p>Members of the Regent's faction felt their hearts constrict with pressure and fear.</p><p class="dialogue">"He's making an example of the Minister. He's showing us exactly what will happen if we try to abandon his ship."</p></div></div><div class="my-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-neutral-700 w-24"></div><div class="w-2 h-2 bg-neutral-700 rotate-45 mx-4"></div><div class="h-px bg-neutral-700 w-24"></div></div></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap">In the Princess's palace, Medea knelt reverently before an icon depicting the goddess.</p><p>After some time, she rose to her feet.</p><p>On the long altar beneath the sacred image, dozens of small angel statues—each no larger than her palm—stood in neat rows alongside flickering candles.</p></div><div class="my-16 reveal"><div class="bg-neutral-900/30 border border-amber-800/30 p-8 rounded-lg"><div class="prose prose-invert prose-xl"><p class="dialogue italic text-amber-100/70">"Forgive me for taking so long. May your resentment fade, and may you sleep peacefully now, even if this peace comes late."</p><p class="mt-6">It was a small memorial service to honor the souls of the children who had been sacrificed by Etienne's cruelty.</p></div></div></div><div class="prose prose-invert prose-xl reveal"><p>After completing her prayers, Medea carefully picked up each angel statue and placed them reverently into a small coffin.</p><p>These were the children of Valdina. Therefore, she could never be free of responsibility.</p><p class="thought">I promise you. I will never allow something like this to happen again.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>As a result of recent events, both arms of House Claudio—which had been controlling Valdina's palace—had been severed.</p><p>The Duke had even been forced to amputate one of those arms himself. He must be seething with rage.</p><p class="dialogue">"You were uncharacteristically hasty, Uncle. This is what happens when you ignore competent subordinates and entrust everything to your foolish son."</p><p>Contrary to her calm voice, it was a harsh evaluation.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The sight of Medea turning away after burying the children's coffins in the sunniest spot of the Princess's garden was striking—she stood as firm as an ancient tree that no wind or rain could shake.</p><p>Medea, who had erased her sorrow and returned to her composed self, summoned Saya.</p><p class="dialogue">"The slush fund that Etienne provided us before his arrest—bring it to me."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>The secret fund she'd covertly stolen from the now-deceased Etienne was several times larger than the entire fortune Medea had once donated to establish the military villages.</p><p>If Etienne knew that the Princess who'd orchestrated his downfall had also made off with all his remaining assets, he would be vomiting blood in the afterlife.</p><p class="dialogue">"That poisonous old toad will be trembling in the underworld when he discovers we've stolen this enormous sum."</p><p>Saya giggled mischievously.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Neril spoke up, attempting to temper Saya's amusement.</p><p class="dialogue">"Now that both the Chief Maid and the Minister have fallen, even the Prince Regent won't be able to command the same authority as before."</p><p class="dialogue">"It's still too early to declare victory."</p><p>Medea's response was measured and calm.</p><p class="dialogue">"The imperial delegation will be arriving soon."</p></div><div class="mt-32 mb-40 reveal relative"><div class="absolute -inset-0.5 bg-gradient-to-r from-blood-900 to-black rounded-lg blur opacity-50 animate-pulse-slow"></div><div class="relative bg-black border border-blood-800/50 p-12 rounded-lg text-center shadow-2xl"><div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-blood-800/50 rounded text-xs tracking-widest text-red-400 font-ui uppercase">End Chapter 2</div><h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">The Price of Treachery</h2><div class="w-full h-px bg-gradient-to-r from-transparent via-red-800 to-transparent my-8"></div><p class="text-slate-500 font-serif italic text-xl">"Every betrayal demands its payment in blood."</p><p class="mt-8 text-slate-600 text-sm font-ui tracking-widest uppercase">[ Continue to Chapter 3 ]</p></div></div></article></main><script>const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1});document.querySelectorAll(".reveal").forEach(e=>observer.observe(e))</script></body></html>
+    @media (max-width: 480px) {
+      .chapter-badge {
+        font-size: 0.625rem;
+        padding-inline: var(--space-2);
+      }
+      .subtitle {
+        font-size: 1rem;
+      }
+    }
+
+    /* Accessibility: reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      html {
+        scroll-behavior: auto;
+      }
+    }
+
+    /* Focus */
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--color-accent-light);
+      outline-offset: 4px;
+    }
+
+    /* Utilities */
+    .mt-12 {
+      margin-top: var(--space-12);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-background"></div>
+
+  <main>
+    <!-- HEADER -->
+    <header>
+      <div class="fade-up">
+        <div class="chapter-badge">
+          Chapter 71
+        </div>
+
+        <h1>
+          The Price of
+          <span class="gradient-text">Treachery</span>
+        </h1>
+
+        <p class="subtitle">
+          "When the shield becomes the sword, all must fall."
+        </p>
+      </div>
+
+      <div class="scroll-indicator" aria-hidden="true">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+      </div>
+    </header>
+
+    <!-- ARTICLE -->
+    <article>
+      <section class="reveal">
+        <p class="drop-cap">The Prince Regent said nothing at first.</p>
+        <p>Truth be told, the same concerns had been gnawing at him.</p>
+        <p class="dialogue">"Wait—what do you mean, attacked by assassins? Is it possible someone else knows where the document is hidden?"</p>
+        <p class="dialogue">"Others were targeting the mansion as well."</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>Samon continued, watching his father's expression carefully.</p>
+        <p class="dialogue">"From what I've learned, they were elite—the best of the best. We captured one alive and interrogated him. He turned out to be an imperial citizen."</p>
+        <p class="dialogue">"The empire? Who from Katzen would send operatives here?"</p>
+        <p class="dialogue">"That... I wasn't able to determine. The interrogation was incomplete when I had to flee. My apologies, Father."</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>If the assassin was an elite knight, he must be someone of considerable standing within the empire. But why would Katzen be involved?</p>
+        <p>The Prince Regent couldn't make sense of it.</p>
+        <p>Samon, reading his father's perplexed expression, spoke quickly.</p>
+        <p class="dialogue">"Someone in Valdina is likely trying to exploit our vulnerabilities using that certificate of acceptance. We're allied with Emperor Katzen while simultaneously courting Prince Jason, aren't we? What's to stop someone else from playing the same game?"</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>Not long ago, the Prince Regent and the Minister had been at each other's throats over the banquet incident.</p>
+        <p class="dialogue">"The Minister may have had a change of heart. He could have been planning to betray us."</p>
+        <p>Samon's face grew solemn.</p>
+        <p class="dialogue">"Father, you must decide. We need to deal with the Minister now. We have to move before they do if we're to survive. We must silence Etienne before they can extract more information from him."</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>The Prince Regent pressed his fingers against his throbbing temples.</p>
+        <p>Having to eliminate Etienne—his greatest ally—with his own hands felt like carving flesh from his own body.</p>
+        <p>Yet given the circumstances, with every path blocked, there was absolutely no other option.</p>
+      </section>
+
+      <section class="reveal">
+        <div class="highlight-amber">
+          <p>He raised his head. A faded shield emblem hanging on the wall caught his eye—the coat of arms of House Claudio.</p>
+          <p class="dialogue" style="color:#fef3c7;font-style:italic;">
+            "Joaquin. As your brother's shield, you will protect this country with unwavering loyalty. Your brother is so capable—even if I die, he will endure."
+          </p>
+          <p>The Regent remembered the counsel his father had given him in his youth, when he'd been banished from the palace after his older brother ascended the throne.</p>
+        </div>
+      </section>
+
+      <section class="reveal">
+        <p>He bit his lip as if chewing on bitter truths.</p>
+        <p class="thought"><em>No, Father. I will not remain a shield forever.</em></p>
+        <p>Duke Claudio's expression hardened with determination.</p>
+        <p class="dialogue">"Very well. It shall be done."</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>That night, a figure dressed entirely in black slipped out the back entrance of the Duke's estate.</p>
+      </section>
+
+      <div class="scene-divider reveal">
+        <span></span>
+      </div>
+
+      <section class="reveal">
+        <p class="drop-cap">Valdina's special prison lay deep beneath the earth.</p>
+        <p>The sound of footsteps echoed against wet stone floors. The Minister, who had been dozing fitfully, suddenly jerked awake at a sharp pain.</p>
+        <p class="dialogue">"Hngh—!"</p>
+        <p>A cold blue blade pressed against his throat.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p class="dialogue">"Lark Etienne. How dare you betray your master?"</p>
+        <p class="dialogue">"W-what are you talking about?"</p>
+        <p>Etienne looked around frantically, sweat pouring down his face.</p>
+        <p class="thought"><em>Where are the jailers? The guards? Why can't I see anyone?</em></p>
+        <p class="dialogue">"Claudio! Are you trying to kill me again?! You treacherous bastards—you never know when to quit! You're trying to silence me!"</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>The man snorted at the pathetic outburst.</p>
+        <p class="dialogue">"Have you gone senile with age? You hid yourself so well I barely managed to track you down here."</p>
+        <p class="dialogue">"That's impossible! No one should have been able to get close—"</p>
+        <p>The Minister's eyes widened as realization struck.</p>
+        <p class="thought"><em>Good God... I fell for the Princess's trap.</em></p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>But it was far too late.</p>
+        <p>By the time Etienne understood everything, the gleaming blade had already sliced clean through his throat.</p>
+      </section>
+
+      <div class="scene-divider reveal">
+        <span></span>
+      </div>
+
+      <section class="reveal">
+        <p class="drop-cap">"Extra! Extra!"</p>
+        <p>Newsboys raced through the streets, their voices cutting through the morning air. A bold red headline blazed across the front page above Etienne's haggard portrait.</p>
+      </section>
+
+      <section class="reveal">
+        <div class="newspaper-box">
+          <h3 class="newspaper-headline">LARK ETIENNE<br />DIES IN PRISON!</h3>
+          <div class="newspaper-sub">
+            FORMER MINISTER FOUND DEAD • FOUL PLAY SUSPECTED
+          </div>
+        </div>
+      </section>
+
+      <section class="reveal">
+        <p class="dialogue">"Really? Is it true?"</p>
+        <p class="dialogue">"He was a minister, wasn't he? Not only did he take bribes left and right, but he abused children and sold them to foreign countries! These people never do just one evil thing!"</p>
+        <p class="dialogue">"Hmph. That wretched man—he died well. Good riddance."</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>The Minister was dead.</p>
+        <p>Because he'd been a criminal awaiting execution for violating military law, no funeral was held. Instead, his body was unceremoniously dumped beneath the castle walls.</p>
+        <p>Whenever passersby saw the letters spelling "Etienne," they cursed and spat on the ground.</p>
+        <p>It was an unthinkably miserable and insignificant end for someone who had lived his entire life with the pride of high nobility.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>The family's property was confiscated. The title was stripped away.</p>
+        <p>House Etienne collapsed catastrophically after losing its head, but there was no one left to mourn that fact.</p>
+        <p>However, some still questioned his sudden demise.</p>
+        <p class="dialogue">"A chronic illness? Nonsense! How long has he even been in prison that he suddenly falls ill? And someone as robust as Etienne!"</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>Coincidentally, the tragic massacre at Count Etienne's estate—which had occurred just before the Minister's death—only deepened public suspicion.</p>
+        <p>A one-sided slaughter bordering on annihilation.</p>
+        <p>People clicked their tongues at the excessively brutal cleanup.</p>
+        <p class="dialogue">"But wasn't the Minister the Duke's greatest right-hand man, both in name and reality? They'd worked together for years, and now suddenly..."</p>
+        <p class="dialogue">"Ha! Didn't you know? This is the true nature of the man we serve."</p>
+      </section>
+
+      <section class="reveal">
+        <div class="highlight-red">
+          <p>Members of the Regent's faction felt their hearts constrict with pressure and fear.</p>
+          <p class="dialogue">"He's making an example of the Minister. He's showing us exactly what will happen if we try to abandon his ship."</p>
+        </div>
+      </section>
+
+      <div class="scene-divider reveal">
+        <span></span>
+      </div>
+
+      <section class="reveal">
+        <p class="drop-cap">In the Princess's palace, Medea knelt reverently before an icon depicting the goddess.</p>
+        <p>After some time, she rose to her feet.</p>
+        <p>On the long altar beneath the sacred image, dozens of small angel statues—each no larger than her palm—stood in neat rows alongside flickering candles.</p>
+      </section>
+
+      <section class="reveal">
+        <div class="highlight-amber">
+          <p class="dialogue" style="color:#fde68a;font-style:italic;">
+            "Forgive me for taking so long. May your resentment fade, and may you sleep peacefully now, even if this peace comes late."
+          </p>
+          <p>It was a small memorial service to honor the souls of the children who had been sacrificed by Etienne's cruelty.</p>
+        </div>
+      </section>
+
+      <section class="reveal">
+        <p>After completing her prayers, Medea carefully picked up each angel statue and placed them reverently into a small coffin.</p>
+        <p>These were the children of Valdina. Therefore, she could never be free of responsibility.</p>
+        <p class="thought"><em>I promise you. I will never allow something like this to happen again.</em></p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>As a result of recent events, both arms of House Claudio—which had been controlling Valdina's palace—had been severed.</p>
+        <p>The Duke had even been forced to amputate one of those arms himself. He must be seething with rage.</p>
+        <p class="dialogue">"You were uncharacteristically hasty, Uncle. This is what happens when you ignore competent subordinates and entrust everything to your foolish son."</p>
+        <p>Contrary to her calm voice, it was a harsh evaluation.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>The sight of Medea turning away after burying the children's coffins in the sunniest spot of the Princess's garden was striking—she stood as firm as an ancient tree that no wind or rain could shake.</p>
+        <p>Medea, who had erased her sorrow and returned to her composed self, summoned Saya.</p>
+        <p class="dialogue">"The slush fund that Etienne provided us before his arrest—bring it to me."</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>The secret fund she'd covertly stolen from the now-deceased Etienne was several times larger than the entire fortune Medea had once donated to establish the military villages.</p>
+        <p>If Etienne knew that the Princess who'd orchestrated his downfall had also made off with all his remaining assets, he would be vomiting blood in the afterlife.</p>
+        <p class="dialogue">"That poisonous old toad will be trembling in the underworld when he discovers we've stolen this enormous sum."</p>
+        <p>Saya giggled mischievously.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>Neril spoke up, attempting to temper Saya's amusement.</p>
+        <p class="dialogue">"Now that both the Chief Maid and the Minister have fallen, even the Prince Regent won't be able to command the same authority as before."</p>
+        <p class="dialogue">"It's still too early to declare victory."</p>
+        <p>Medea's response was measured and calm.</p>
+        <p class="dialogue">"The imperial delegation will be arriving soon."</p>
+      </section>
+
+      <!-- CHAPTER END -->
+      <div class="chapter-end reveal">
+        <div class="chapter-end-label">End Chapter 71</div>
+        <h2>The Price of Treachery</h2>
+        <div class="chapter-end-divider"></div>
+        <p class="chapter-end-quote">
+          "Every betrayal demands its payment in blood."
+        </p>
+        <p class="chapter-end-continue">Continue to Chapter 72</p>
+      </div>
+    </article>
+  </main>
+
+  <script>
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -80px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

@@ -1,577 +1,503 @@
-<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Terms of Blood</title>
-<!-- Self-hosted fonts -->
-    <link rel="stylesheet" href="/fonts/fonts.css">
-    
-    <style>
-    /* ============================================
-       CSS Variables
-       ============================================ */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Terms of Blood — Chapter 87</title>
+
+  <!-- Self-hosted fonts -->
+  <link rel="stylesheet" href="/fonts/fonts.css" />
+
+  <style>
     :root {
-      --font-heading: 'Cinzel', serif;
-      --font-body: 'Cormorant Garamond', serif;
-      --font-ui: 'Lato', sans-serif;
+      --font-heading: 'Cinzel', Georgia, serif;
+      --font-body: 'Cormorant Garamond', Georgia, serif;
+      --font-ui: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+      --space-1: 0.5rem;
+      --space-2: 1rem;
+      --space-3: 1.5rem;
+      --space-4: 2rem;
+      --space-5: 2.5rem;
+      --space-6: 3rem;
+      --space-8: 4rem;
+      --space-10: 5rem;
+      --space-12: 6rem;
+
+      --color-bg: #050505;
+      --color-surface: #111111;
+      --color-text-primary: #e5e5e5;
+      --color-text-secondary: #a3a3a3;
+      --color-text-muted: #737373;
+
+      --color-accent: #b91c1c;
+      --color-accent-light: #ef4444;
+      --color-accent-dark: #7f1d1d;
+      --color-accent-glow: rgba(185, 28, 28, 0.18);
+
+      --color-dialogue: #e2e8f0;
+      --color-thought: #c4b5fd;
     }
-    
-    /* ============================================
-       Reset & Base
-       ============================================ */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    html {
-      scroll-behavior: smooth;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
     body {
-      background-color: #050505;
-      color: #a3a3a3;
+      background-color: var(--color-bg);
+      color: var(--color-text-secondary);
       font-family: var(--font-body);
-      line-height: 1.75;
+      font-size: 1.125rem;
+      line-height: 1.8;
       overflow-x: hidden;
-      padding-bottom: 100px;
     }
-    
-    ::selection {
-      background-color: #881337;
-      color: #fff;
-    }
-    
-    /* Hide scrollbars */
-    ::-webkit-scrollbar {
-      display: none;
-    }
-    
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    
-    /* ============================================
-       Background
-       ============================================ */
-    .bg-gradient {
+    ::selection { background-color: var(--color-accent-dark); color: #fff; }
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .page-background {
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, var(--color-accent-glow), transparent),
+        #000;
       z-index: -1;
-      pointer-events: none;
     }
-    
-    /* ============================================
-       Main Container
-       ============================================ */
-    main {
-      position: relative;
-      min-height: 100vh;
-      padding-bottom: 10rem;
-    }
-    
-    /* ============================================
-       Header
-       ============================================ */
+
     header {
-      min-height: 60vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem 1.5rem 2rem;
+      padding: var(--space-6) var(--space-3);
       text-align: center;
       position: relative;
     }
-    
-    @media (max-width: 768px) {
-      header {
-        min-height: 50vh;
-        padding: 2rem 1rem;
-      }
-    }
-    
+
     .chapter-badge {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      padding: 0.25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, 0.5);
-      border-radius: 9999px;
-      background-color: rgba(24, 24, 27, 0.7);
-      backdrop-filter: blur(4px);
-    }
-    
-    .chapter-badge span {
-      color: #fee2e2;
-      font-size: 0.625rem;
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: var(--space-3);
+      padding: 0.375rem var(--space-3);
+      border-radius: 999px;
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      background: rgba(24, 24, 27, 0.85);
+      backdrop-filter: blur(8px);
       font-family: var(--font-ui);
-      letter-spacing: 0.4em;
+      font-size: 0.6875rem;
+      letter-spacing: 0.25em;
       text-transform: uppercase;
+      color: #fee2e2;
     }
-    
+
     h1 {
       font-family: var(--font-heading);
-      font-size: clamp(2.25rem, 7vw, 4rem);
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 600;
       line-height: 1.1;
-      letter-spacing: -0.02em;
-      color: #e5e5e5;
-      margin-bottom: 1.5rem;
+      letter-spacing: -0.03em;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-3);
     }
-    
+
     .gradient-text {
-      background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+      display: block;
+      background: linear-gradient(180deg, var(--color-accent-light), var(--color-accent-dark));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       font-style: italic;
     }
-    
-    header p {
+
+    .subtitle {
       font-family: var(--font-body);
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      color: var(--color-text-muted);
       font-style: italic;
-      max-width: 30rem;
+      max-width: 32rem;
+      margin: 0 auto;
     }
-    
-    /* ============================================
-       Article Container
-       ============================================ */
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: var(--space-5);
+      left: 50%;
+      transform: translateX(-50%);
+      color: #4b5563;
+      animation: float 2s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translate(-50%,0); }
+      50% { transform: translate(-50%,0.75rem); }
+    }
+
     article {
       max-width: 42rem;
       margin: 0 auto;
-      padding: 0 1.5rem;
+      padding: var(--space-8) var(--space-3) var(--space-12);
+      position: relative;
+      z-index: 1;
     }
-    
-    @media (max-width: 768px) {
-      article {
-        padding: 0 1rem;
-      }
-    }
-    
-    /* ============================================
-       ALL Paragraphs - Center by default
-       ============================================ */
-    article p {
-      line-height: 2.1;
-      margin-bottom: 1.5em;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      article p {
-        font-size: 1.1rem;
-        line-height: 2;
-      }
-    }
-    
-    /* Prose paragraphs */
-    .prose p {
-      line-height: 2.1;
-      margin-bottom: 1.75em;
-      font-size: 1.2rem;
-      color: #a3a3a3;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      .prose p {
-        font-size: 1.1rem;
-        line-height: 2;
-        margin-bottom: 1.5em;
-      }
-    }
-    
-    /* ============================================
-       Drop Cap
-       ============================================ */
-    .drop-cap {
-      text-align: left;
-    }
-    
+
+    p { margin-bottom: 1.5em; line-height: 2; text-align: center; }
+
+    .drop-cap { text-align: left; }
     .drop-cap::first-letter {
       font-family: var(--font-heading);
       float: left;
-      font-size: 4rem;
-      line-height: 0.8;
-      margin-right: 0.75rem;
-      margin-top: 0.15rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+      font-size: 4.5rem;
+      line-height: 0.75;
+      margin: 0.1em 0.5rem 0 0;
+      color: var(--color-accent-light);
+      text-shadow: 0 0 24px rgba(185, 28, 28, 0.4);
     }
-    
-    @media (max-width: 640px) {
-      .drop-cap::first-letter {
-        font-size: 3.5rem;
-        margin-right: 0.5rem;
-      }
-    }
-    
-    /* ============================================
-       Dialogue
-       ============================================ */
+
     .dialogue {
-      color: #e2e8f0;
-      font-style: normal;
-      position: relative;
-      padding: 1rem 1.5rem;
-      border-left: 2px solid rgba(136, 19, 55, 0.3);
-      text-align: center;
-      display: block;
-      margin: 1.5rem auto;
+      color: var(--color-dialogue);
+      padding: var(--space-2) var(--space-4);
+      border-left: 2px solid rgba(185, 28, 28, 0.3);
       max-width: 90%;
+      margin: var(--space-3) auto;
+      text-align: center;
       line-height: 1.9;
     }
-    
-    @media (max-width: 480px) {
-      .dialogue {
-        padding: 0.75rem 1rem;
-        max-width: 95%;
-      }
-    }
-    
-    /* ============================================
-       Thought Box
-       ============================================ */
+
     .thought {
-      color: #c4b5fd;
+      color: var(--color-thought);
       font-style: italic;
       border-left: 2px solid rgba(196, 181, 253, 0.3);
-      padding: 1.5rem 2rem;
-      margin: 2rem auto;
+      padding: var(--space-4);
+      margin: var(--space-4) auto;
       max-width: 90%;
-      background: rgba(88, 28, 135, 0.05);
+      background: rgba(76, 29, 149, 0.06);
       border-radius: 4px;
       text-align: center;
     }
-    
-    .thought p {
-      margin-bottom: 1rem;
-      line-height: 1.8;
-      text-align: center;
-    }
-    
-    .thought p:last-child {
-      margin-bottom: 0;
-    }
-    
-    /* ============================================
-       Reveal containers - center all content
-       ============================================ */
-    .reveal {
-      opacity: 1;
-      transform: translateY(0);
-      text-align: center;
-    }
-    
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    .reveal p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Special Content Boxes
-       ============================================ */
-    .my-20,
-    .my-24 {
-      text-align: center;
-    }
-    
-    .my-20 > p,
-    .my-24 > p {
-      text-align: center;
-    }
-    
-    /* Gradient boxes */
-    [class*="bg-gradient-to"] {
-      text-align: center;
-    }
-    
-    [class*="bg-gradient-to"] p {
-      text-align: center;
-    }
-    
-    /* Border boxes */
-    [class*="border-l-"] {
-      text-align: center;
-    }
-    
-    [class*="border-l-"] p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Scene Elements
-       ============================================ */
+
     .scene-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-3);
+      margin: var(--space-8) 0;
+    }
+    .scene-divider::before,
+    .scene-divider::after {
+      content: '';
+      flex: 1;
       height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
-      margin: 4rem 0;
+      background: linear-gradient(to right, transparent, #7f1d1d, transparent);
     }
-    
-    .section-divider {
-      font-family: var(--font-heading);
-      text-align: center;
-      color: #525252;
-      font-size: 0.875rem;
-      letter-spacing: 0.3em;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .time-marker {
-      background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
-      border-top: 1px solid rgba(159, 18, 57, 0.3);
-      border-bottom: 1px solid rgba(159, 18, 57, 0.3);
-      padding: 1.5rem 0;
-      margin: 3rem 0;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Action Line & Narrator
-       ============================================ */
-    .action-line {
-      font-style: italic;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      text-align: center;
-      margin: 1.5rem 0;
-    }
-    
-    .narrator {
-      color: #a3a3a3;
-      font-style: italic;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Space-y containers
-       ============================================ */
-    .space-y-4,
-    .space-y-6,
-    .space-y-8 {
-      text-align: center;
-    }
-    
-    .space-y-4 > *,
-    .space-y-6 > *,
-    .space-y-8 > * {
-      text-align: center;
-    }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    /* ============================================
-       Final Box / Ending
-       ============================================ */
-    .final-box,
-    [class*="mt-32"][class*="mb-40"] {
-      margin: 6rem auto 4rem;
-      text-align: center;
-    }
-    
-    [class*="border-t"][class*="border-neutral"] {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Utility Classes
-       ============================================ */
-    .text-center { text-align: center !important; }
-    .italic { font-style: italic; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    .font-body { font-family: var(--font-body); }
-    .font-ui { font-family: var(--font-ui); }
-    
-    /* Text Sizes */
-    .text-sm { font-size: 0.875rem; }
-    .text-base { font-size: 1rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-4xl { font-size: 2.25rem; }
-    .text-6xl { font-size: 3.75rem; }
-    .text-8xl { font-size: 6rem; }
-    .text-9xl { font-size: 8rem; }
-    
-    /* Responsive text */
-    @media (min-width: 768px) {
-      .md\:text-8xl { font-size: 6rem; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:text-9xl { font-size: 8rem; }
-    }
-    
-    /* Margins */
-    .m-0 { margin: 0; }
-    .mb-4 { margin-bottom: 1rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-32 { margin-top: 8rem; }
-    .mb-40 { margin-bottom: 10rem; }
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
-    
-    /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-neutral-600 { color: #525252; }
-    .text-neutral-700 { color: #404040; }
-    .text-neutral-800 { color: #262626; }
-    .text-white { color: #ffffff; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-green-100 { color: #dcfce7; }
-    .text-green-200 { color: #bbf7d0; }
-    .text-green-300 { color: #86efac; }
-    .text-green-700 { color: #15803d; }
-    .text-green-800 { color: #166534; }
-    .text-green-900 { color: #14532d; }
-    .text-rose-200 { color: #fecdd3; }
-    .text-amber-100 { color: #fef3c7; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-red-800 { color: #991b1b; }
-    .text-slate-200 { color: #e2e8f0; }
-    .text-slate-400 { color: #94a3b8; }
-    
-    /* Leading & Tracking */
-    .leading-tight { line-height: 1.25; }
-    .leading-relaxed { line-height: 1.625; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-tighter { letter-spacing: -0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    /* Padding */
-    .p-6 { padding: 1.5rem; }
-    .p-8 { padding: 2rem; }
-    .p-10 { padding: 2.5rem; }
-    .p-12 { padding: 3rem; }
-    .pl-4 { padding-left: 1rem; }
-    .pl-6 { padding-left: 1.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .px-8 { padding-left: 2rem; padding-right: 2rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .pt-16 { padding-top: 4rem; }
-    .pb-40 { padding-bottom: 10rem; }
-    
-    /* Borders */
-    .border { border-width: 1px; border-style: solid; }
-    .border-2 { border-width: 2px; border-style: solid; }
-    .border-t { border-top-width: 1px; border-top-style: solid; }
-    .border-l-2 { border-left-width: 2px; border-left-style: solid; }
-    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
-    .rounded-full { border-radius: 9999px; }
-    
-    .border-neutral-800 { border-color: #262626; }
-    .border-green-500 { border-color: #22c55e; }
-    .border-green-800 { border-color: #166534; }
-    .border-amber-700 { border-color: #b45309; }
-    .border-red-800 { border-color: #991b1b; }
-    .border-purple-800 { border-color: #6b21a8; }
-    
-    /* Flex */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    
-    /* Position */
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .fixed { position: fixed; }
-    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-    .bottom-10 { bottom: 2.5rem; }
-    .z-10 { z-index: 10; }
-    .-z-10 { z-index: -10; }
-    
-    /* Width/Height */
-    .w-2 { width: 0.5rem; }
-    .h-2 { height: 0.5rem; }
-    .h-px { height: 1px; }
-    .w-full { width: 100%; }
-    .h-screen { height: 100vh; }
-    .min-h-screen { min-height: 100vh; }
-    .max-w-2xl { max-width: 42rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    
-    /* Backgrounds */
-    .bg-green-700 { background-color: #15803d; }
-    .bg-green-800 { background-color: #166534; }
-    .bg-green-900 { background-color: #14532d; }
-    .bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
-    .bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
-    .bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
-    .bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
-    
-    /* Backdrop */
-    .backdrop-blur-sm { backdrop-filter: blur(4px); }
-    
-    /* Overflow */
-    .overflow-x-hidden { overflow-x: hidden; }
-    
-    /* Animation */
-    .animate-fade-up {
-      animation: fadeUp 1s ease-out;
-    }
-    
-    .animate-bounce {
-      animation: bounce 1s infinite;
-    }
-    
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes bounce {
-      0%, 100% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-      }
-      50% {
-        transform: translateY(0);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-      }
+    .scene-divider span {
+      width: 6px;
+      height: 6px;
+      background: #7f1d1d;
+      transform: rotate(45deg);
     }
 
-  </style></head><body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
-  <div class="bg-gradient"></div>
-<main class="relative min-h-screen pb-40"><div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10"></div><header class="h-screen flex flex-col items-center justify-center relative p-6"><div class="animate-fade-up flex flex-col items-center"><div class="mb-6 px-4 py-1 border border-blood-800/50 rounded-full bg-blood-950/20 backdrop-blur-sm"><span class="text-blood-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 87</span></div><h1 class="text-5xl md:text-7xl lg:text-8xl font-heading text-center leading-tight tracking-tighter mb-8">Terms of<br><span class="gradient-text italic pr-2">Blood</span></h1><p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">"Some contracts are inked in gold, others in terror—and some in blood."</p></div><div class="absolute bottom-10 animate-bounce text-neutral-600"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div></header><article class="max-w-2xl mx-auto px-8 relative z-10"><div class="prose prose-invert prose-xl reveal"><p class="drop-cap">"Ha. You dare cross swords with me?"</p><p>Every member of Katzen’s royal family, locked in brutal succession struggles, was trained rigorously in the sword arts.</p><p>The Fourth Princess was no legend like the First Prince—but she was still a highly skilled swordswoman by any measure.</p><p>The princess of Valdina, on the other hand…</p><p class="dialogue">"Are you sure you can win, when you were the one who fell off a horse in front of everyone?"</p><p>Angelique spat out the rumor that had spread through the Empire—of Medea’s notorious tumble.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"I don’t dare dream of victory over the Fourth Princess."</p><p class="dialogue">"But if, as a daughter, I cannot even draw my sword against the one who slandered my father’s honor…"</p><p>Her unblinking green eyes fixed on Angelique.</p><p class="dialogue">"Then what meaning is there in my standing here at all?"</p><p>Angelique faltered.</p><p>She might have understood if Medea had forgiven the insult with a few polite words, but this—challenging her to a duel?</p><p class="thought">Running to her own death… Is this golden whelp blind, or simply a fool?</p><p>Before she could find words, Medea spoke again, voice calm and clear.</p><p class="dialogue">"I’ve offered my life. What will the Fourth Princess stake, to avenge her own father’s name?"</p><p>Angelique’s jaw tightened.</p><p>Now each of them had flung accusations at the other’s father.</p><p>If Medea was prepared to risk death in her father’s defense, then Angelique, remaining silent, would appear to be the one unconcerned with her own father’s honor.</p><p class="dialogue">"Ha! Fine. I accept your challenge."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Angelique ground her teeth, forcing herself to think.</p><p>She drew a long, steady breath, then smoothed her tone back into affected elegance.</p><p class="dialogue">"Since this is a duel between the princesses of two nations, we can hardly leave it without proper stakes. Shall we set clear terms?"</p><p>A gleam of inspiration flashed in her eyes.</p><p class="thought">You forced my hand—now I’ll make you pay for it.</p><p class="dialogue">"If you win, Katzen will deliver all promised relief unconditionally."</p><p>A slow, cruel smile tugged at her lips.</p><p class="dialogue">"But if I win, we’ll treat the promised aid as if it were never offered."</p><p>The banquet hall erupted in murmurs. Audible gasps rippled across the room.</p><p class="dialogue">"Well? Do you still wish to avenge your father’s honor, Princess?"</p><p>Angelique’s smile widened as she tilted her head.</p><p class="thought">If she refuses, I’ll laugh and ask if she’s suddenly afraid. If she accepts and loses, it’s a perfect justification for withdrawing aid. Either way, she’s cornered.</p><p class="thought">A flawless move, if I say so myself.</p><p>She was so pleased with her own cleverness, she failed to notice Medea’s gaze sliding past her, not at her.</p><p class="thought">I knew you’d bite.</p><p class="thought">Angelique has always been hot-tempered and proud.</p><p>In Medea’s last life, Angelique had fallen for her provocations every single time.</p><p class="thought">Angelique, this won’t go the way you think.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Neril. Bring my sword."</p><p>Her voice was utterly steady.</p><p class="dialogue">"Your Highness!"</p><p class="dialogue">"Medea!"</p><p>The uproar came not from Katzen but from Valdina’s side.</p><p>The Queen Mother was so shocked she nearly fell from her chair; Madame Pinatelli lunged to catch her.</p><p>Sissair’s hand tightened unconsciously around his glass.</p><p>The Duke and Duchess, already shaken, could only stare, mouths half-open, at the escalating disaster.</p><p>Birna drooped her brows, feigning distress, but the fierce light blazing in her eyes betrayed her.</p><p class="thought">How wonderful it would be if the Fourth Princess’s sword ‘accidentally’ pierced Medea…</p><p>Only Medea remained truly calm.</p><p>No fear. No embarrassment. Her bright eyes shone, steady and unflinching.</p><p>Standing firm in contrast to Angelique’s petulant fury, she looked less like a pampered princess than a martyr prepared to fight against overwhelming injustice.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"So you really mean to go through with this? Very well. But remember this—no crying and begging me to stop later. It won’t work."</p><p>Angelique thrilled at Medea’s calm acceptance.</p><p class="thought">Let’s see how long you can keep that composure.</p><p>She lifted her chin, savoring her imagined victory—until Medea’s voice cut in again.</p><p class="dialogue">"However, I am concerned the Princess may later overturn these terms."</p><p class="dialogue">"Angelique Graham Katzen, I swear on my name. Are you suggesting you do not trust the Emperor’s own daughter?"</p><p>Angelique’s retort was sharp as a lash.</p><p class="dialogue">"Even our people who left Valdina years ago to defend the Empire’s borders would never have imagined this—that Katzen, strongest power on the continent, would lightly abandon aid it formally pledged."</p><p>Tonight’s promised relief was not some act of charity. It was rightful compensation for Valdina’s sacrifices.</p><p>The Katzen nobles, stung by Medea’s words, could find no immediate answer.</p><p class="dialogue">"Unless the Princess confirms her promise in a binding way, I cannot accept these stakes."</p><p>Medea turned to Sissair as she spoke.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Sissair understood at once and moved.</p><p class="dialogue">"Your Royal Highness."</p><p>He produced a golden scroll, its blank surface ready. A scribe had already jotted down the essence of the wager as the two princesses spoke.</p><p>Medea unfurled it for all to see.</p><p class="dialogue">"These are the exact terms proposed for the duel. Your Royal Highness, if you would affix your seal? Once our marks are placed upon these words, they can no longer be dismissed as childish banter."</p><p>Her demeanor was composed—more like a seasoned diplomat than the young woman Angelique had dismissed.</p><p>Angelique flushed scarlet.</p><p class="thought">Is that brat implying I spoke without thinking?</p><p class="dialogue">"Ha! A mere formality like this? Fine! Someone bring my seal!"</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Kensington hurried to her side, grabbing her sleeve.</p><p class="dialogue">"Your Highness, please reconsider. Don’t rush—"</p><p class="dialogue">"Move. I lead this mission—not you."</p><p class="dialogue">"Please, Your Highness. Think again—"</p><p class="dialogue">"Get out of my way!"</p><p>Kensington froze.</p><p>The Princess had yanked her arm so violently that the thick ring on her hand had raked a red line across his cheek.</p><p class="dialogue">"Honestly, you’re such a nuisance…"</p><p>She glanced at the scratch, looked faintly abashed for a heartbeat, then turned away as if it were nothing.</p><p>Striding forward, she took the scroll and stamped her seal firmly upon it.</p><p>The Katzen envoys exchanged startled looks at the Princess’s unilateral decision.</p><p>But if even Count Kensington couldn’t stop her, none of them would dare step up to meet her glare now.</p><p>Besides—the conditions were harsh, but the duel itself didn’t alarm them.</p><p>The Fourth Princess had once defeated an imperial knight of the fourth star.</p><p>Facing a palace-kept princess from a minor kingdom hardly seemed worth fretting over.</p><p class="thought">We needed a respectable pretext to refuse aid, and Her Highness has just crafted one herself.</p><p class="dialogue">"Quite so, Count. Why provoke a volcano that’s already erupting?"</p><p>Some nobles nodded approvingly, others subtly chided Kensington for being overly cautious.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Count, you’re bleeding. Here."</p><p>Jason approached, handkerchief in hand, never one to miss a chance to curry favor.</p><p class="dialogue">"Grand Duke, please—stop the Fourth Princess. Katzen’s national interests are at stake. If anything goes wrong, Her Highness could be in real danger."</p><p>Kensington, still clinging to his image of Archduke Castullo as a considerate and brilliant man, believed he would intervene once he grasped the severity of the situation.</p><p class="dialogue">"Ah, Count, you know as well as I do—there’s nothing I say that will move Angelique. I’d only make things worse."</p><p>Contrary to Kensington’s hopes, Jason merely soothed him, wearing a troubled, sympathetic expression.</p><p class="dialogue">"Don’t worry so much. If anything happens, I’ll ‘help’ Angelique and see it resolved safely."</p><p>"..."</p><p class="dialogue">"Count?"</p><p>Kensington pressed the handkerchief to his cheek and said nothing.</p><p class="thought">He doesn’t want to protect her. He wants to strip away her authority.</p><p class="thought">Castullo—you’ve hidden your ambition well.</p><p>For the first time, Kensington glimpsed the ambition Jason could no longer entirely conceal.</p><p>Even this Grand Duke, who’d lain low all these years, bared his fangs now that the First Prince lay dying.</p><p>This was an envoy only in name. Beneath the surface, a vicious power struggle roiled among Katzen’s own.</p><p class="thought">I must not be swept up in this chaos. My duty is to Katzen’s interests—nothing else.</p><p>That was what he told himself.</p><p>But the sting in his cheek would not let him forget whose ring had cut him.</p><p class="thought">Does His Majesty even remember Kensington?</p><p>He’d given nothing but silent loyalty for years—and tonight, for the first time, doubt crept in.</p><p class="thought">Princess of Valdina…</p><p>Perhaps it was that little girl’s words that had cracked something open inside him.</p></div><div class="prose prose-invert prose-xl mt-16 reveal"><p class="dialogue">"Ha. So you truly intend to fight me?"</p><p>Angelique scoffed.</p><p class="dialogue">"Remember, once this begins, there’s no turning back—even if you beg."</p><p>Medea’s gaze did not waver.</p><p class="thought">I’ve already died once. There’s nothing left to fear.</p></div><div class="mt-32 mb-40 reveal relative"><div class="absolute -inset-0.5 bg-gradient-to-r from-blood-900 to-black rounded-lg blur opacity-50 animate-pulse-slow"></div><div class="relative bg-black border border-blood-800/50 p-12 rounded-lg text-center shadow-2xl"><div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-blood-800/50 rounded text-xs tracking-widest text-red-400 font-ui uppercase">End Chapter 18</div><h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">Terms of Blood</h2><div class="w-full h-px bg-gradient-to-r from-transparent via-red-800 to-transparent my-8"></div><p class="text-slate-500 font-serif italic text-xl">"Once sealed in gold and witnessed by a kingdom, even a princess’s whim becomes fate."</p><p class="mt-8 text-slate-600 text-sm font-ui tracking-widest uppercase">[ Continue to Next Chapter ]</p></div></div></article></main><script>const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1});document.querySelectorAll(".reveal").forEach(e=>observer.observe(e))</script></body></html>
+    .chapter-end {
+      position: relative;
+      margin: var(--space-12) 0 var(--space-8);
+      padding: var(--space-8) var(--space-5);
+      background: radial-gradient(circle at top, rgba(248, 113, 113, 0.12), transparent 55%), #020617;
+      border-radius: 10px;
+      border: 1px solid rgba(127, 29, 29, 0.6);
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+    }
+    .chapter-end-label {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 0.375rem var(--space-2);
+      border-radius: 999px;
+      border: 1px solid rgba(127, 29, 29, 0.7);
+      background: #020617;
+      font-family: var(--font-ui);
+      font-size: 0.6875rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #fca5a5;
+    }
+    .chapter-end h2 {
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #f97373, #7f1d1d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--space-4);
+    }
+    .chapter-end-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #7f1d1d, transparent);
+      margin: var(--space-4) 0;
+    }
+    .chapter-end-quote {
+      color: #64748b;
+      font-style: italic;
+      font-size: 1.25rem;
+      margin-bottom: var(--space-4);
+    }
+    .chapter-end-continue {
+      font-family: var(--font-ui);
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+    .fade-up { animation: fadeUp 1s ease forwards; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 768px) {
+      header { min-height: 80vh; }
+      article { padding: var(--space-6) var(--space-2) var(--space-10); }
+      .drop-cap::first-letter { font-size: 3.5rem; margin-right: 0.4rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-background"></div>
+
+  <main>
+    <header>
+      <div class="fade-up">
+        <div class="chapter-badge">Chapter 87</div>
+        <h1>Terms of<br><span class="gradient-text">Blood</span></h1>
+        <p class="subtitle">"Some contracts are inked in gold, others in terror—and some in blood."</p>
+      </div>
+
+      <div class="scroll-indicator" aria-hidden="true">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+      </div>
+    </header>
+
+    <article>
+      <section class="reveal">
+        <p class="drop-cap">"Ha. You dare cross swords with me?"</p>
+        <p>Every member of Katzen’s royal family, locked in brutal succession struggles, was trained rigorously in the sword arts.</p>
+        <p>The Fourth Princess was no legend like the First Prince—but she was still a highly skilled swordswoman by any measure.</p>
+        <p>The princess of Valdina, on the other hand…</p>
+        <p class="dialogue">"Are you sure you can win, when you were the one who fell off a horse in front of everyone?"</p>
+        <p>Angelique spat out the rumor that had spread through the Empire—of Medea’s notorious tumble.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p class="dialogue">"I don’t dare dream of victory over the Fourth Princess."</p>
+        <p class="dialogue">"But if, as a daughter, I cannot even draw my sword against the one who slandered my father’s honor…"</p>
+        <p>Her unblinking green eyes fixed on Angelique.</p>
+        <p class="dialogue">"Then what meaning is there in my standing here at all?"</p>
+        <p>Angelique faltered.</p>
+        <p>She might have understood if Medea had forgiven the insult with a few polite words, but this—challenging her to a duel?</p>
+
+        <div class="thought">
+          <p>Running to her own death… Is this golden whelp blind, or simply a fool?</p>
+        </div>
+
+        <p>Before she could find words, Medea spoke again, voice calm and clear.</p>
+        <p class="dialogue">"I’ve offered my life. What will the Fourth Princess stake, to avenge her own father’s name?"</p>
+        <p>Angelique’s jaw tightened.</p>
+        <p>Now each of them had flung accusations at the other’s father.</p>
+        <p>If Medea was prepared to risk death in her father’s defense, then Angelique, remaining silent, would appear to be the one unconcerned with her own father’s honor.</p>
+        <p class="dialogue">"Ha! Fine. I accept your challenge."</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>Angelique ground her teeth, forcing herself to think.</p>
+        <p>She drew a long, steady breath, then smoothed her tone back into affected elegance.</p>
+        <p class="dialogue">"Since this is a duel between the princesses of two nations, we can hardly leave it without proper stakes. Shall we set clear terms?"</p>
+        <p>A gleam of inspiration flashed in her eyes.</p>
+
+        <div class="thought">
+          <p>You forced my hand—now I’ll make you pay for it.</p>
+        </div>
+
+        <p class="dialogue">"If you win, Katzen will deliver all promised relief unconditionally."</p>
+        <p>A slow, cruel smile tugged at her lips.</p>
+        <p class="dialogue">"But if I win, we’ll treat the promised aid as if it were never offered."</p>
+        <p>The banquet hall erupted in murmurs. Audible gasps rippled across the room.</p>
+        <p class="dialogue">"Well? Do you still wish to avenge your father’s honor, Princess?"</p>
+        <p>Angelique’s smile widened as she tilted her head.</p>
+
+        <div class="thought">
+          <p>If she refuses, I’ll laugh and ask if she’s suddenly afraid. If she accepts and loses, it’s a perfect justification for withdrawing aid. Either way, she’s cornered.</p>
+          <p>A flawless move, if I say so myself.</p>
+        </div>
+
+        <p>She was so pleased with her own cleverness, she failed to notice Medea’s gaze sliding past her, not at her.</p>
+
+        <div class="thought">
+          <p>I knew you’d bite.</p>
+          <p>Angelique has always been hot-tempered and proud.</p>
+        </div>
+
+        <p>In Medea’s last life, Angelique had fallen for her provocations every single time.</p>
+
+        <div class="thought">
+          <p>Angelique, this won’t go the way you think.</p>
+        </div>
+      </section>
+
+      <section class="reveal mt-12">
+        <p class="dialogue">"Neril. Bring my sword."</p>
+        <p>Her voice was utterly steady.</p>
+        <p class="dialogue">"Your Highness!"</p>
+        <p class="dialogue">"Medea!"</p>
+        <p>The uproar came not from Katzen but from Valdina’s side.</p>
+        <p>The Queen Mother was so shocked she nearly fell from her chair; Madame Pinatelli lunged to catch her.</p>
+        <p>Sissair’s hand tightened unconsciously around his glass.</p>
+        <p>The Duke and Duchess, already shaken, could only stare, mouths half-open, at the escalating disaster.</p>
+        <p>Birna drooped her brows, feigning distress, but the fierce light blazing in her eyes betrayed her.</p>
+
+        <div class="thought">
+          <p>How wonderful it would be if the Fourth Princess’s sword ‘accidentally’ pierced Medea…</p>
+        </div>
+
+        <p>Only Medea remained truly calm.</p>
+        <p>No fear. No embarrassment. Her bright eyes shone, steady and unflinching.</p>
+        <p>Standing firm in contrast to Angelique’s petulant fury, she looked less like a pampered princess than a martyr prepared to fight against overwhelming injustice.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p class="dialogue">"So you really mean to go through with this? Very well. But remember this—no crying and begging me to stop later. It won’t work."</p>
+        <p>Angelique thrilled at Medea’s calm acceptance.</p>
+
+        <div class="thought">
+          <p>Let’s see how long you can keep that composure.</p>
+        </div>
+
+        <p>She lifted her chin, savoring her imagined victory—until Medea’s voice cut in again.</p>
+        <p class="dialogue">"However, I am concerned the Princess may later overturn these terms."</p>
+        <p class="dialogue">"Angelique Graham Katzen, I swear on my name. Are you suggesting you do not trust the Emperor’s own daughter?"</p>
+        <p>Angelique’s retort was sharp as a lash.</p>
+        <p class="dialogue">"Even our people who left Valdina years ago to defend the Empire’s borders would never have imagined this—that Katzen, strongest power on the continent, would lightly abandon aid it formally pledged."</p>
+        <p>Tonight’s promised relief was not some act of charity. It was rightful compensation for Valdina’s sacrifices.</p>
+        <p>The Katzen nobles, stung by Medea’s words, could find no immediate answer.</p>
+        <p class="dialogue">"Unless the Princess confirms her promise in a binding way, I cannot accept these stakes."</p>
+        <p>Medea turned to Sissair as she spoke.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>Sissair understood at once and moved.</p>
+        <p class="dialogue">"Your Royal Highness."</p>
+        <p>He produced a golden scroll, its blank surface ready. A scribe had already jotted down the essence of the wager as the two princesses spoke.</p>
+        <p>Medea unfurled it for all to see.</p>
+        <p class="dialogue">"These are the exact terms proposed for the duel. Your Royal Highness, if you would affix your seal? Once our marks are placed upon these words, they can no longer be dismissed as childish banter."</p>
+        <p>Her demeanor was composed—more like a seasoned diplomat than the young woman Angelique had dismissed.</p>
+        <p>Angelique flushed scarlet.</p>
+
+        <div class="thought">
+          <p>Is that brat implying I spoke without thinking?</p>
+        </div>
+
+        <p class="dialogue">"Ha! A mere formality like this? Fine! Someone bring my seal!"</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>Kensington hurried to her side, grabbing her sleeve.</p>
+        <p class="dialogue">"Your Highness, please reconsider. Don’t rush—"</p>
+        <p class="dialogue">"Move. I lead this mission—not you."</p>
+        <p class="dialogue">"Please, Your Highness. Think again—"</p>
+        <p class="dialogue">"Get out of my way!"</p>
+        <p>Kensington froze.</p>
+        <p>The Princess had yanked her arm so violently that the thick ring on her hand had raked a red line across his cheek.</p>
+        <p class="dialogue">"Honestly, you’re such a nuisance…"</p>
+        <p>She glanced at the scratch, looked faintly abashed for a heartbeat, then turned away as if it were nothing.</p>
+        <p>Striding forward, she took the scroll and stamped her seal firmly upon it.</p>
+        <p>The Katzen envoys exchanged startled looks at the Princess’s unilateral decision.</p>
+        <p>But if even Count Kensington couldn’t stop her, none of them would dare step up to meet her glare now.</p>
+        <p>Besides—the conditions were harsh, but the duel itself didn’t alarm them.</p>
+        <p>The Fourth Princess had once defeated an imperial knight of the fourth star.</p>
+        <p>Facing a palace-kept princess from a minor kingdom hardly seemed worth fretting over.</p>
+
+        <div class="thought">
+          <p>We needed a respectable pretext to refuse aid, and Her Highness has just crafted one herself.</p>
+        </div>
+
+        <p class="dialogue">"Quite so, Count. Why provoke a volcano that’s already erupting?"</p>
+        <p>Some nobles nodded approvingly, others subtly chided Kensington for being overly cautious.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p class="dialogue">"Count, you’re bleeding. Here."</p>
+        <p>Jason approached, handkerchief in hand, never one to miss a chance to curry favor.</p>
+        <p class="dialogue">"Grand Duke, please—stop the Fourth Princess. Katzen’s national interests are at stake. If anything goes wrong, Her Highness could be in real danger."</p>
+        <p>Kensington, still clinging to his image of Archduke Castullo as a considerate and brilliant man, believed he would intervene once he grasped the severity of the situation.</p>
+        <p class="dialogue">"Ah, Count, you know as well as I do—there’s nothing I say that will move Angelique. I’d only make things worse."</p>
+        <p>Contrary to Kensington’s hopes, Jason merely soothed him, wearing a troubled, sympathetic expression.</p>
+        <p class="dialogue">"Don’t worry so much. If anything happens, I’ll ‘help’ Angelique and see it resolved safely."</p>
+        <p>"..."</p>
+        <p class="dialogue">"Count?"</p>
+        <p>Kensington pressed the handkerchief to his cheek and said nothing.</p>
+
+        <div class="thought">
+          <p>He doesn’t want to protect her. He wants to strip away her authority.</p>
+          <p>Castullo—you’ve hidden your ambition well.</p>
+        </div>
+
+        <p>For the first time, Kensington glimpsed the ambition Jason could no longer entirely conceal.</p>
+        <p>Even this Grand Duke, who’d lain low all these years, bared his fangs now that the First Prince lay dying.</p>
+        <p>This was an envoy only in name. Beneath the surface, a vicious power struggle roiled among Katzen’s own.</p>
+
+        <div class="thought">
+          <p>I must not be swept up in this chaos. My duty is to Katzen’s interests—nothing else.</p>
+        </div>
+
+        <p>That was what he told himself.</p>
+        <p>But the sting in his cheek would not let him forget whose ring had cut him.</p>
+
+        <div class="thought">
+          <p>Does His Majesty even remember Kensington?</p>
+          <p>He’d given nothing but silent loyalty for years—and tonight, for the first time, doubt crept in.</p>
+          <p>Princess of Valdina…</p>
+        </div>
+
+        <p>Perhaps it was that little girl’s words that had cracked something open inside him.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p class="dialogue">"Ha. So you truly intend to fight me?"</p>
+        <p>Angelique scoffed.</p>
+        <p class="dialogue">"Remember, once this begins, there’s no turning back—even if you beg."</p>
+        <p>Medea’s gaze did not waver.</p>
+
+        <div class="thought">
+          <p>I’ve already died once. There’s nothing left to fear.</p>
+        </div>
+      </section>
+
+      <div class="chapter-end reveal">
+        <div class="chapter-end-label">End Chapter 87</div>
+        <h2>Terms of Blood</h2>
+        <div class="chapter-end-divider"></div>
+        <p class="chapter-end-quote">"Once sealed in gold and witnessed by a kingdom, even a princess’s whim becomes fate."</p>
+        <p class="chapter-end-continue">Continue to Next Chapter</p>
+      </div>
+    </article>
+  </main>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('active');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -80px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

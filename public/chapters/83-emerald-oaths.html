@@ -1,577 +1,467 @@
-<!DOCTYPE html><html lang="en" class="scroll-smooth"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Emerald Oaths</title>
-<!-- Self-hosted fonts -->
-    <link rel="stylesheet" href="/fonts/fonts.css">
-    
-    <style>
-    /* ============================================
-       CSS Variables
-       ============================================ */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Emerald Oaths — Chapter 83</title>
+
+  <!-- Self-hosted fonts -->
+  <link rel="stylesheet" href="/fonts/fonts.css" />
+
+  <style>
     :root {
-      --font-heading: 'Cinzel', serif;
-      --font-body: 'Cormorant Garamond', serif;
-      --font-ui: 'Lato', sans-serif;
+      --font-heading: 'Cinzel', Georgia, serif;
+      --font-body: 'Cormorant Garamond', Georgia, serif;
+      --font-ui: 'Lato', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+      --space-1: 0.5rem;
+      --space-2: 1rem;
+      --space-3: 1.5rem;
+      --space-4: 2rem;
+      --space-5: 2.5rem;
+      --space-6: 3rem;
+      --space-8: 4rem;
+      --space-10: 5rem;
+      --space-12: 6rem;
+
+      --color-bg: #050505;
+      --color-surface: #111111;
+      --color-text-primary: #e5e5e5;
+      --color-text-secondary: #a3a3a3;
+      --color-text-muted: #737373;
+
+      --color-accent: #b91c1c;
+      --color-accent-light: #ef4444;
+      --color-accent-dark: #7f1d1d;
+      --color-accent-glow: rgba(185, 28, 28, 0.18);
+
+      --color-dialogue: #e2e8f0;
+      --color-thought: #c4b5fd;
     }
-    
-    /* ============================================
-       Reset & Base
-       ============================================ */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    html {
-      scroll-behavior: smooth;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
     body {
-      background-color: #050505;
-      color: #a3a3a3;
+      background-color: var(--color-bg);
+      color: var(--color-text-secondary);
       font-family: var(--font-body);
-      line-height: 1.75;
+      font-size: 1.125rem;
+      line-height: 1.8;
       overflow-x: hidden;
-      padding-bottom: 100px;
     }
-    
-    ::selection {
-      background-color: #881337;
-      color: #fff;
-    }
-    
-    /* Hide scrollbars */
-    ::-webkit-scrollbar {
-      display: none;
-    }
-    
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    
-    /* ============================================
-       Background
-       ============================================ */
-    .bg-gradient {
+    ::selection { background-color: var(--color-accent-dark); color: #fff; }
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .page-background {
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse at top, rgba(127, 29, 29, 0.15), transparent 60%);
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, var(--color-accent-glow), transparent),
+        #000;
       z-index: -1;
-      pointer-events: none;
     }
-    
-    /* ============================================
-       Main Container
-       ============================================ */
-    main {
-      position: relative;
-      min-height: 100vh;
-      padding-bottom: 10rem;
-    }
-    
-    /* ============================================
-       Header
-       ============================================ */
+
     header {
-      min-height: 60vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem 1.5rem 2rem;
+      padding: var(--space-6) var(--space-3);
       text-align: center;
       position: relative;
     }
-    
-    @media (max-width: 768px) {
-      header {
-        min-height: 50vh;
-        padding: 2rem 1rem;
-      }
-    }
-    
+
     .chapter-badge {
-      display: inline-block;
-      margin-bottom: 1.5rem;
-      padding: 0.25rem 1rem;
-      border: 1px solid rgba(248, 113, 113, 0.5);
-      border-radius: 9999px;
-      background-color: rgba(24, 24, 27, 0.7);
-      backdrop-filter: blur(4px);
-    }
-    
-    .chapter-badge span {
-      color: #fee2e2;
-      font-size: 0.625rem;
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: var(--space-3);
+      padding: 0.375rem var(--space-3);
+      border-radius: 999px;
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      background: rgba(24, 24, 27, 0.85);
+      backdrop-filter: blur(8px);
       font-family: var(--font-ui);
-      letter-spacing: 0.4em;
+      font-size: 0.6875rem;
+      letter-spacing: 0.25em;
       text-transform: uppercase;
+      color: #fee2e2;
     }
-    
+
     h1 {
       font-family: var(--font-heading);
-      font-size: clamp(2.25rem, 7vw, 4rem);
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 600;
       line-height: 1.1;
-      letter-spacing: -0.02em;
-      color: #e5e5e5;
-      margin-bottom: 1.5rem;
+      letter-spacing: -0.03em;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-3);
     }
-    
+
     .gradient-text {
-      background: linear-gradient(180deg, #ef4444 0%, #7f1d1d 80%);
+      display: block;
+      background: linear-gradient(180deg, #34d399, #059669);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       font-style: italic;
     }
-    
-    header p {
+
+    .subtitle {
       font-family: var(--font-body);
-      font-size: clamp(1rem, 3vw, 1.25rem);
-      color: #737373;
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      color: var(--color-text-muted);
       font-style: italic;
-      max-width: 30rem;
+      max-width: 32rem;
+      margin: 0 auto;
     }
-    
-    /* ============================================
-       Article Container
-       ============================================ */
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: var(--space-5);
+      left: 50%;
+      transform: translateX(-50%);
+      color: #4b5563;
+      animation: float 2s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translate(-50%,0); }
+      50% { transform: translate(-50%,0.75rem); }
+    }
+
     article {
       max-width: 42rem;
       margin: 0 auto;
-      padding: 0 1.5rem;
+      padding: var(--space-8) var(--space-3) var(--space-12);
+      position: relative;
+      z-index: 1;
     }
-    
-    @media (max-width: 768px) {
-      article {
-        padding: 0 1rem;
-      }
-    }
-    
-    /* ============================================
-       ALL Paragraphs - Center by default
-       ============================================ */
-    article p {
-      line-height: 2.1;
-      margin-bottom: 1.5em;
-      font-size: 1.2rem;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      article p {
-        font-size: 1.1rem;
-        line-height: 2;
-      }
-    }
-    
-    /* Prose paragraphs */
-    .prose p {
-      line-height: 2.1;
-      margin-bottom: 1.75em;
-      font-size: 1.2rem;
-      color: #a3a3a3;
-      text-align: center;
-    }
-    
-    @media (max-width: 768px) {
-      .prose p {
-        font-size: 1.1rem;
-        line-height: 2;
-        margin-bottom: 1.5em;
-      }
-    }
-    
-    /* ============================================
-       Drop Cap
-       ============================================ */
-    .drop-cap {
-      text-align: left;
-    }
-    
+
+    p { margin-bottom: 1.5em; line-height: 2; text-align: center; }
+
+    .drop-cap { text-align: left; }
     .drop-cap::first-letter {
       font-family: var(--font-heading);
       float: left;
-      font-size: 4rem;
-      line-height: 0.8;
-      margin-right: 0.75rem;
-      margin-top: 0.15rem;
-      color: #9f1239;
-      text-shadow: 0 0 20px rgba(159, 18, 57, 0.4);
+      font-size: 4.5rem;
+      line-height: 0.75;
+      margin: 0.1em 0.5rem 0 0;
+      color: #34d399;
+      text-shadow: 0 0 24px rgba(52, 211, 153, 0.4);
     }
-    
-    @media (max-width: 640px) {
-      .drop-cap::first-letter {
-        font-size: 3.5rem;
-        margin-right: 0.5rem;
-      }
-    }
-    
-    /* ============================================
-       Dialogue
-       ============================================ */
+
     .dialogue {
-      color: #e2e8f0;
-      font-style: normal;
-      position: relative;
-      padding: 1rem 1.5rem;
-      border-left: 2px solid rgba(136, 19, 55, 0.3);
-      text-align: center;
-      display: block;
-      margin: 1.5rem auto;
+      color: var(--color-dialogue);
+      padding: var(--space-2) var(--space-4);
+      border-left: 2px solid rgba(185, 28, 28, 0.3);
       max-width: 90%;
+      margin: var(--space-3) auto;
+      text-align: center;
       line-height: 1.9;
     }
-    
-    @media (max-width: 480px) {
-      .dialogue {
-        padding: 0.75rem 1rem;
-        max-width: 95%;
-      }
-    }
-    
-    /* ============================================
-       Thought Box
-       ============================================ */
+
     .thought {
-      color: #c4b5fd;
+      color: var(--color-thought);
       font-style: italic;
       border-left: 2px solid rgba(196, 181, 253, 0.3);
-      padding: 1.5rem 2rem;
-      margin: 2rem auto;
+      padding: var(--space-4);
+      margin: var(--space-4) auto;
       max-width: 90%;
-      background: rgba(88, 28, 135, 0.05);
+      background: rgba(76, 29, 149, 0.06);
       border-radius: 4px;
       text-align: center;
     }
-    
-    .thought p {
-      margin-bottom: 1rem;
-      line-height: 1.8;
-      text-align: center;
-    }
-    
-    .thought p:last-child {
-      margin-bottom: 0;
-    }
-    
-    /* ============================================
-       Reveal containers - center all content
-       ============================================ */
-    .reveal {
-      opacity: 1;
-      transform: translateY(0);
-      text-align: center;
-    }
-    
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    .reveal p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Special Content Boxes
-       ============================================ */
-    .my-20,
-    .my-24 {
-      text-align: center;
-    }
-    
-    .my-20 > p,
-    .my-24 > p {
-      text-align: center;
-    }
-    
-    /* Gradient boxes */
-    [class*="bg-gradient-to"] {
-      text-align: center;
-    }
-    
-    [class*="bg-gradient-to"] p {
-      text-align: center;
-    }
-    
-    /* Border boxes */
-    [class*="border-l-"] {
-      text-align: center;
-    }
-    
-    [class*="border-l-"] p {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Scene Elements
-       ============================================ */
+
     .scene-divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-3);
+      margin: var(--space-8) 0;
+    }
+    .scene-divider::before,
+    .scene-divider::after {
+      content: '';
+      flex: 1;
       height: 1px;
-      background: linear-gradient(to right, transparent, #475569, transparent);
-      margin: 4rem 0;
+      background: linear-gradient(to right, transparent, #4b5563, transparent);
     }
-    
-    .section-divider {
-      font-family: var(--font-heading);
-      text-align: center;
-      color: #525252;
-      font-size: 0.875rem;
-      letter-spacing: 0.3em;
-      margin: 0;
-      text-transform: uppercase;
-    }
-    
-    .time-marker {
-      background: linear-gradient(90deg, transparent, rgba(159, 18, 57, 0.1), transparent);
-      border-top: 1px solid rgba(159, 18, 57, 0.3);
-      border-bottom: 1px solid rgba(159, 18, 57, 0.3);
-      padding: 1.5rem 0;
-      margin: 3rem 0;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Action Line & Narrator
-       ============================================ */
-    .action-line {
-      font-style: italic;
-      color: #94a3b8;
-      font-size: 1.1rem;
-      text-align: center;
-      margin: 1.5rem 0;
-    }
-    
-    .narrator {
-      color: #a3a3a3;
-      font-style: italic;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-    
-    /* ============================================
-       Space-y containers
-       ============================================ */
-    .space-y-4,
-    .space-y-6,
-    .space-y-8 {
-      text-align: center;
-    }
-    
-    .space-y-4 > *,
-    .space-y-6 > *,
-    .space-y-8 > * {
-      text-align: center;
-    }
-    
-    .space-y-4 > * + * { margin-top: 1rem; }
-    .space-y-6 > * + * { margin-top: 1.5rem; }
-    .space-y-8 > * + * { margin-top: 2rem; }
-    
-    /* ============================================
-       Final Box / Ending
-       ============================================ */
-    .final-box,
-    [class*="mt-32"][class*="mb-40"] {
-      margin: 6rem auto 4rem;
-      text-align: center;
-    }
-    
-    [class*="border-t"][class*="border-neutral"] {
-      text-align: center;
-    }
-    
-    /* ============================================
-       Utility Classes
-       ============================================ */
-    .text-center { text-align: center !important; }
-    .italic { font-style: italic; }
-    .font-bold { font-weight: 700; }
-    .font-semibold { font-weight: 600; }
-    .font-heading { font-family: var(--font-heading); }
-    .font-body { font-family: var(--font-body); }
-    .font-ui { font-family: var(--font-ui); }
-    
-    /* Text Sizes */
-    .text-sm { font-size: 0.875rem; }
-    .text-base { font-size: 1rem; }
-    .text-lg { font-size: 1.125rem; }
-    .text-xl { font-size: 1.25rem; }
-    .text-2xl { font-size: 1.5rem; }
-    .text-3xl { font-size: 1.875rem; }
-    .text-4xl { font-size: 2.25rem; }
-    .text-6xl { font-size: 3.75rem; }
-    .text-8xl { font-size: 6rem; }
-    .text-9xl { font-size: 8rem; }
-    
-    /* Responsive text */
-    @media (min-width: 768px) {
-      .md\:text-8xl { font-size: 6rem; }
-    }
-    @media (min-width: 1024px) {
-      .lg\:text-9xl { font-size: 8rem; }
-    }
-    
-    /* Margins */
-    .m-0 { margin: 0; }
-    .mb-4 { margin-bottom: 1rem; }
-    .mb-6 { margin-bottom: 1.5rem; }
-    .mb-8 { margin-bottom: 2rem; }
-    .mt-4 { margin-top: 1rem; }
-    .mt-6 { margin-top: 1.5rem; }
-    .mt-8 { margin-top: 2rem; }
-    .mt-10 { margin-top: 2.5rem; }
-    .mt-32 { margin-top: 8rem; }
-    .mb-40 { margin-bottom: 10rem; }
-    .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
-    .my-8 { margin-top: 2rem; margin-bottom: 2rem; }
-    .my-12 { margin-top: 3rem; margin-bottom: 3rem; }
-    .my-20 { margin-top: 5rem; margin-bottom: 5rem; }
-    .my-24 { margin-top: 6rem; margin-bottom: 6rem; }
-    
-    /* Text Colors */
-    .text-neutral-300 { color: #d4d4d4; }
-    .text-neutral-400 { color: #a3a3a3; }
-    .text-neutral-500 { color: #737373; }
-    .text-neutral-600 { color: #525252; }
-    .text-neutral-700 { color: #404040; }
-    .text-neutral-800 { color: #262626; }
-    .text-white { color: #ffffff; }
-    .text-purple-200 { color: #e9d5ff; }
-    .text-purple-300 { color: #d8b4fe; }
-    .text-blue-200 { color: #bfdbfe; }
-    .text-blue-300 { color: #93c5fd; }
-    .text-cyan-200 { color: #a5f3fc; }
-    .text-cyan-300 { color: #67e8f9; }
-    .text-green-100 { color: #dcfce7; }
-    .text-green-200 { color: #bbf7d0; }
-    .text-green-300 { color: #86efac; }
-    .text-green-700 { color: #15803d; }
-    .text-green-800 { color: #166534; }
-    .text-green-900 { color: #14532d; }
-    .text-rose-200 { color: #fecdd3; }
-    .text-amber-100 { color: #fef3c7; }
-    .text-amber-200 { color: #fde68a; }
-    .text-amber-300 { color: #fcd34d; }
-    .text-red-200 { color: #fecaca; }
-    .text-red-300 { color: #fca5a5; }
-    .text-red-400 { color: #f87171; }
-    .text-red-800 { color: #991b1b; }
-    .text-slate-200 { color: #e2e8f0; }
-    .text-slate-400 { color: #94a3b8; }
-    
-    /* Leading & Tracking */
-    .leading-tight { line-height: 1.25; }
-    .leading-relaxed { line-height: 1.625; }
-    .tracking-tight { letter-spacing: -0.025em; }
-    .tracking-tighter { letter-spacing: -0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    /* Padding */
-    .p-6 { padding: 1.5rem; }
-    .p-8 { padding: 2rem; }
-    .p-10 { padding: 2.5rem; }
-    .p-12 { padding: 3rem; }
-    .pl-4 { padding-left: 1rem; }
-    .pl-6 { padding-left: 1.5rem; }
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .px-8 { padding-left: 2rem; padding-right: 2rem; }
-    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-    .pt-16 { padding-top: 4rem; }
-    .pb-40 { padding-bottom: 10rem; }
-    
-    /* Borders */
-    .border { border-width: 1px; border-style: solid; }
-    .border-2 { border-width: 2px; border-style: solid; }
-    .border-t { border-top-width: 1px; border-top-style: solid; }
-    .border-l-2 { border-left-width: 2px; border-left-style: solid; }
-    .border-l-4 { border-left-width: 4px; border-left-style: solid; }
-    .rounded-lg { border-radius: 0.5rem; }
-    .rounded-r-lg { border-radius: 0 0.5rem 0.5rem 0; }
-    .rounded-full { border-radius: 9999px; }
-    
-    .border-neutral-800 { border-color: #262626; }
-    .border-green-500 { border-color: #22c55e; }
-    .border-green-800 { border-color: #166534; }
-    .border-amber-700 { border-color: #b45309; }
-    .border-red-800 { border-color: #991b1b; }
-    .border-purple-800 { border-color: #6b21a8; }
-    
-    /* Flex */
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .items-center { align-items: center; }
-    .justify-center { justify-content: center; }
-    .gap-2 { gap: 0.5rem; }
-    
-    /* Position */
-    .relative { position: relative; }
-    .absolute { position: absolute; }
-    .fixed { position: fixed; }
-    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-    .bottom-10 { bottom: 2.5rem; }
-    .z-10 { z-index: 10; }
-    .-z-10 { z-index: -10; }
-    
-    /* Width/Height */
-    .w-2 { width: 0.5rem; }
-    .h-2 { height: 0.5rem; }
-    .h-px { height: 1px; }
-    .w-full { width: 100%; }
-    .h-screen { height: 100vh; }
-    .min-h-screen { min-height: 100vh; }
-    .max-w-2xl { max-width: 42rem; }
-    .mx-auto { margin-left: auto; margin-right: auto; }
-    
-    /* Backgrounds */
-    .bg-green-700 { background-color: #15803d; }
-    .bg-green-800 { background-color: #166534; }
-    .bg-green-900 { background-color: #14532d; }
-    .bg-green-950\/20 { background-color: rgba(5, 46, 22, 0.2); }
-    .bg-red-950\/20 { background-color: rgba(69, 10, 10, 0.2); }
-    .bg-purple-950\/30 { background-color: rgba(46, 16, 101, 0.3); }
-    .bg-amber-950\/40 { background-color: rgba(69, 26, 3, 0.4); }
-    
-    /* Backdrop */
-    .backdrop-blur-sm { backdrop-filter: blur(4px); }
-    
-    /* Overflow */
-    .overflow-x-hidden { overflow-x: hidden; }
-    
-    /* Animation */
-    .animate-fade-up {
-      animation: fadeUp 1s ease-out;
-    }
-    
-    .animate-bounce {
-      animation: bounce 1s infinite;
-    }
-    
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes bounce {
-      0%, 100% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-      }
-      50% {
-        transform: translateY(0);
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-      }
+    .scene-divider span {
+      width: 6px;
+      height: 6px;
+      background: #4b5563;
+      transform: rotate(45deg);
     }
 
-  </style></head><body class="antialiased overflow-x-hidden selection:bg-blood-900 selection:text-white">
-  <div class="bg-gradient"></div>
-<main class="relative min-h-screen pb-40"><div class="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10"></div><header class="h-screen flex flex-col items-center justify-center relative p-6"><div class="animate-fade-up flex flex-col items-center"><div class="mb-6 px-4 py-1 border border-blood-800/50 rounded-full bg-blood-950/20 backdrop-blur-sm"><span class="text-blood-100 text-[10px] font-ui tracking-[0.4em] uppercase">Chapter 83</span></div><h1 class="text-6xl md:text-8xl lg:text-9xl font-heading text-center leading-tight tracking-tighter mb-8">Emerald<br><span class="gradient-text italic pr-2">Oaths</span></h1><p class="font-body text-xl md:text-2xl text-neutral-500 italic max-w-md text-center">"Some alliances are sealed not with ink, but with sharpened intent."</p></div><div class="absolute bottom-10 animate-bounce text-neutral-600"><svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg></div></header><article class="max-w-2xl mx-auto px-8 relative z-10"><div class="prose prose-invert prose-xl reveal"><p class="drop-cap">The younger sister was prepared to do anything to avenge her elder sister’s unjust death.</p><p>She had waited in silence, biding her time. Last night, she finally obtained Catherine’s secret.</p><p class="dialogue">"Robert Raju..."</p><p>Medea’s pale fingers tapped lightly against the table.</p><p class="dialogue">"Do you know who he is, Neril?"</p><p class="dialogue">"I do."</p><p>He had once been Medea’s ally—the man who’d helped raise Jason to the imperial throne.</p><p>He had supported her uncle’s family in Katzen both materially and emotionally, and he’d spent his own coin to secure Birna’s debut in imperial society.</p><p>He’d spared no effort to help Birna ingratiate herself with the Empress and the royal family.</p><p class="thought">When I think back on it now, the way he embraced Birna’s cause was… unusual.</p><p class="thought">It makes sense, if she was his own daughter—and not just a goddaughter.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"Robert Raju."</p><p>Birna’s middle name was Robin. A shortened form of Robert.</p><p class="dialogue">"Birna Claudio..."</p><p>Medea fell silent for a moment, lost in thought—then suddenly laughed.</p><p class="dialogue">"My aunt truly is a romantic soul. To give her child the name of her lover—how bold."</p><p>Medea had always felt Birna’s nature differed from her supposed father and brother.</p><p>Those straightforward passions, that unrefined intensity—they had another source entirely.</p><p class="thought">Birna, you were always so jealous of me, your cousin. Hiding behind the excuse of shared blood while you tried to take everything that was mine.</p><p class="thought">My place. My child. And finally, my husband.</p><p class="thought">Do you even realize that the title ‘Princess Claudio’ was already far too grand for you?</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"If this truth comes to light, it won’t just destroy Princess Claudio. It will become a scandal unlike any other in Valdina—one that stains the Regent himself."</p><p>Neril’s face brightened with dawning understanding.</p><p class="dialogue">"We can use it against them—"</p><p class="dialogue">"Not yet."</p><p>Medea cut in calmly.</p><p class="dialogue">"Even without this secret, the Prince Regent will fall. That’s already guaranteed."</p><p>She’d already wound their leash tightly around her fist with the letter of acceptance.</p><p class="thought">I won’t let you die cheaply after selling my daughter. You’ll wait, Birna.</p><p>A cold light sparked in Medea’s blue-green eyes; beneath it shimmered the slightest trace of grim satisfaction.</p><p>Standing with her back to the darkness, wearing a serene smile, the Princess radiated an eerie calm.</p><p class="dialogue">"Events will unfold where and when I choose."</p><p class="thought">Prince Regent: Next time, I will visit you myself.</p></div><div class="my-16 reveal"><div class="flex items-center justify-center py-8"><div class="h-px bg-red-800 w-24"></div><div class="w-2 h-2 bg-red-800 rotate-45 mx-4"></div><div class="h-px bg-red-800 w-24"></div></div></div><div class="prose prose-invert prose-xl reveal"><p class="drop-cap">The next day, in the Princess’s Palace—</p><p class="dialogue">"Your Highness, Archduke Castullo has sent another gift and letter. This bouquet, I’m told, is from General Jared."</p><p>Medea’s steps faltered. She regarded the pile of gifts arranged before the fireplace with cool detachment.</p><p class="dialogue">"Throw them away."</p><p class="dialogue">"All of them?"</p><p>Instead of replying, Medea took one of the letters from the table and tossed it into the fire.</p><p>Saya nodded without another question.</p><p class="dialogue">"As you wish, Your Highness. Please rest well."</p><p>After Saya departed and the room fell silent, Medea’s gaze drifted back to the hearth.</p><p>The letter had long since crumbled into a handful of ash.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>As she stared into the flames, Medea felt a presence and looked up.</p><p>A man in a white half-mask sat casually on the bedroom window sill. The mask gleamed softly in the moonlight.</p><p>Medea froze for an instant.</p><p class="dialogue">"Acares."</p><p class="dialogue">"Good evening, Princess."</p><p>His greeting was lazy, almost amused.</p><p>Behind him, the silver curtains stirred in the night breeze, and the star-pierced sky framed his silhouette.</p><p>The tableau was so composed, it resembled a scene from a painstakingly rendered painting.</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Medea let out a soft, incredulous laugh and stretched out her hand.</p><p class="dialogue">"If you’re lost in the dark, I can help you find your way."</p><p>Her fingers closed around the crossbow set nearby. She lifted it and leveled it directly at his chest.</p><p>A low chuckle slipped from behind the white mask. For a moment, Medea almost thought he sounded… pleased.</p><p class="dialogue">"Thank you for the invitation."</p><p>As though she’d formally permitted his entry, Cesare vaulted over the window frame with the easy grace of a hunting cat, landing lightly and taking a seat again on the sill.</p><p>He remained perched there rather than stepping fully into the room, as if observing some minimal courtesy.</p><p class="thought">Should I be grateful he respects even that—or punish him for infiltrating the palace so brazenly and calling it an ‘invitation’?</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"If I pull that cord now, do you think you’ll get out of here alive?"</p><p>One tug on the velvet bell rope, and every guard in the Princess’s wing would storm this room.</p><p>The answer came in an unshaken, arrogant tone.</p><p class="dialogue">"Princess, do you truly believe that? That you can keep me here?"</p><p>"..."</p><p>Unfortunately, it was true. At present, there wasn’t a single warrior in Valdina’s palace who could match this man.</p><p>Neril wouldn’t be able to stand against him either. Both of them knew it.</p><p>Cesare spoke again, voice smooth as silk.</p><p class="dialogue">"I brought you a gift. Something far better than the trash over there. Keep it—it will last longer."</p><p class="dialogue">"Since when have you been watching me?"</p><p>Medea’s tone remained indifferent.</p><p class="thought">He must have seen me burn Jason’s letter.</p><p class="dialogue">"If all I wanted was a reply, I’d have accepted one. You’re quite poor at humility—and at remembering your debts."</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p>Medea gave a brief, humorless laugh.</p><p>Something small flew through the air toward her.</p><p>It was a tightly wrapped bundle of cloth, secured with simple string—the kind commonly used by couriers to deliver urgent messages across provinces.</p><p>Her white fingers tugged the knot loose. Inside lay a charred scrap of orange flag.</p><p class="dialogue">"The convoy that left Ossoff no longer has any provisions. I considered bringing you the head of the officer in charge as evidence."</p><p>His golden eyes, half-hidden behind the mask, roamed idly over the spotless walls and richly patterned carpet of her bedchamber.</p><p class="dialogue">"Perhaps your ‘precious person’ will be… surprised?"</p><p>"..."</p><p>Medea stared down at the scrap of fabric.</p><p>Embroidered on the half-burned orange cloth was the badger sigil of the Rasai tribe.</p><p class="thought">You really did it… in ten days.</p><p>This wasn’t something that could be accomplished with elite mercenaries and weapons alone.</p><p>The Rasai were the fiercest and most aggressive of the steppe tribes. Even Peleus struggled each time he faced them in open battle.</p><p>Astonishing speed, precise execution, and flawless delivery of the request—</p><p>Only now did Medea understand, viscerally, why Façade’s name resounded across the continent.</p><p class="dialogue">"Impressive."</p><p class="dialogue">"I told you. Façade is… different."</p><p>Cesare’s voice held an easy arrogance, completely certain of his own reputation.</p><p class="dialogue">"Consider yourself praised. One letter of reply would’ve sufficed."</p><p>Cesare chuckled softly, as if he heard the unspoken complaint: Why did you have to come in person?</p></div><div class="prose prose-invert prose-xl mt-12 reveal"><p class="dialogue">"I heard the Princess intends to appear rather… understated at the banquet."</p><p>On Sunday evening, an official banquet would be held to welcome the Katzen delegation.</p><p class="dialogue">"Seems I’ll need to remind Pinatelli there are still a few weeds left in the palace gardens."</p><p>Matters concerning a woman’s adornment were strictly private. Medea understood at once: Façade had ears in the palace itself.</p><p class="dialogue">"I was curious."</p><p>He rubbed his chin idly.</p><p class="dialogue">"Why was I refused?"</p><p>His words made her think briefly of the sapphire necklace among the gifts she’d sent back to Façade.</p><p class="dialogue">"Was Alpensia’s work lacking? Or did you dislike the color?"</p><p>Alpensia—a dwarven village at the edge of the continent. Its artisans were unmatched anywhere in the world.</p><p>But the Alpensians were fiercely insular. Even Katzen’s royal family struggled to obtain their pieces.</p><p class="dialogue">"I thought emerald would suit you better."</p><p>His relaxed voice flowed directly into the quiet space between them, sinking into Medea’s green eyes like a stone into deep water.</p></div><div class="mt-32 mb-40 reveal relative"><div class="absolute -inset-0.5 bg-gradient-to-r from-red-900 to-black rounded-lg blur opacity-50 animate-pulse-slow"></div><div class="relative bg-black border border-red-800/50 p-12 rounded-lg text-center shadow-2xl"><div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black px-4 border border-red-800/50 rounded text-xs tracking-widest text-red-400 font-ui uppercase">End Chapter 14</div><h2 class="text-4xl md:text-5xl font-heading text-transparent bg-clip-text bg-gradient-to-b from-emerald-400 to-emerald-900 uppercase tracking-[0.15em] drop-shadow-lg mb-6">Emerald Oaths</h2><div class="w-full h-px bg-gradient-to-r from-transparent via-red-800 to-transparent my-8"></div><p class="text-slate-500 font-serif italic text-xl">"A single stone can be adornment—or a promise sharpened to a blade."</p><p class="mt-8 text-slate-600 text-sm font-ui tracking-widest uppercase">[ Continue to Next Chapter ]</p></div></div></article></main><script>const observer=new IntersectionObserver(e=>{e.forEach(e=>{e.isIntersecting&&e.target.classList.add("active")})},{threshold:.1});document.querySelectorAll(".reveal").forEach(e=>observer.observe(e))</script></body></html>
+    .chapter-end {
+      position: relative;
+      margin: var(--space-12) 0 var(--space-8);
+      padding: var(--space-8) var(--space-5);
+      background: radial-gradient(circle at top, rgba(52, 211, 153, 0.12), transparent 55%), #020617;
+      border-radius: 10px;
+      border: 1px solid rgba(16, 185, 129, 0.6);
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+    }
+    .chapter-end-label {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 0.375rem var(--space-2);
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.7);
+      background: #020617;
+      font-family: var(--font-ui);
+      font-size: 0.6875rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #6ee7b7;
+    }
+    .chapter-end h2 {
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #6ee7b7, #059669);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: var(--space-4);
+    }
+    .chapter-end-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #059669, transparent);
+      margin: var(--space-4) 0;
+    }
+    .chapter-end-quote {
+      color: #64748b;
+      font-style: italic;
+      font-size: 1.25rem;
+      margin-bottom: var(--space-4);
+    }
+    .chapter-end-continue {
+      font-family: var(--font-ui);
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+    .fade-up { animation: fadeUp 1s ease forwards; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 768px) {
+      header { min-height: 80vh; }
+      article { padding: var(--space-6) var(--space-2) var(--space-10); }
+      .drop-cap::first-letter { font-size: 3.5rem; margin-right: 0.4rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-background"></div>
+
+  <main>
+    <header>
+      <div class="fade-up">
+        <div class="chapter-badge">Chapter 83</div>
+        <h1>Emerald<br><span class="gradient-text">Oaths</span></h1>
+        <p class="subtitle">"Some alliances are sealed not with ink, but with sharpened intent."</p>
+      </div>
+
+      <div class="scroll-indicator" aria-hidden="true">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+      </div>
+    </header>
+
+    <article>
+      <section class="reveal">
+        <p class="drop-cap">The younger sister was prepared to do anything to avenge her elder sister’s unjust death.</p>
+        <p>She had waited in silence, biding her time. Last night, she finally obtained Catherine’s secret.</p>
+        <p class="dialogue">"Robert Raju..."</p>
+        <p>Medea’s pale fingers tapped lightly against the table.</p>
+        <p class="dialogue">"Do you know who he is, Neril?"</p>
+        <p class="dialogue">"I do."</p>
+        <p>He had once been Medea’s ally—the man who’d helped raise Jason to the imperial throne.</p>
+        <p>He had supported her uncle’s family in Katzen both materially and emotionally, and he’d spent his own coin to secure Birna’s debut in imperial society.</p>
+        <p>He’d spared no effort to help Birna ingratiate herself with the Empress and the royal family.</p>
+
+        <div class="thought">
+          <p>When I think back on it now, the way he embraced Birna’s cause was… unusual.</p>
+          <p>It makes sense, if she was his own daughter—and not just a goddaughter.</p>
+        </div>
+      </section>
+
+      <section class="reveal mt-12">
+        <p class="dialogue">"Robert Raju."</p>
+        <p>Birna’s middle name was Robin. A shortened form of Robert.</p>
+        <p class="dialogue">"Birna Claudio..."</p>
+        <p>Medea fell silent for a moment, lost in thought—then suddenly laughed.</p>
+        <p class="dialogue">"My aunt truly is a romantic soul. To give her child the name of her lover—how bold."</p>
+        <p>Medea had always felt Birna’s nature differed from her supposed father and brother.</p>
+        <p>Those straightforward passions, that unrefined intensity—they had another source entirely.</p>
+
+        <div class="thought">
+          <p>Birna, you were always so jealous of me, your cousin. Hiding behind the excuse of shared blood while you tried to take everything that was mine.</p>
+          <p>My place. My child. And finally, my husband.</p>
+          <p>Do you even realize that the title ‘Princess Claudio’ was already far too grand for you?</p>
+        </div>
+      </section>
+
+      <section class="reveal mt-12">
+        <p class="dialogue">"If this truth comes to light, it won’t just destroy Princess Claudio. It will become a scandal unlike any other in Valdina—one that stains the Regent himself."</p>
+        <p>Neril’s face brightened with dawning understanding.</p>
+        <p class="dialogue">"We can use it against them—"</p>
+        <p class="dialogue">"Not yet."</p>
+        <p>Medea cut in calmly.</p>
+        <p class="dialogue">"Even without this secret, the Prince Regent will fall. That’s already guaranteed."</p>
+        <p>She’d already wound their leash tightly around her fist with the letter of acceptance.</p>
+
+        <div class="thought">
+          <p>I won’t let you die cheaply after selling my daughter. You’ll wait, Birna.</p>
+        </div>
+
+        <p>A cold light sparked in Medea’s blue-green eyes; beneath it shimmered the slightest trace of grim satisfaction.</p>
+        <p>Standing with her back to the darkness, wearing a serene smile, the Princess radiated an eerie calm.</p>
+        <p class="dialogue">"Events will unfold where and when I choose."</p>
+
+        <div class="thought">
+          <p>Prince Regent: Next time, I will visit you myself.</p>
+        </div>
+      </section>
+
+      <div class="scene-divider reveal"><span></span></div>
+
+      <section class="reveal">
+        <p class="drop-cap">The next day, in the Princess’s Palace—</p>
+        <p class="dialogue">"Your Highness, Archduke Castullo has sent another gift and letter. This bouquet, I’m told, is from General Jared."</p>
+        <p>Medea’s steps faltered. She regarded the pile of gifts arranged before the fireplace with cool detachment.</p>
+        <p class="dialogue">"Throw them away."</p>
+        <p class="dialogue">"All of them?"</p>
+        <p>Instead of replying, Medea took one of the letters from the table and tossed it into the fire.</p>
+        <p>Saya nodded without another question.</p>
+        <p class="dialogue">"As you wish, Your Highness. Please rest well."</p>
+        <p>After Saya departed and the room fell silent, Medea’s gaze drifted back to the hearth.</p>
+        <p>The letter had long since crumbled into a handful of ash.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>As she stared into the flames, Medea felt a presence and looked up.</p>
+        <p>A man in a white half-mask sat casually on the bedroom window sill. The mask gleamed softly in the moonlight.</p>
+        <p>Medea froze for an instant.</p>
+        <p class="dialogue">"Acares."</p>
+        <p class="dialogue">"Good evening, Princess."</p>
+        <p>His greeting was lazy, almost amused.</p>
+        <p>Behind him, the silver curtains stirred in the night breeze, and the star-pierced sky framed his silhouette.</p>
+        <p>The tableau was so composed, it resembled a scene from a painstakingly rendered painting.</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>Medea let out a soft, incredulous laugh and stretched out her hand.</p>
+        <p class="dialogue">"If you’re lost in the dark, I can help you find your way."</p>
+        <p>Her fingers closed around the crossbow set nearby. She lifted it and leveled it directly at his chest.</p>
+        <p>A low chuckle slipped from behind the white mask. For a moment, Medea almost thought he sounded… pleased.</p>
+        <p class="dialogue">"Thank you for the invitation."</p>
+        <p>As though she’d formally permitted his entry, Cesare vaulted over the window frame with the easy grace of a hunting cat, landing lightly and taking a seat again on the sill.</p>
+        <p>He remained perched there rather than stepping fully into the room, as if observing some minimal courtesy.</p>
+
+        <div class="thought">
+          <p>Should I be grateful he respects even that—or punish him for infiltrating the palace so brazenly and calling it an ‘invitation’?</p>
+        </div>
+      </section>
+
+      <section class="reveal mt-12">
+        <p class="dialogue">"If I pull that cord now, do you think you’ll get out of here alive?"</p>
+        <p>One tug on the velvet bell rope, and every guard in the Princess’s wing would storm this room.</p>
+        <p>The answer came in an unshaken, arrogant tone.</p>
+        <p class="dialogue">"Princess, do you truly believe that? That you can keep me here?"</p>
+        <p>"..."</p>
+        <p>Unfortunately, it was true. At present, there wasn’t a single warrior in Valdina’s palace who could match this man.</p>
+        <p>Neril wouldn’t be able to stand against him either. Both of them knew it.</p>
+        <p>Cesare spoke again, voice smooth as silk.</p>
+        <p class="dialogue">"I brought you a gift. Something far better than the trash over there. Keep it—it will last longer."</p>
+        <p class="dialogue">"Since when have you been watching me?"</p>
+        <p>Medea’s tone remained indifferent.</p>
+
+        <div class="thought">
+          <p>He must have seen me burn Jason’s letter.</p>
+        </div>
+
+        <p class="dialogue">"If all I wanted was a reply, I’d have accepted one. You’re quite poor at humility—and at remembering your debts."</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p>Medea gave a brief, humorless laugh.</p>
+        <p>Something small flew through the air toward her.</p>
+        <p>It was a tightly wrapped bundle of cloth, secured with simple string—the kind commonly used by couriers to deliver urgent messages across provinces.</p>
+        <p>Her white fingers tugged the knot loose. Inside lay a charred scrap of orange flag.</p>
+        <p class="dialogue">"The convoy that left Osso concluyó no longer has any provisions. I considered bringing you the head of the officer in charge as evidence."</p>
+        <p>His golden eyes, half-hidden behind the mask, roamed idly over the spotless walls and richly patterned carpet of her bedchamber.</p>
+        <p class="dialogue">"Perhaps your ‘precious person’ will be… surprised?"</p>
+        <p>"..."</p>
+        <p>Medea stared down at the scrap of fabric.</p>
+        <p>Embroidered on the half-burned orange cloth was the badger sigil of the Rasai tribe.</p>
+
+        <div class="thought">
+          <p>You really did it… in ten days.</p>
+        </div>
+
+        <p>This wasn’t something that could be accomplished with elite mercenaries and weapons alone.</p>
+        <p>The Rasai were the fiercest and most aggressive of the steppe tribes. Even Peleus struggled each time he faced them in open battle.</p>
+        <p>Astonishing speed, precise execution, and flawless delivery of the request—</p>
+        <p>Only now did Medea understand, viscerally, why Façade’s name resounded across the continent.</p>
+        <p class="dialogue">"Impressive."</p>
+        <p class="dialogue">"I told you. Façade is… different."</p>
+        <p>Cesare’s voice held an easy arrogance, completely certain of his own reputation.</p>
+        <p class="dialogue">"Consider yourself praised. One letter of reply would’ve sufficed."</p>
+        <p>Cesare chuckled softly, as if he heard the unspoken complaint: Why did you have to come in person?</p>
+      </section>
+
+      <section class="reveal mt-12">
+        <p class="dialogue">"I heard the Princess intends to appear rather… understated at the banquet."</p>
+        <p>On Sunday evening, an official banquet would be held to welcome the Katzen delegation.</p>
+        <p class="dialogue">"Seems I’ll need to remind Pinatelli there are still a few weeds left in the palace gardens."</p>
+        <p>Matters concerning a woman’s adornment were strictly private. Medea understood at once: Façade had ears in the palace itself.</p>
+        <p class="dialogue">"I was curious."</p>
+        <p>He rubbed his chin idly.</p>
+        <p class="dialogue">"Why was I refused?"</p>
+        <p>His words made her think briefly of the sapphire necklace among the gifts she’d sent back to Façade.</p>
+        <p class="dialogue">"Was Alpensia’s work lacking? Or did you dislike the color?"</p>
+        <p>Alpensia—a dwarven village at the edge of the continent. Its artisans were unmatched anywhere in the world.</p>
+        <p>But the Alpensians were fiercely insular. Even Katzen’s royal family struggled to obtain their pieces.</p>
+        <p class="dialogue">"I thought emerald would suit you better."</p>
+        <p>His relaxed voice flowed directly into the quiet space between them, sinking into Medea’s green eyes like a stone into deep water.</p>
+      </section>
+
+      <div class="chapter-end reveal">
+        <div class="chapter-end-label">End Chapter 83</div>
+        <h2>Emerald Oaths</h2>
+        <div class="chapter-end-divider"></div>
+        <p class="chapter-end-quote">"A single stone can be adornment—or a promise sharpened to a blade."</p>
+        <p class="chapter-end-continue">Continue to Next Chapter</p>
+      </div>
+    </article>
+  </main>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('active');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -80px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

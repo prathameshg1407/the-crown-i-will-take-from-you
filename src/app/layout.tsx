@@ -11,6 +11,7 @@ import PayPalProvider from "@/components/providers/PayPalProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import ReportButton from "@/components/ReportButton";
+import { CurrencyProvider } from "@/lib/currency/CurrencyContext";
 
 const headingFont = Cinzel({
   subsets: ["latin"],
@@ -312,6 +313,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <RazorpayLoader />
+        <CurrencyProvider> 
         <AuthProvider>
           <PayPalProvider>
             <UserMenuFixed />
@@ -355,6 +357,7 @@ export default function RootLayout({
             />
           </PayPalProvider>
         </AuthProvider>
+         </CurrencyProvider> 
                 <ReportButton />
 
         <SpeedInsights />

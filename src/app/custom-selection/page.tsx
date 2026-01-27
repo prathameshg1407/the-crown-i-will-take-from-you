@@ -5,14 +5,14 @@ import { Suspense, useState, useEffect, useMemo, useCallback, memo } from 'react
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { useRazorpay } from '@/lib/razorpay/hooks'
+import { useCurrency } from '@/lib/currency/CurrencyContext'
 import { chapters, PRICING } from '@/data/chapters'
-import { Check, ShoppingCart, ArrowLeft, Search, Crown, CreditCard, X, Sparkles } from 'lucide-react'
+import { Check, ShoppingCart, ArrowLeft, Search, Crown, CreditCard, X, Sparkles, Globe, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 // PayPal imports commented out
 // import dynamic from 'next/dynamic'
-// import { Globe } from 'lucide-react'
 // const PayPalButton = dynamic(() => import('@/components/PayPalButton'), {
 //   ssr: false,
 //   loading: () => (
@@ -32,6 +32,64 @@ interface ChapterCardProps {
   chapter: typeof chapters[number]
   isSelected: boolean
   onToggle: (id: number) => void
+  convertedPrice: string | null
+  isInternational: boolean
+}
+
+// ============================================================================
+// Price Display Component
+// ============================================================================
+
+function PriceDisplay({ 
+  inrPrice, 
+  showBoth = false,
+  className = ""
+}: { 
+  inrPrice: number
+  showBoth?: boolean
+  className?: string
+}) {
+  const { isLoading, isInternational, convertFromINR } = useCurrency()
+  const [converted, setConverted] = useState<{
+    formatted: string
+    currency: string
+  } | null>(null)
+
+  useEffect(() => {
+    if (isInternational && inrPrice > 0) {
+      convertFromINR(inrPrice).then((result) => {
+        setConverted({
+          formatted: result.formatted,
+          currency: result.currency,
+        })
+      })
+    }
+  }, [inrPrice, isInternational, convertFromINR])
+
+  if (inrPrice === 0) return <span className={className}>Free</span>
+
+  if (isLoading) {
+    return <span className={`animate-pulse ${className}`}>...</span>
+  }
+
+  if (!isInternational) {
+    return <span className={className}>₹{inrPrice.toLocaleString('en-IN')}</span>
+  }
+
+  if (converted) {
+    return (
+      <span className={className}>
+        {converted.formatted}
+        {showBoth && (
+          <span className="text-neutral-500 ml-1">
+            (₹{inrPrice.toLocaleString('en-IN')})
+          </span>
+        )}
+      </span>
+    )
+  }
+
+  return <span className={className}>₹{inrPrice.toLocaleString('en-IN')}</span>
 }
 
 // ============================================================================
@@ -41,7 +99,9 @@ interface ChapterCardProps {
 const ChapterCard = memo(function ChapterCard({ 
   chapter, 
   isSelected, 
-  onToggle
+  onToggle,
+  convertedPrice,
+  isInternational
 }: ChapterCardProps) {
   const priceINR = PRICING.CUSTOM_SELECTION.pricePerChapter
 
@@ -72,7 +132,14 @@ const ChapterCard = memo(function ChapterCard({
             {chapter.title}
           </h3>
           <div className="text-xs text-[#9f1239] font-ui">
-            ₹{priceINR}
+            {isInternational && convertedPrice ? (
+              <>
+                {convertedPrice}
+                <span className="text-neutral-500 ml-1">(₹{priceINR})</span>
+              </>
+            ) : (
+              <>₹{priceINR}</>
+            )}
           </div>
         </div>
       </div>
@@ -103,10 +170,23 @@ function CustomSelectionInner() {
   const searchParams = useSearchParams()
   const { user, isAuthenticated, isLoading: authLoading, refreshUser } = useAuth()
   const { initializePayment, isProcessing: isRazorpayProcessing } = useRazorpay()
+  const { 
+    location, 
+    isLoading: isCurrencyLoading, 
+    isInternational,
+    convertFromINR,
+    refreshLocation 
+  } = useCurrency()
   const router = useRouter()
   
   const [selectedChapters, setSelectedChapters] = useState<number[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [convertedPrices, setConvertedPrices] = useState<{
+    perChapter: string | null
+    total: string | null
+    completePack: string | null
+  }>({ perChapter: null, total: null, completePack: null })
+  
   // const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
   //   (searchParams.get('payment') as PaymentMethod) || 'razorpay'
   // )
@@ -156,6 +236,26 @@ function CustomSelectionInner() {
     
     return { totalINR, completePackINR, savings }
   }, [selectedChapters.length])
+
+  // Convert prices when international
+  useEffect(() => {
+    if (isInternational && !isCurrencyLoading) {
+      const convertPrices = async () => {
+        const [perChapter, total, completePack] = await Promise.all([
+          convertFromINR(PRICING.CUSTOM_SELECTION.pricePerChapter),
+          convertFromINR(costs.totalINR),
+          convertFromINR(PRICING.COMPLETE_PACK.price),
+        ])
+        
+        setConvertedPrices({
+          perChapter: perChapter.formatted,
+          total: total.formatted,
+          completePack: completePack.formatted,
+        })
+      }
+      convertPrices()
+    }
+  }, [isInternational, isCurrencyLoading, costs.totalINR, convertFromINR])
 
   const canPurchase = selectedChapters.length >= PRICING.CUSTOM_SELECTION.minChapters
 
@@ -243,8 +343,25 @@ function CustomSelectionInner() {
               Custom Chapter Selection
             </h1>
             <p className="text-lg text-neutral-400 font-body">
-              Pick exactly which chapters you want • ₹{PRICING.CUSTOM_SELECTION.pricePerChapter}/chapter
+              Pick exactly which chapters you want • <PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.pricePerChapter} />/chapter
             </p>
+
+            {/* Location Indicator */}
+            {location && !isCurrencyLoading && (
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-neutral-900/60 border border-neutral-800 rounded-full">
+                <Globe className="w-4 h-4 text-neutral-400" />
+                <span className="text-sm text-neutral-400">
+                  {location.country} • Prices shown in {location.currency}
+                </span>
+                <button 
+                  onClick={refreshLocation}
+                  className="ml-2 p-1 hover:bg-neutral-800 rounded-full transition-colors"
+                  title="Refresh location"
+                >
+                  <RefreshCw className="w-3 h-3 text-neutral-500" />
+                </button>
+              </div>
+            )}
             
             {/* Payment Method Selector - Commented out, only Razorpay now */}
             {/* <div className="mt-6 inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5">
@@ -273,10 +390,20 @@ function CustomSelectionInner() {
             </div> */}
 
             {/* Payment Info */}
-            <div className="mt-6 flex items-center gap-2 text-neutral-500 text-sm">
+            <div className="mt-4 flex items-center gap-2 text-neutral-500 text-sm">
               <CreditCard className="w-4 h-4" />
-              <span>Pay with UPI, Credit/Debit Cards, Net Banking</span>
+              <span>
+                Pay with UPI, Credit/Debit Cards, Net Banking
+                {isInternational && ' • Payment processed in INR'}
+              </span>
             </div>
+
+            {/* International User Note */}
+            {isInternational && (
+              <p className="mt-2 text-xs text-amber-500/80">
+                💡 Prices shown in {location?.currency}. Payment will be processed in INR — your bank will handle conversion.
+              </p>
+            )}
             
             {/* Recommendation Banner */}
             {showRecommendation && (
@@ -288,9 +415,11 @@ function CustomSelectionInner() {
                       💡 Consider the Complete Pack!
                     </p>
                     <p className="text-amber-200/70 text-sm font-body">
-                      You're selecting {selectedChapters.length} chapters for ₹{costs.totalINR}. 
-                      The Complete Pack gives you all {PRICING.COMPLETE_PACK.chapters} chapters for just 
-                      ₹{costs.completePackINR} — that's only ₹{PRICING.COMPLETE_PACK.pricePerChapter}/chapter!
+                      You're selecting {selectedChapters.length} chapters for{' '}
+                      <PriceDisplay inrPrice={costs.totalINR} />. 
+                      The Complete Pack gives you all {PRICING.COMPLETE_PACK.chapters} chapters for just{' '}
+                      <PriceDisplay inrPrice={costs.completePackINR} /> — that's only{' '}
+                      <PriceDisplay inrPrice={PRICING.COMPLETE_PACK.pricePerChapter} />/chapter!
                     </p>
                     <Link 
                       href="/#pricing" 
@@ -316,7 +445,13 @@ function CustomSelectionInner() {
               <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">Selected</div>
             </div>
             <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-lg p-4 hover:bg-neutral-900/60 transition-colors">
-              <div className="text-2xl font-heading text-neutral-100 mb-1">₹{costs.totalINR}</div>
+              <div className="text-2xl font-heading text-neutral-100 mb-1">
+                {isInternational && convertedPrices.total ? (
+                  <span title={`₹${costs.totalINR}`}>{convertedPrices.total}</span>
+                ) : (
+                  <>₹{costs.totalINR}</>
+                )}
+              </div>
               <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">Total Cost</div>
             </div>
             <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-lg p-4 hover:bg-neutral-900/60 transition-colors">
@@ -409,6 +544,8 @@ function CustomSelectionInner() {
                   chapter={chapter}
                   isSelected={selectedChapters.includes(chapter.id)}
                   onToggle={toggleChapter}
+                  convertedPrice={convertedPrices.perChapter}
+                  isInternational={isInternational}
                 />
               ))}
             </div>
@@ -431,7 +568,15 @@ function CustomSelectionInner() {
                 )}
               </div>
               <div className="text-2xl font-heading text-neutral-100">
-                Total: ₹{costs.totalINR}
+                Total:{' '}
+                {isInternational && convertedPrices.total ? (
+                  <>
+                    {convertedPrices.total}
+                    <span className="text-base text-neutral-500 ml-2">(₹{costs.totalINR})</span>
+                  </>
+                ) : (
+                  <>₹{costs.totalINR}</>
+                )}
               </div>
             </div>
 
@@ -450,7 +595,7 @@ function CustomSelectionInner() {
                 ) : (
                   <>
                     <ShoppingCart className="w-4 h-4" />
-                    Pay with Razorpay
+                    Pay ₹{costs.totalINR}
                   </>
                 )}
               </button>
@@ -474,6 +619,7 @@ function CustomSelectionInner() {
           <div className="mt-3 text-center md:text-right">
             <p className="text-xs text-neutral-500">
               🔒 Secure payment powered by Razorpay • UPI, Cards, Net Banking
+              {isInternational && ' • Payment in INR'}
             </p>
           </div>
         </div>
