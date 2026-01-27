@@ -1,7 +1,7 @@
 // components/PayPalButton.tsx
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { usePayPal } from '@/lib/paypal/hooks'
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import type { PurchaseType } from '@/lib/supabase/database.types'
@@ -26,7 +26,12 @@ export default function PayPalButton({
   const containerRef = useRef<HTMLDivElement>(null)
   const [renderAttempt, setRenderAttempt] = useState(0)
   const [renderError, setRenderError] = useState<string | null>(null)
-  const hasRenderedRef = useRef(false)
+  const [hasRendered, setHasRendered] = useState(false)
+  
+  // Refs to track component lifecycle
+  const isMountedRef = useRef(true)
+  const isRenderingRef = useRef(false)
+  const renderIdRef = useRef(0)
 
   const { 
     isLoading, 
@@ -40,42 +45,166 @@ export default function PayPalButton({
     onError,
   })
 
-  // Render buttons when ready
-  const handleRender = useCallback(async () => {
-    if (!containerRef.current || !isReady || hasRenderedRef.current) {
-      return
+  // Create stable key for options to detect changes
+  const optionsKey = useMemo(() => {
+    const chaptersKey = customChapters ? customChapters.sort().join(',') : ''
+    return `${purchaseType}-${tier || ''}-${chaptersKey}`
+  }, [purchaseType, tier, customChapters])
+
+  // Store latest options in ref for access in async operations
+  const optionsRef = useRef({ purchaseType, tier, customChapters })
+  optionsRef.current = { purchaseType, tier, customChapters }
+
+  // Track component mount state
+  useEffect(() => {
+    isMountedRef.current = true
+    
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  // Main render effect
+  useEffect(() => {
+    // Generate unique ID for this render attempt
+    const currentRenderId = ++renderIdRef.current
+
+    const performRender = async () => {
+      // Skip if already rendering or already rendered
+      if (isRenderingRef.current || hasRendered) {
+        return
+      }
+
+      // Wait for SDK to be ready
+      if (!isReady) {
+        return
+      }
+
+      // Check container exists
+      const container = containerRef.current
+      if (!container) {
+        return
+      }
+
+      // Verify container is in DOM
+      if (!document.body.contains(container)) {
+        console.warn('[PayPal] Container not in DOM, skipping render')
+        return
+      }
+
+      isRenderingRef.current = true
+      setRenderError(null)
+
+      try {
+        // Small delay to ensure DOM stability after React updates
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        // Check if this render is still valid
+        if (currentRenderId !== renderIdRef.current) {
+          console.log('[PayPal] Render superseded by newer attempt')
+          return
+        }
+
+        // Check if still mounted
+        if (!isMountedRef.current) {
+          console.log('[PayPal] Component unmounted, aborting render')
+          return
+        }
+
+        // Re-verify container is still in DOM after delay
+        if (!container || !document.body.contains(container)) {
+          console.warn('[PayPal] Container removed during delay, aborting render')
+          return
+        }
+
+        // Clear any existing content
+        container.innerHTML = ''
+
+        // Get current options from ref
+        const { purchaseType: currentType, tier: currentTier, customChapters: currentChapters } = optionsRef.current
+
+        const success = await renderButton(container, currentType, {
+          tier: currentTier,
+          customChapters: currentChapters,
+        })
+
+        // Verify render is still valid after async operation
+        if (currentRenderId !== renderIdRef.current || !isMountedRef.current) {
+          return
+        }
+
+        if (success) {
+          setHasRendered(true)
+        } else {
+          setRenderError('Failed to load PayPal button')
+        }
+      } catch (error) {
+        console.error('[PayPal] Render error:', error)
+        
+        // Only set error if this render is still valid
+        if (currentRenderId === renderIdRef.current && isMountedRef.current) {
+          setRenderError(
+            error instanceof Error ? error.message : 'Failed to load PayPal button'
+          )
+        }
+      } finally {
+        isRenderingRef.current = false
+      }
     }
 
-    hasRenderedRef.current = true
-    setRenderError(null)
+    performRender()
+  }, [isReady, renderAttempt, hasRendered, renderButton])
 
-    const success = await renderButton(
-      containerRef.current, 
-      purchaseType, 
-      { tier, customChapters }
-    )
-
-    if (!success) {
-      setRenderError('Failed to load PayPal button')
-      hasRenderedRef.current = false
+  // Reset when options change
+  useEffect(() => {
+    // Only reset if we've already rendered
+    if (hasRendered) {
+      // Increment render ID to invalidate any in-progress renders
+      renderIdRef.current++
+      
+      setHasRendered(false)
+      isRenderingRef.current = false
+      
+      // Clear container safely
+      if (containerRef.current && document.body.contains(containerRef.current)) {
+        containerRef.current.innerHTML = ''
+      }
     }
-  }, [isReady, renderButton, purchaseType, tier, customChapters])
+  }, [optionsKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Cleanup on unmount
   useEffect(() => {
-    handleRender()
-  }, [handleRender, renderAttempt])
+    return () => {
+      // Invalidate any pending renders
+      renderIdRef.current++
+      
+      // Clear container if it exists
+      if (containerRef.current) {
+        try {
+          containerRef.current.innerHTML = ''
+        } catch {
+          // Container may already be removed
+        }
+      }
+    }
+  }, [])
 
-  // Re-render when options change
-  useEffect(() => {
-    hasRenderedRef.current = false
-    handleRender()
-  }, [purchaseType, tier, customChapters?.length, handleRender])
-
-  const handleRetry = () => {
-    hasRenderedRef.current = false
+  const handleRetry = useCallback(() => {
+    // Invalidate any in-progress renders
+    renderIdRef.current++
+    
+    setHasRendered(false)
     setRenderError(null)
+    isRenderingRef.current = false
+    
+    // Clear container safely
+    if (containerRef.current && document.body.contains(containerRef.current)) {
+      containerRef.current.innerHTML = ''
+    }
+    
+    // Trigger new render attempt
     setRenderAttempt(prev => prev + 1)
-  }
+  }, [])
 
   const displayError = renderError || hookError
 
@@ -89,7 +218,7 @@ export default function PayPalButton({
     )
   }
 
-  // Error state
+  // Error state (when SDK fails to load)
   if (displayError && !isReady) {
     return (
       <div className={`text-center py-4 px-4 bg-red-900/20 border border-red-800/50 rounded-lg ${className}`}>
@@ -122,6 +251,7 @@ export default function PayPalButton({
         ref={containerRef} 
         className="paypal-button-container min-h-[50px]"
         data-currency={currency}
+        data-options-key={optionsKey}
       />
       
       {/* Currency Info */}

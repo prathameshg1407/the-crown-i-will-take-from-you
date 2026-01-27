@@ -95,7 +95,7 @@ export async function paypalRequest<T>(
 
   const url = `${paypalConfig.baseUrl}${endpoint}`
   
-  logger.info({ method, endpoint }, 'PayPal API request')
+  logger.debug({ method, endpoint }, 'PayPal API request')
 
   const response = await fetch(url, {
     method,
@@ -104,17 +104,25 @@ export async function paypalRequest<T>(
     cache: 'no-store',
   })
 
-  const responseData = await response.json().catch(() => ({}))
+  const responseText = await response.text()
+  let responseData: Record<string, unknown> = {}
+  
+  try {
+    responseData = JSON.parse(responseText)
+  } catch {
+    logger.error({ responseText }, 'Failed to parse PayPal response')
+  }
 
   if (!response.ok) {
     logger.error({ 
       status: response.status, 
       endpoint, 
       error: responseData,
+      responseText,
     }, 'PayPal API error')
     
-    const errorMessage = responseData.details?.[0]?.description 
-      || responseData.message 
+    const errorMessage = (responseData.details as Array<{ description?: string }>)?.[0]?.description 
+      || (responseData as { message?: string }).message 
       || `PayPal API error: ${response.status}`
     throw new Error(errorMessage)
   }
@@ -131,8 +139,6 @@ export interface PayPalOrderRequest {
   currency: string
   description: string
   customId: string
-  returnUrl?: string
-  cancelUrl?: string
 }
 
 export interface PayPalOrder {
@@ -178,20 +184,23 @@ export interface PayPalCaptureResult {
 // ======================
 
 /**
- * Create PayPal order
+ * Create PayPal order - SIMPLIFIED FOR DIGITAL GOODS
  */
 export async function createPayPalOrder(options: PayPalOrderRequest): Promise<PayPalOrder> {
-  const { amount, currency, description, customId, returnUrl, cancelUrl } = options
-  
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const { amount, currency, description, customId } = options
 
+  logger.debug({ amount, currency, customId }, 'Creating PayPal order')
+
+  // Use the simpler application_context format for digital goods
+  // This is more reliable and doesn't require shipping
   return paypalRequest<PayPalOrder>('/v2/checkout/orders', {
     method: 'POST',
+    idempotencyKey: customId,
     body: {
       intent: 'CAPTURE',
       purchase_units: [{
-        reference_id: customId,
-        description,
+        reference_id: 'default',
+        description: description.substring(0, 127), // PayPal limit
         custom_id: customId,
         soft_descriptor: 'TCIWT',
         amount: {
@@ -199,17 +208,13 @@ export async function createPayPalOrder(options: PayPalOrderRequest): Promise<Pa
           value: amount.toFixed(2),
         },
       }],
-      payment_source: {
-        paypal: {
-          experience_context: {
-            brand_name: 'The Crown I Will Take',
-            landing_page: 'NO_PREFERENCE',
-            user_action: 'PAY_NOW',
-            payment_method_preference: 'IMMEDIATE_PAYMENT_REQUIRED',
-            return_url: returnUrl || `${appUrl}/payment/success`,
-            cancel_url: cancelUrl || `${appUrl}/payment/cancel`,
-          },
-        },
+      // Simple application_context - works better for digital goods
+      application_context: {
+        brand_name: 'The Crown I Will Take',
+        locale: 'en-US',
+        landing_page: 'LOGIN', // or 'BILLING' or 'NO_PREFERENCE'
+        user_action: 'PAY_NOW',
+        shipping_preference: 'NO_SHIPPING', // KEY: No shipping for digital goods!
       },
     },
   })
@@ -219,6 +224,8 @@ export async function createPayPalOrder(options: PayPalOrderRequest): Promise<Pa
  * Capture PayPal order (after user approves)
  */
 export async function capturePayPalOrder(orderId: string): Promise<PayPalCaptureResult> {
+  logger.debug({ orderId }, 'Capturing PayPal order')
+  
   return paypalRequest<PayPalCaptureResult>(`/v2/checkout/orders/${orderId}/capture`, {
     method: 'POST',
   })

@@ -15,7 +15,6 @@ import {
   SupportedCurrency,
 } from './config'
 import { logger } from '@/lib/logger'
-import { nanoid } from 'nanoid'
 import type { Json, PurchaseType } from '@/lib/supabase/database.types'
 
 // ======================
@@ -46,6 +45,22 @@ export interface PayPalOrderResult {
   amount: number
   currency: string
   approvalUrl?: string
+}
+
+// ======================
+// UUID Generator
+// ======================
+
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
 }
 
 // ======================
@@ -131,8 +146,40 @@ export class PayPalService {
         throw new Error('Invalid purchase request')
       }
 
-      // Create purchase record first
-      const purchaseId = nanoid(16)
+      // Generate a proper UUID for the purchase record
+      const purchaseId = generateUUID()
+      
+      logger.debug({ purchaseId }, 'Generated purchase ID')
+
+      // Create PayPal order FIRST (before database insert)
+      logger.debug({ amount, currency, description }, 'Calling PayPal API to create order')
+      
+      let order
+      try {
+        order = await createPayPalOrder({
+          amount,
+          currency,
+          description,
+          customId: purchaseId,
+        })
+        
+        logger.info({ orderId: order.id, status: order.status }, 'PayPal order created successfully')
+      } catch (paypalError) {
+        logger.error({ 
+          error: paypalError instanceof Error ? paypalError.message : paypalError,
+          amount,
+          currency,
+        }, 'PayPal API failed to create order')
+        throw new Error('Failed to create PayPal order. Please try again.')
+      }
+
+      if (!order?.id) {
+        logger.error({ order }, 'PayPal returned invalid order response')
+        throw new Error('Invalid response from PayPal')
+      }
+
+      // Now insert the purchase record WITH the PayPal order ID
+      logger.debug({ purchaseId, orderId: order.id }, 'Inserting purchase record')
       
       const { error: insertError } = await supabaseAdmin
         .from('purchases')
@@ -146,37 +193,31 @@ export class PayPalService {
           status: 'pending',
           payment_email: email,
           payment_provider: 'paypal',
+          paypal_order_id: order.id, // Include PayPal order ID in initial insert
         })
 
       if (insertError) {
-        logger.error({ error: insertError }, 'Failed to create purchase record')
-        throw new Error('Failed to initialize purchase')
+        logger.error({ 
+          error: insertError, 
+          purchaseId, 
+          orderId: order.id,
+          constraint: insertError.code,
+        }, 'Failed to create purchase record')
+        // Note: PayPal order was created but we failed to record it
+        throw new Error('Failed to save purchase record')
       }
 
-      // Create PayPal order
-      const order = await createPayPalOrder({
-        amount,
-        currency,
-        description,
-        customId: purchaseId,
-      })
-
-      // Update purchase with PayPal order ID
-      await supabaseAdmin
-        .from('purchases')
-        .update({ paypal_order_id: order.id })
-        .eq('id', purchaseId)
-
       // Get approval URL
-      const approvalUrl = order.links?.find(link => link.rel === 'approve')?.href
+      const approvalUrl = order.links?.find((link: { rel: string; href: string }) => link.rel === 'approve')?.href
 
       logger.info({
         orderId: order.id,
         purchaseId,
         amount,
         currency,
+        approvalUrl: approvalUrl ? 'present' : 'missing',
         duration: Date.now() - startTime,
-      }, 'PayPal order created successfully')
+      }, 'PayPal order flow completed successfully')
 
       return {
         orderId: order.id,
@@ -190,7 +231,8 @@ export class PayPalService {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       logger.error({ 
         error: errorMessage, 
-        params, 
+        userId,
+        purchaseType,
         duration: Date.now() - startTime 
       }, 'PayPal order creation failed')
       throw error
@@ -236,10 +278,8 @@ export class PayPalService {
       let captureResult: PayPalCaptureResult | null = null
 
       if (orderDetails.status === 'COMPLETED') {
-        // Already captured
         logger.info({ orderId }, 'PayPal order already captured')
       } else if (orderDetails.status === 'APPROVED') {
-        // Capture the payment
         captureResult = await capturePayPalOrder(orderId)
         
         if (captureResult.status !== 'COMPLETED') {
@@ -254,7 +294,7 @@ export class PayPalService {
         const capturedAmount = parseFloat(
           captureResult.purchase_units[0].payments.captures[0].amount.value
         )
-        const expectedAmount = purchase.amount / 100 // Convert from cents
+        const expectedAmount = purchase.amount / 100
         
         if (Math.abs(capturedAmount - expectedAmount) > 0.01) {
           logger.error({
@@ -265,9 +305,7 @@ export class PayPalService {
           
           await supabaseAdmin
             .from('purchases')
-            .update({
-              status: 'failed',
-            })
+            .update({ status: 'failed' })
             .eq('id', purchase.id)
 
           throw new Error('Payment amount verification failed')
@@ -278,11 +316,9 @@ export class PayPalService {
         throw new Error(`Invalid order status: ${orderDetails.status}`)
       }
 
-      // Get capture ID
       const captureId = captureResult?.purchase_units?.[0]?.payments?.captures?.[0]?.id
       const payerEmail = captureResult?.payer?.email_address
 
-      // Update purchase status
       const { error: updateError } = await supabaseAdmin
         .from('purchases')
         .update({
@@ -292,13 +328,12 @@ export class PayPalService {
           verified_at: new Date().toISOString(),
         })
         .eq('id', purchase.id)
-        .eq('status', 'pending') // Optimistic lock
+        .eq('status', 'pending')
 
       if (updateError) {
         logger.error({ error: updateError }, 'Failed to update purchase status')
       }
 
-      // Grant access
       await this.grantUserAccess(userId, purchase)
 
       logger.info({
@@ -325,12 +360,9 @@ export class PayPalService {
         duration: Date.now() - startTime 
       }, 'PayPal capture failed')
       
-      // Mark as failed (only if still pending)
       await supabaseAdmin
         .from('purchases')
-        .update({
-          status: 'failed',
-        })
+        .update({ status: 'failed' })
         .eq('paypal_order_id', orderId)
         .eq('status', 'pending')
 
@@ -338,9 +370,6 @@ export class PayPalService {
     }
   }
 
-  /**
-   * Grant user access based on purchase type
-   */
   private static async grantUserAccess(userId: string, purchase: { 
     purchase_type: PurchaseType
     purchase_data: Json | null
@@ -366,7 +395,6 @@ export class PayPalService {
     else if (purchase.purchase_type === 'custom' && purchaseData?.chapters) {
       const chapters = purchaseData.chapters
 
-      // Try RPC first for atomic update
       const { error: rpcError } = await supabaseAdmin.rpc('add_owned_chapters', {
         p_user_id: userId,
         p_chapters: chapters,
@@ -375,7 +403,6 @@ export class PayPalService {
       if (rpcError) {
         logger.warn({ error: rpcError }, 'RPC failed, using fallback method')
         
-        // Fallback: manual update
         const { data: currentUser } = await supabaseAdmin
           .from('users')
           .select('owned_chapters')
@@ -403,9 +430,6 @@ export class PayPalService {
     }
   }
 
-  /**
-   * Get purchase status
-   */
   static async getPurchaseStatus(orderId: string, userId: string) {
     const { data: purchase, error } = await supabaseAdmin
       .from('purchases')
