@@ -8,17 +8,16 @@ import { useRazorpay } from "@/lib/razorpay/hooks"
 import { useCurrency } from "@/lib/currency/CurrencyContext"
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
+import dynamic from 'next/dynamic'
+import PaymentMethodSelector, { PaymentMethod } from './PaymentMethodSelector'
 
-// PayPal imports - COMMENTED OUT
-// import dynamic from 'next/dynamic'
-// const PayPalButton = dynamic(() => import('./PayPalButton'), {
-//   ssr: false,
-//   loading: () => (
-//     <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse" />
-//   ),
-// })
-
-// type PaymentMethod = 'razorpay' | 'paypal'
+// Dynamically import PayPal button to avoid SSR issues
+const PayPalButton = dynamic(() => import('./PayPalButton'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse" />
+  ),
+})
 
 // Skeleton component
 function PricingPlansSkeleton() {
@@ -64,15 +63,19 @@ function PricingPlansSkeleton() {
 
 // Price display component with conversion
 function PriceDisplay({ 
-  inrPrice, 
+  inrPrice,
+  usdPrice,
   showBoth = false,
+  isInternational = false,
   className = ""
 }: { 
   inrPrice: number
+  usdPrice?: number
   showBoth?: boolean
+  isInternational?: boolean
   className?: string
 }) {
-  const { location, isLoading, isInternational, convertFromINR } = useCurrency()
+  const { isLoading, convertFromINR } = useCurrency()
   const [converted, setConverted] = useState<{
     formatted: string
     currency: string
@@ -80,14 +83,21 @@ function PriceDisplay({
 
   useEffect(() => {
     if (isInternational && inrPrice > 0) {
-      convertFromINR(inrPrice).then((result) => {
+      if (usdPrice !== undefined) {
         setConverted({
-          formatted: result.formatted,
-          currency: result.currency,
+          formatted: `$${usdPrice.toFixed(2)}`,
+          currency: 'USD',
         })
-      })
+      } else {
+        convertFromINR(inrPrice).then((result) => {
+          setConverted({
+            formatted: result.formatted,
+            currency: result.currency,
+          })
+        })
+      }
     }
-  }, [inrPrice, isInternational, convertFromINR])
+  }, [inrPrice, usdPrice, isInternational, convertFromINR])
 
   if (inrPrice === 0) return <span className={className}>Free</span>
 
@@ -95,13 +105,7 @@ function PriceDisplay({
     return <span className={`animate-pulse ${className}`}>Loading...</span>
   }
 
-  // For Indian users, show INR only
-  if (!isInternational) {
-    return <span className={className}>₹{inrPrice.toLocaleString('en-IN')}</span>
-  }
-
-  // For international users, show converted price + original INR
-  if (converted) {
+  if (isInternational && converted) {
     return (
       <span className={className}>
         {converted.formatted}
@@ -114,7 +118,6 @@ function PriceDisplay({
     )
   }
 
-  // Fallback to INR while loading conversion
   return <span className={className}>₹{inrPrice.toLocaleString('en-IN')}</span>
 }
 
@@ -130,12 +133,18 @@ export default function PricingPlans() {
   } = useCurrency()
   
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages')
-  // const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('razorpay')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('razorpay')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (mounted && !isCurrencyLoading) {
+      setPaymentMethod(isInternational ? 'paypal' : 'razorpay')
+    }
+  }, [mounted, isCurrencyLoading, isInternational])
 
   const userTier = mounted ? (user?.tier || 'free') : 'free'
   const hasCompletePack = mounted ? (userTier === 'complete') : false
@@ -161,21 +170,27 @@ export default function PricingPlans() {
     }
   }, [isAuthenticated, initializePayment])
 
-  // PayPal success handler - COMMENTED OUT
-  // const handlePaymentSuccess = useCallback(() => {
-  //   const successMsg = document.createElement('div')
-  //   successMsg.className = 'fixed top-4 right-4 z-[9999] bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg animate-in slide-in-from-top'
-  //   successMsg.textContent = '✓ Purchase successful! Reloading...'
-  //   document.body.appendChild(successMsg)
-  //   
-  //   setTimeout(() => {
-  //     window.location.reload()
-  //   }, 1500)
-  // }, [])
+  const handlePaymentSuccess = useCallback(() => {
+    setTimeout(() => {
+      window.location.reload()
+    }, 1500)
+  }, [])
+
+  const handlePaymentError = useCallback((errorMessage: string) => {
+    setError(errorMessage)
+  }, [])
 
   if (!mounted) {
     return <PricingPlansSkeleton />
   }
+
+  // USD prices mapping
+  const usdPrices: Record<string, number> = {
+    complete: 15.99,
+    free: 0,
+  }
+
+  const isPayPal = paymentMethod === 'paypal'
 
   return (
     <section 
@@ -204,7 +219,7 @@ export default function PricingPlans() {
           <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-neutral-900/60 border border-neutral-800 rounded-full">
             <Globe className="w-4 h-4 text-neutral-400" />
             <span className="text-sm text-neutral-400">
-              {location.country} • Prices shown in {location.currency}
+              {location.country} • {isInternational ? 'PayPal (International)' : 'Razorpay (India)'}
             </span>
             <button 
               onClick={refreshLocation}
@@ -256,51 +271,29 @@ export default function PricingPlans() {
         )}
       </div>
 
-      {/* Payment Method Selector - COMMENTED OUT */}
-      {/* <div className="flex justify-center mb-8">
-        <div className="inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5 gap-1">
-          <button
-            onClick={() => setPaymentMethod('razorpay')}
-            className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-lg font-ui text-xs md:text-sm transition-all ${
-              paymentMethod === 'razorpay'
-                ? 'bg-[#9f1239] text-white shadow-lg'
-                : 'text-neutral-400 hover:text-neutral-200'
-            }`}
-            aria-label="Pay with Razorpay (India)"
-          >
-            <CreditCard className="w-4 h-4" aria-hidden="true" />
-            <span className="hidden sm:inline">India (UPI/Cards)</span>
-            <span className="sm:hidden">India</span>
-          </button>
-          <button
-            onClick={() => setPaymentMethod('paypal')}
-            className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-lg font-ui text-xs md:text-sm transition-all ${
-              paymentMethod === 'paypal'
-                ? 'bg-[#0070ba] text-white shadow-lg'
-                : 'text-neutral-400 hover:text-neutral-200'
-            }`}
-            aria-label="Pay with PayPal (International)"
-          >
-            <Globe className="w-4 h-4" aria-hidden="true" />
-            <span className="hidden sm:inline">International (PayPal)</span>
-            <span className="sm:hidden">PayPal</span>
-          </button>
-        </div>
-      </div> */}
+      {/* Payment Method Selector */}
+      <PaymentMethodSelector
+        selected={paymentMethod}
+        onChange={setPaymentMethod}
+        isInternational={isInternational}
+        className="mb-8"
+      />
 
       {/* Payment Method Info */}
       <div className="text-center mb-12">
-        <p className="text-xs md:text-sm text-neutral-500 font-body">
-          Pay with UPI, Credit/Debit Cards, Net Banking • 
-          {isInternational 
-            ? ` Prices shown in ${location?.currency || 'USD'} (Payment in INR)`
-            : ' Prices in INR (₹)'
-          }
-        </p>
-        {isInternational && (
-          <p className="text-xs text-amber-500/80 mt-2">
-            💡 International users: Payment will be processed in INR. Your bank will handle conversion.
+        {paymentMethod === 'razorpay' ? (
+          <p className="text-xs md:text-sm text-neutral-500 font-body">
+            Pay with UPI, Credit/Debit Cards, Net Banking • Prices in INR (₹)
           </p>
+        ) : (
+          <>
+            <p className="text-xs md:text-sm text-neutral-500 font-body">
+              Pay securely with PayPal • Prices in USD ($)
+            </p>
+            <p className="text-xs text-blue-400/80 mt-2">
+              💳 PayPal accepts all major international credit/debit cards
+            </p>
+          </>
         )}
       </div>
 
@@ -313,7 +306,6 @@ export default function PricingPlans() {
               ? 'bg-[#9f1239] text-white shadow-lg'
               : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
           }`}
-          aria-label="View package plans"
         >
           Packages
         </button>
@@ -324,7 +316,6 @@ export default function PricingPlans() {
               ? 'bg-[#9f1239] text-white shadow-lg'
               : 'bg-neutral-900/40 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
           }`}
-          aria-label="Select custom chapters"
         >
           Custom Selection
         </button>
@@ -352,7 +343,7 @@ export default function PricingPlans() {
                 {isPurchased ? (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-green-600 to-emerald-700 rounded-full border border-green-500/50 shadow-lg">
                     <div className="flex items-center gap-1.5">
-                      <Check className="w-3 h-3 text-white" aria-hidden="true" />
+                      <Check className="w-3 h-3 text-white" />
                       <span className="text-[9px] font-ui tracking-[0.3em] uppercase text-white">
                         Purchased
                       </span>
@@ -361,7 +352,7 @@ export default function PricingPlans() {
                 ) : plan.popular ? (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-red-600 to-red-800 rounded-full border border-red-500/50 shadow-lg">
                     <div className="flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3 text-white" aria-hidden="true" />
+                      <Sparkles className="w-3 h-3 text-white" />
                       <span className="text-[9px] font-ui tracking-[0.3em] uppercase text-white">
                         Best Value
                       </span>
@@ -385,16 +376,28 @@ export default function PricingPlans() {
                   </p>
                 </div>
 
-                {/* Price with conversion */}
+                {/* Price */}
                 <div className="mb-6 md:mb-8">
                   <div className="flex items-baseline gap-2 mb-2">
                     <span className="text-4xl md:text-5xl lg:text-6xl font-heading text-neutral-100">
-                      <PriceDisplay inrPrice={plan.price} showBoth={isInternational} />
+                      {isPayPal && usdPrices[plan.id] !== undefined ? (
+                        plan.price === 0 ? 'Free' : `$${usdPrices[plan.id]}`
+                      ) : (
+                        <PriceDisplay 
+                          inrPrice={plan.price} 
+                          usdPrice={isPayPal ? usdPrices[plan.id] : undefined}
+                          isInternational={isPayPal}
+                        />
+                      )}
                     </span>
                   </div>
                   {plan.pricePerChapter && (
                     <div className="text-xs md:text-sm text-neutral-500 font-body">
-                      ~<PriceDisplay inrPrice={plan.pricePerChapter} />/chapter
+                      {isPayPal ? (
+                        `~$${(usdPrices[plan.id] / plan.chaptersCount).toFixed(2)}/chapter`
+                      ) : (
+                        <>~<PriceDisplay inrPrice={plan.pricePerChapter} />/chapter</>
+                      )}
                     </div>
                   )}
                 </div>
@@ -411,7 +414,7 @@ export default function PricingPlans() {
                 <ul className="space-y-3 mb-6 md:mb-8">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3">
-                      <Check className="w-4 md:w-5 h-4 md:h-5 text-[#9f1239] flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <Check className="w-4 md:w-5 h-4 md:h-5 text-[#9f1239] flex-shrink-0 mt-0.5" />
                       <span className="text-xs md:text-sm text-neutral-400 font-body">
                         {feature}
                       </span>
@@ -419,7 +422,7 @@ export default function PricingPlans() {
                   ))}
                 </ul>
 
-                {/* Action Buttons - RAZORPAY ONLY */}
+                {/* Action Buttons */}
                 {isFree ? (
                   <Link
                     href="#chapters"
@@ -431,47 +434,42 @@ export default function PricingPlans() {
                   <button
                     disabled
                     className="w-full py-3 px-6 bg-green-900/30 text-green-400 border border-green-800/50 rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase cursor-default"
-                    aria-label="Already purchased"
                   >
                     ✓ Purchased
                   </button>
                 ) : !isAuthenticated ? (
                   <Link
                     href="/login"
-                    className="block w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 transition-all text-center shadow-lg hover:shadow-red-900/20"
+                    className="block w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 transition-all text-center shadow-lg"
                   >
                     Login to Purchase
                   </Link>
+                ) : isPayPal ? (
+                  <PayPalButton
+                    purchaseType="complete"
+                    tier="complete"
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                  />
                 ) : (
                   <button
                     onClick={handleRazorpayPurchase}
                     disabled={isRazorpayProcessing}
-                    className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-red-900/20"
-                    aria-busy={isRazorpayProcessing}
+                    className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg"
                   >
                     {isRazorpayProcessing ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" aria-hidden="true" />
-                        <span className="hidden sm:inline">Processing...</span>
-                        <span className="sm:hidden">...</span>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Processing...</span>
                       </>
                     ) : (
                       <>
-                        <Zap className="w-4 h-4" aria-hidden="true" />
-                        <span className="hidden sm:inline">Pay with Razorpay</span>
-                        <span className="sm:hidden">Buy Now</span>
+                        <Zap className="w-4 h-4" />
+                        <span>Pay with Razorpay</span>
                       </>
                     )}
                   </button>
                 )}
-                
-                {/* PayPal button - COMMENTED OUT */}
-                {/* {paymentMethod === 'paypal' && (
-                  <PayPalButton
-                    purchaseType="complete"
-                    onSuccess={handlePaymentSuccess}
-                  />
-                )} */}
               </div>
             )
           })}
@@ -482,28 +480,28 @@ export default function PricingPlans() {
       {activeTab === 'custom' && (
         <div className="max-w-4xl mx-auto">
           <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-2xl p-6 md:p-8 text-center">
-            <Zap className="w-10 h-10 md:w-12 md:h-12 text-[#9f1239] mx-auto mb-4" aria-hidden="true" />
+            <Zap className="w-10 h-10 md:w-12 md:h-12 text-[#9f1239] mx-auto mb-4" />
             <h3 className="text-xl md:text-2xl font-heading text-neutral-100 mb-3">
               Custom Chapter Selection
             </h3>
             <p className="text-sm md:text-base text-neutral-400 font-body mb-4 md:mb-6">
-              Pick exactly which chapters you want • <PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.pricePerChapter} />/chapter
+              Pick exactly which chapters you want • {isPayPal ? '$0.25' : <PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.pricePerChapter} />}/chapter
             </p>
             <p className="text-xs md:text-sm text-neutral-500 font-body mb-6 md:mb-8">
-              Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters (<PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.minAmount} />)
+              Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters ({isPayPal ? '$2.50' : <PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.minAmount} />})
             </p>
             
             {!isAuthenticated ? (
               <Link
                 href="/login"
-                className="inline-block px-6 md:px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all shadow-lg hover:shadow-red-900/20"
+                className="inline-block px-6 md:px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all shadow-lg"
               >
                 Login to Select Chapters
               </Link>
             ) : (
               <Link
-                href="/custom-selection"
-                className="inline-block px-6 md:px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all shadow-lg hover:shadow-red-900/20"
+                href={`/custom-selection?payment=${paymentMethod}`}
+                className="inline-block px-6 md:px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all shadow-lg"
               >
                 Select Chapters
               </Link>
@@ -518,13 +516,20 @@ export default function PricingPlans() {
           All purchases are one-time payments with lifetime access. No subscriptions.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-[10px] md:text-xs text-neutral-600 px-4">
-          <span className="flex items-center gap-2">
-            <CreditCard className="w-3 h-3 md:w-4 md:h-4" aria-hidden="true" />
-            UPI • Cards • Net Banking
-          </span>
+          {paymentMethod === 'razorpay' ? (
+            <span className="flex items-center gap-2">
+              <CreditCard className="w-3 h-3 md:w-4 md:h-4" />
+              UPI • Cards • Net Banking
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Globe className="w-3 h-3 md:w-4 md:h-4" />
+              PayPal • International Cards
+            </span>
+          )}
         </div>
         <p className="text-[10px] md:text-xs text-neutral-600 font-body px-4">
-          🔒 100% secure payments powered by Razorpay
+          🔒 100% secure payments powered by {paymentMethod === 'razorpay' ? 'Razorpay' : 'PayPal'}
         </p>
       </div>
     </section>

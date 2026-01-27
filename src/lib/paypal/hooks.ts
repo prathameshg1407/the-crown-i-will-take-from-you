@@ -1,177 +1,354 @@
-"use client";
+// lib/paypal/hooks.ts
+"use client"
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useAuth } from '@/lib/auth/AuthContext'
+import { useCurrency } from '@/lib/currency/CurrencyContext'
+import toast from 'react-hot-toast'
+import type { PurchaseType } from '@/lib/supabase/database.types'
 
-interface PayPalOrderData {
-  purchaseType: "complete" | "custom";
-  chapters?: number[];
+// ======================
+// Types
+// ======================
+
+interface PayPalButtonsComponent {
+  render: (container: HTMLElement) => Promise<void>
+  close: () => Promise<void>
+  isEligible: () => boolean
 }
 
-export interface UsePayPalReturn {
-  createOrder: (data: PayPalOrderData) => Promise<string>;
-  captureOrder: (orderId: string) => Promise<boolean>;
-  isProcessing: boolean;
-  error: string | null;
+interface PayPalNamespace {
+  Buttons: (options: PayPalButtonOptions) => PayPalButtonsComponent
+  FUNDING: {
+    PAYPAL: string
+    CARD: string
+  }
 }
 
-/**
- * usePayPal
- *
- * - createOrder -> calls /api/paypal/create-order and returns orderId
- * - captureOrder -> calls /api/paypal/capture-order and returns boolean success
- *
- * Safeguards:
- * - Uses AbortController to cancel in-flight requests on unmount
- * - Prevents state updates after unmount
- * - Provides clear toast messages
- */
-export function usePayPal(): UsePayPalReturn {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+interface PayPalButtonOptions {
+  fundingSource?: string
+  style?: {
+    layout?: 'vertical' | 'horizontal'
+    color?: 'gold' | 'blue' | 'silver' | 'black' | 'white'
+    shape?: 'rect' | 'pill'
+    label?: 'paypal' | 'checkout' | 'buynow' | 'pay'
+    height?: number
+    tagline?: boolean
+  }
+  createOrder: () => Promise<string>
+  onApprove: (data: { orderID: string; payerID?: string }) => Promise<void>
+  onCancel?: (data: { orderID: string }) => void
+  onError?: (err: Error) => void
+}
 
-  const mountedRef = useRef(true);
-  const activeControllerRef = useRef<AbortController | null>(null);
+declare global {
+  interface Window {
+    paypal?: PayPalNamespace
+  }
+}
 
+// ======================
+// Script Loading
+// ======================
+
+let scriptLoadPromise: Promise<boolean> | null = null
+let currentCurrency: string | null = null
+
+function loadPayPalScript(clientId: string, currency: string = 'USD'): Promise<boolean> {
+  // If already loaded with same currency, return immediately
+  if (
+    scriptLoadPromise && 
+    currentCurrency === currency && 
+    typeof window !== 'undefined' && 
+    window.paypal
+  ) {
+    return Promise.resolve(true)
+  }
+
+  // If currency changed, we need to reload
+  if (currentCurrency !== currency && scriptLoadPromise) {
+    const existingScripts = document.querySelectorAll('script[src*="paypal.com/sdk"]')
+    existingScripts.forEach(script => script.remove())
+    scriptLoadPromise = null
+    if (window.paypal) {
+      delete (window as { paypal?: PayPalNamespace }).paypal
+    }
+  }
+
+  currentCurrency = currency
+
+  scriptLoadPromise = new Promise((resolve) => {
+    if (typeof window === 'undefined') {
+      resolve(false)
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}&intent=capture&components=buttons`
+    script.async = true
+    script.id = 'paypal-sdk'
+
+    script.onload = () => {
+      console.log('PayPal SDK loaded successfully')
+      resolve(true)
+    }
+
+    script.onerror = (error) => {
+      console.error('Failed to load PayPal SDK:', error)
+      scriptLoadPromise = null
+      resolve(false)
+    }
+
+    document.body.appendChild(script)
+  })
+
+  return scriptLoadPromise
+}
+
+// ======================
+// Hook
+// ======================
+
+export interface UsePayPalOptions {
+  onSuccess?: () => void
+  onError?: (error: string) => void
+}
+
+export function usePayPal(options: UsePayPalOptions = {}) {
+  const [isLoading, setIsLoading] = useState(true)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [isReady, setIsReady] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
+  const { user, refreshUser } = useAuth()
+  const { location, isInternational } = useCurrency()
+  
+  const processingRef = useRef(false)
+  const buttonsRef = useRef<PayPalButtonsComponent | null>(null)
+
+  // Determine currency
+  const currency = location?.currency && ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD'].includes(location.currency)
+    ? location.currency
+    : 'USD'
+
+  // Load PayPal SDK
   useEffect(() => {
-    mountedRef.current = true;
+    const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+    
+    if (!clientId) {
+      console.error('PayPal client ID not configured')
+      setError('PayPal is not configured')
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    loadPayPalScript(clientId, currency)
+      .then((loaded) => {
+        setIsReady(loaded)
+        if (!loaded) {
+          setError('Failed to load PayPal')
+        }
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
+
     return () => {
-      mountedRef.current = false;
-      // Abort any in-flight request on unmount
-      if (activeControllerRef.current) {
-        activeControllerRef.current.abort();
-      }
-    };
-  }, []);
-
-  const createOrder = useCallback(async (data: PayPalOrderData): Promise<string> => {
-    setIsProcessing(true);
-    setError(null);
-
-    const controller = new AbortController();
-    activeControllerRef.current = controller;
-
-    try {
-      const res = await fetch("/api/paypal/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        signal: controller.signal,
-      });
-
-      // Safe JSON parse with fallback
-      let payload: any;
-      try {
-        payload = await res.json();
-      } catch {
-        payload = null;
-      }
-
-      if (!res.ok) {
-        const msg = (payload && (payload.error || payload.message)) || `Create order failed (${res.status})`;
-        throw new Error(msg);
-      }
-
-      if (!payload || typeof payload.orderId !== "string") {
-        throw new Error("Invalid response from server when creating order");
-      }
-
-      return payload.orderId;
-    } catch (err) {
-      if ((err as any)?.name === "AbortError") {
-        const message = "Request cancelled";
-        setError(message);
-        toast.error(message);
-        throw err;
-      }
-
-      const message = err instanceof Error ? err.message : "Failed to create order";
-      setError(message);
-      toast.error(message);
-      throw new Error(message);
-    } finally {
-      // only update state if component still mounted
-      if (mountedRef.current) {
-        setIsProcessing(false);
-      }
-      // clear controller reference
-      if (activeControllerRef.current === controller) {
-        activeControllerRef.current = null;
+      if (buttonsRef.current) {
+        try {
+          buttonsRef.current.close()
+        } catch {
+          // Ignore cleanup errors
+        }
       }
     }
-  }, []);
+  }, [currency])
 
-  const captureOrder = useCallback(
-    async (orderId: string): Promise<boolean> => {
-      setIsProcessing(true);
-      setError(null);
+  // Create order API call
+  const createOrder = useCallback(async (
+    purchaseType: PurchaseType,
+    orderOptions: { tier?: 'complete'; customChapters?: number[] }
+  ): Promise<string> => {
+    const response = await fetch('/api/payments/paypal/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        purchaseType,
+        tier: orderOptions.tier,
+        customChapters: orderOptions.customChapters,
+        currency,
+      }),
+    })
 
-      const controller = new AbortController();
-      activeControllerRef.current = controller;
+    const data = await response.json()
 
-      try {
-        const res = await fetch("/api/paypal/capture-order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderId }),
-          signal: controller.signal,
-        });
+    if (!response.ok || !data.success) {
+      throw new Error(data.error?.message || 'Failed to create PayPal order')
+    }
 
-        let payload: any;
-        try {
-          payload = await res.json();
-        } catch {
-          payload = null;
-        }
+    return data.data.orderId
+  }, [currency])
 
-        if (!res.ok) {
-          const msg = (payload && (payload.error || payload.message)) || `Capture failed (${res.status})`;
-          throw new Error(msg);
-        }
+  // Capture order API call
+  const captureOrder = useCallback(async (orderId: string): Promise<void> => {
+    const toastId = toast.loading('Processing payment...')
+    
+    try {
+      const response = await fetch('/api/payments/paypal/capture-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ orderId }),
+      })
 
-        // success path: show toast and refresh client data
-        const successMessage = payload?.message || "Payment successful!";
-        toast.success(successMessage);
+      const data = await response.json()
 
-        // refresh user data / page (guarded for client)
-        try {
-          router.refresh();
-        } catch (refreshErr) {
-          // non-fatal; continue
-          console.warn("router.refresh() failed:", refreshErr);
-        }
-
-        return true;
-      } catch (err) {
-        if ((err as any)?.name === "AbortError") {
-          const message = "Request cancelled";
-          setError(message);
-          toast.error(message);
-          return false;
-        }
-
-        const message = err instanceof Error ? err.message : "Payment failed";
-        setError(message);
-        toast.error(message);
-        return false;
-      } finally {
-        if (mountedRef.current) {
-          setIsProcessing(false);
-        }
-        if (activeControllerRef.current === controller) {
-          activeControllerRef.current = null;
-        }
+      if (!response.ok || !data.success) {
+        throw new Error(data.error?.message || 'Payment capture failed')
       }
-    },
-    [router]
-  );
+
+      toast.dismiss(toastId)
+
+      // Refresh user data to get updated access
+      await refreshUser()
+
+      // Success notification
+      toast.success('🎉 Payment successful! Your content has been unlocked.', {
+        duration: 6000,
+        style: { 
+          background: '#065f46', 
+          color: '#fff',
+          padding: '16px',
+        },
+      })
+
+      // Call success callback
+      options.onSuccess?.()
+
+      // Scroll to chapters section
+      setTimeout(() => {
+        const chaptersSection = document.getElementById('chapters')
+        if (chaptersSection) {
+          chaptersSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 1500)
+
+    } catch (error) {
+      toast.dismiss(toastId)
+      const message = error instanceof Error ? error.message : 'Payment failed'
+      toast.error(message, { duration: 5000 })
+      options.onError?.(message)
+      throw error
+    }
+  }, [refreshUser, options])
+
+  // Render PayPal button
+  const renderButton = useCallback(async (
+    container: HTMLElement,
+    purchaseType: PurchaseType,
+    orderOptions: { tier?: 'complete'; customChapters?: number[] }
+  ): Promise<boolean> => {
+    if (!window.paypal || !isReady) {
+      console.error('PayPal not ready')
+      return false
+    }
+
+    // Clear container
+    container.innerHTML = ''
+
+    try {
+      const buttons = window.paypal.Buttons({
+        style: {
+          layout: 'vertical',
+          color: 'blue',
+          shape: 'rect',
+          label: 'paypal',
+          height: 48,
+          tagline: false,
+        },
+        
+        createOrder: async () => {
+          if (processingRef.current) {
+            throw new Error('Payment already in progress')
+          }
+          
+          processingRef.current = true
+          setIsProcessing(true)
+          setError(null)
+
+          try {
+            const orderId = await createOrder(purchaseType, orderOptions)
+            return orderId
+          } catch (error) {
+            processingRef.current = false
+            setIsProcessing(false)
+            const message = error instanceof Error ? error.message : 'Failed to create order'
+            setError(message)
+            throw error
+          }
+        },
+
+        onApprove: async (data) => {
+          try {
+            await captureOrder(data.orderID)
+          } catch {
+            // Error already handled in captureOrder
+          } finally {
+            processingRef.current = false
+            setIsProcessing(false)
+          }
+        },
+
+        onCancel: () => {
+          processingRef.current = false
+          setIsProcessing(false)
+          toast('Payment cancelled', { 
+            icon: 'ℹ️', 
+            duration: 3000,
+          })
+        },
+
+        onError: (err) => {
+          console.error('PayPal error:', err)
+          processingRef.current = false
+          setIsProcessing(false)
+          
+          const message = err.message || 'Payment failed. Please try again.'
+          setError(message)
+          toast.error(message, { duration: 5000 })
+          options.onError?.(message)
+        },
+      })
+
+      // Check eligibility
+      if (!buttons.isEligible()) {
+        console.warn('PayPal buttons not eligible')
+        setError('PayPal is not available for your region')
+        return false
+      }
+
+      buttonsRef.current = buttons
+      await buttons.render(container)
+      return true
+
+    } catch (error) {
+      console.error('Failed to render PayPal buttons:', error)
+      setError('Failed to initialize PayPal')
+      return false
+    }
+  }, [isReady, createOrder, captureOrder, options])
 
   return {
-    createOrder,
-    captureOrder,
+    isLoading,
+    isReady,
     isProcessing,
+    isInternational,
     error,
-  };
+    currency,
+    renderButton,
+  }
 }

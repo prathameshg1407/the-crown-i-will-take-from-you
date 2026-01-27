@@ -1,92 +1,146 @@
-"use client";
+// components/PayPalButton.tsx
+"use client"
 
-import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
-import { usePayPal } from "@/lib/paypal/hooks";
-import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { usePayPal } from '@/lib/paypal/hooks'
+import { Loader2, AlertCircle, RefreshCw } from 'lucide-react'
+import type { PurchaseType } from '@/lib/supabase/database.types'
 
 interface PayPalButtonProps {
-  purchaseType: "complete" | "custom";
-  chapters?: number[];
-  disabled?: boolean;
-  onSuccess?: () => void;
-  onError?: (error: string) => void;
+  purchaseType: PurchaseType
+  tier?: 'complete'
+  customChapters?: number[]
+  onSuccess?: () => void
+  onError?: (error: string) => void
+  className?: string
 }
 
 export default function PayPalButton({
   purchaseType,
-  chapters,
-  disabled = false,
+  tier,
+  customChapters,
   onSuccess,
   onError,
+  className = '',
 }: PayPalButtonProps) {
-  const [{ isPending, isRejected }] = usePayPalScriptReducer();
-  const { createOrder, captureOrder, isProcessing } = usePayPal();
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [renderAttempt, setRenderAttempt] = useState(0)
+  const [renderError, setRenderError] = useState<string | null>(null)
+  const hasRenderedRef = useRef(false)
 
-  if (isPending) {
-    return (
-      <div className="flex items-center justify-center py-4">
-        <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
-        <span className="ml-2 text-sm text-neutral-400">Loading PayPal...</span>
-      </div>
-    );
+  const { 
+    isLoading, 
+    isReady, 
+    isProcessing, 
+    error: hookError,
+    currency,
+    renderButton,
+  } = usePayPal({
+    onSuccess,
+    onError,
+  })
+
+  // Render buttons when ready
+  const handleRender = useCallback(async () => {
+    if (!containerRef.current || !isReady || hasRenderedRef.current) {
+      return
+    }
+
+    hasRenderedRef.current = true
+    setRenderError(null)
+
+    const success = await renderButton(
+      containerRef.current, 
+      purchaseType, 
+      { tier, customChapters }
+    )
+
+    if (!success) {
+      setRenderError('Failed to load PayPal button')
+      hasRenderedRef.current = false
+    }
+  }, [isReady, renderButton, purchaseType, tier, customChapters])
+
+  useEffect(() => {
+    handleRender()
+  }, [handleRender, renderAttempt])
+
+  // Re-render when options change
+  useEffect(() => {
+    hasRenderedRef.current = false
+    handleRender()
+  }, [purchaseType, tier, customChapters?.length, handleRender])
+
+  const handleRetry = () => {
+    hasRenderedRef.current = false
+    setRenderError(null)
+    setRenderAttempt(prev => prev + 1)
   }
 
-  if (isRejected) {
+  const displayError = renderError || hookError
+
+  // Loading state
+  if (isLoading) {
     return (
-      <div className="text-center py-4 text-red-400 text-sm">
-        Failed to load PayPal. Please try again.
+      <div className={`flex flex-col items-center justify-center py-6 ${className}`}>
+        <Loader2 className="w-6 h-6 animate-spin text-blue-400 mb-2" />
+        <span className="text-sm text-neutral-400">Loading PayPal...</span>
       </div>
-    );
+    )
+  }
+
+  // Error state
+  if (displayError && !isReady) {
+    return (
+      <div className={`text-center py-4 px-4 bg-red-900/20 border border-red-800/50 rounded-lg ${className}`}>
+        <AlertCircle className="w-6 h-6 text-red-400 mx-auto mb-2" />
+        <p className="text-sm text-red-300 mb-3">{displayError}</p>
+        <button
+          onClick={handleRetry}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-red-800/50 hover:bg-red-800/70 text-red-200 rounded-lg text-sm transition-colors"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Try Again
+        </button>
+      </div>
+    )
   }
 
   return (
-    <div className={`paypal-button-container ${disabled || isProcessing ? "opacity-50 pointer-events-none" : ""}`}>
-      <PayPalButtons
-        style={{
-          layout: "horizontal",
-          color: "black",
-          shape: "rect",
-          label: "pay",
-          height: 45,
-        }}
-        disabled={disabled || isProcessing}
-        forceReRender={[purchaseType, ...(chapters || [])]}
-        createOrder={async () => {
-          try {
-            const orderId = await createOrder({
-              purchaseType,
-              chapters,
-            });
-            // PayPal Buttons expect the createOrder callback to return the order ID string
-            return orderId;
-          } catch (error) {
-            const message = error instanceof Error ? error.message : "Failed to create order";
-            onError?.(message);
-            throw error;
-          }
-        }}
-        onApprove={async (data, actions) => {
-          try {
-            // Capture server-side using your capture API
-            const success = await captureOrder(data.orderID);
-            if (success) {
-              onSuccess?.();
-            } else {
-              onError?.("Payment capture failed");
-            }
-          } catch (error) {
-            const message = error instanceof Error ? error.message : "Payment failed";
-            onError?.(message);
-          }
-        }}
-        onError={(err) => {
-          console.error("PayPal error:", err);
-          onError?.("Payment failed. Please try again.");
-        }}
-        onCancel={() => {
-          console.log("Payment cancelled");
-        }}
+    <div className={`relative ${className}`}>
+      {/* Processing Overlay */}
+      {isProcessing && (
+        <div className="absolute inset-0 bg-neutral-900/90 flex flex-col items-center justify-center z-10 rounded-lg backdrop-blur-sm">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-400 mb-3" />
+          <span className="text-sm text-white font-medium">Processing payment...</span>
+          <span className="text-xs text-neutral-400 mt-1">Please wait</span>
+        </div>
+      )}
+      
+      {/* PayPal Button Container */}
+      <div 
+        ref={containerRef} 
+        className="paypal-button-container min-h-[50px]"
+        data-currency={currency}
       />
+      
+      {/* Currency Info */}
+      <p className="text-xs text-neutral-500 text-center mt-3">
+        Secure payment via PayPal • {currency}
+      </p>
+
+      {/* Render Error with Retry */}
+      {renderError && isReady && (
+        <div className="mt-3 text-center">
+          <p className="text-xs text-red-400 mb-2">{renderError}</p>
+          <button
+            onClick={handleRetry}
+            className="text-xs text-blue-400 hover:text-blue-300 underline"
+          >
+            Click to retry
+          </button>
+        </div>
+      )}
     </div>
-  );
+  )
 }

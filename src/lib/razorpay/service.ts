@@ -1,64 +1,191 @@
 // lib/razorpay/service.ts
+
 import { supabaseAdmin } from '@/lib/supabase/server'
-import { razorpay, verifyPaymentSignature } from './client'
-import { getCompletePackPrice, getCustomPrice } from './config'
+import { razorpay, verifyPaymentSignature, fetchPaymentDetails } from './client'
+import { getCompletePackPrice, getCustomPrice, validateChapterIds, razorpayConfig } from './config'
 import { PRICING } from '@/data/chapters'
 import { logger } from '@/lib/logger'
 import { nanoid } from 'nanoid'
-import { CreateOrderParams, VerifyPaymentParams } from './payment.types'
-import type { Json } from '@/lib/supabase/database.types' // Import Json type
+import { 
+  CreateOrderParams, 
+  VerifyPaymentParams, 
+  PurchaseRecord,
+  PurchaseData,
+  CustomPurchaseData,
+  CompletePurchaseData,
+  PurchaseType,
+  isCustomPurchaseData,
+} from './payment.types'
+import type { Json } from '@/lib/supabase/database.types'
 
-// Add type for purchase_data
-interface CustomPurchaseData {
-  chapters: number[]
-  chapterCount: number
-  pricePerChapter: number
+// Idempotency key cache (use Redis in production)
+const recentOrderKeys = new Map<string, { orderId: string; expiresAt: number }>()
+const IDEMPOTENCY_TTL = 5 * 60 * 1000 // 5 minutes
+
+function cleanupIdempotencyCache() {
+  const now = Date.now()
+  for (const [key, value] of recentOrderKeys) {
+    if (now > value.expiresAt) {
+      recentOrderKeys.delete(key)
+    }
+  }
 }
 
-interface CompletePurchaseData {
-  tier: 'complete'
+// Run cleanup periodically
+if (typeof setInterval !== 'undefined') {
+  setInterval(cleanupIdempotencyCache, 60 * 1000)
 }
 
-type PurchaseData = CustomPurchaseData | CompletePurchaseData
+// Helper to safely parse Json to PurchaseData
+function parsePurchaseData(data: Json): PurchaseData | null {
+  // Handle null/undefined
+  if (data === null || data === undefined) {
+    return null
+  }
 
-// Type guard to check if purchase_data is CustomPurchaseData
-function isCustomPurchaseData(data: unknown): data is CustomPurchaseData {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'chapters' in data &&
-    Array.isArray((data as CustomPurchaseData).chapters)
-  )
+  // Must be an object
+  if (typeof data !== 'object' || Array.isArray(data)) {
+    return null
+  }
+
+  // Cast to record for property access
+  const obj = data as Record<string, Json | undefined>
+
+  // Check for CustomPurchaseData
+  if (
+    'chapters' in obj &&
+    Array.isArray(obj.chapters) &&
+    'chapterCount' in obj &&
+    typeof obj.chapterCount === 'number'
+  ) {
+    return {
+      chapters: obj.chapters as number[],
+      chapterCount: obj.chapterCount,
+      pricePerChapter: typeof obj.pricePerChapter === 'number' ? obj.pricePerChapter : 0,
+      expectedAmount: typeof obj.expectedAmount === 'number' ? obj.expectedAmount : 0,
+    } satisfies CustomPurchaseData
+  }
+
+  // Check for CompletePurchaseData
+  if ('tier' in obj && obj.tier === 'complete') {
+    return {
+      tier: 'complete',
+      expectedAmount: typeof obj.expectedAmount === 'number' ? obj.expectedAmount : 0,
+    } satisfies CompletePurchaseData
+  }
+
+  return null
+}
+
+// Helper to validate and convert purchase_type string to PurchaseType
+function toPurchaseType(value: string): PurchaseType {
+  if (value === 'complete' || value === 'custom') {
+    return value
+  }
+  // Default fallback - should not happen with proper DB constraints
+  return 'custom'
+}
+
+// Helper to convert DB record to PurchaseRecord with validation
+function toPurchaseRecord(dbRecord: {
+  id: string
+  user_id: string
+  purchase_type: string
+  purchase_data: Json
+  amount: number
+  currency: string
+  razorpay_order_id: string | null
+  razorpay_payment_id: string | null
+  status: string
+  created_at: string
+  updated_at: string
+  [key: string]: unknown
+}): PurchaseRecord | null {
+  // Validate required fields
+  if (!dbRecord.razorpay_order_id) {
+    return null
+  }
+
+  const validStatuses = ['pending', 'completed', 'failed', 'refunded'] as const
+  const status = validStatuses.includes(dbRecord.status as typeof validStatuses[number])
+    ? (dbRecord.status as typeof validStatuses[number])
+    : 'pending'
+
+  return {
+    id: dbRecord.id,
+    user_id: dbRecord.user_id,
+    purchase_type: toPurchaseType(dbRecord.purchase_type),
+    purchase_data: dbRecord.purchase_data,
+    amount: dbRecord.amount,
+    currency: dbRecord.currency,
+    razorpay_order_id: dbRecord.razorpay_order_id,
+    razorpay_payment_id: dbRecord.razorpay_payment_id,
+    status,
+    payment_method: dbRecord.payment_method as string | null,
+    payment_email: dbRecord.payment_email as string | null,
+    verified_at: dbRecord.verified_at as string | null,
+    created_at: dbRecord.created_at,
+    updated_at: dbRecord.updated_at,
+  }
 }
 
 export class PaymentService {
-  static async createOrder(params: CreateOrderParams) {
+  /**
+   * Create a new payment order with idempotency protection
+   */
+  static async createOrder(params: CreateOrderParams, idempotencyKey?: string) {
     const { userId, email, purchaseType, tier, customChapters } = params
+    const startTime = Date.now()
 
     try {
-      logger.info({ userId, purchaseType, customChapters }, 'createOrder called with params')
+      logger.info({ userId, purchaseType, idempotencyKey }, 'Creating order')
 
-      // Get user data
+      // Check idempotency
+      if (idempotencyKey) {
+        const cached = recentOrderKeys.get(idempotencyKey)
+        if (cached && Date.now() < cached.expiresAt) {
+          logger.info({ idempotencyKey, orderId: cached.orderId }, 'Returning cached order')
+
+          // Fetch the existing order details
+          const { data: existingPurchase } = await supabaseAdmin
+            .from('purchases')
+            .select('*')
+            .eq('razorpay_order_id', cached.orderId)
+            .single()
+
+          if (existingPurchase && existingPurchase.status === 'pending') {
+            return {
+              orderId: cached.orderId,
+              amount: existingPurchase.amount * 100,
+              currency: 'INR',
+              purchaseId: existingPurchase.id,
+              cached: true,
+            }
+          }
+        }
+      }
+
+      // Check for existing pending orders for same purchase
+      const existingOrderCheck = await this.checkExistingPendingOrder(userId, purchaseType, customChapters)
+      if (existingOrderCheck) {
+        logger.info({ existingOrder: existingOrderCheck.orderId }, 'Found existing pending order')
+        return existingOrderCheck
+      }
+
+      // Fetch user
       const { data: user, error: userError } = await supabaseAdmin
         .from('users')
         .select('tier, owned_chapters')
         .eq('id', userId)
         .single()
 
-      if (userError) {
-        logger.error({ error: userError, userId }, 'Failed to fetch user')
-        throw new Error(`Failed to fetch user: ${userError.message}`)
-      }
-
-      if (!user) {
-        logger.error({ userId }, 'User not found')
+      if (userError || !user) {
+        logger.error({ error: userError, userId }, 'User not found')
         throw new Error('User not found')
       }
 
       const currentTier = user.tier || 'free'
-      const ownedChapters = user.owned_chapters || []
-
-      logger.info({ currentTier, ownedChaptersCount: ownedChapters.length }, 'User data fetched')
+      const ownedChapters: number[] = user.owned_chapters || []
 
       let amount: number
       let purchaseData: PurchaseData
@@ -66,75 +193,185 @@ export class PaymentService {
       // COMPLETE PACK PURCHASE
       if (purchaseType === 'complete' && tier === 'complete') {
         if (currentTier === 'complete') {
-          logger.warn({ userId }, 'User already owns complete pack')
           throw new Error('You already own the complete pack')
         }
 
         amount = getCompletePackPrice()
-        purchaseData = { tier: 'complete' }
-
-        logger.info({ userId, purchaseType: 'complete', amount }, 'Creating complete pack order')
+        purchaseData = {
+          tier: 'complete',
+          expectedAmount: amount,
+        }
       }
       // CUSTOM CHAPTER PURCHASE
       else if (purchaseType === 'custom' && customChapters && customChapters.length > 0) {
-        logger.info({ 
-          requestedChapters: customChapters.length,
-          ownedChapters: ownedChapters.length 
-        }, 'Processing custom chapter purchase')
+        // Validate and filter chapters
+        const { valid: validChapters, invalid: invalidChapters } = validateChapterIds(customChapters)
 
-        // Filter out already owned chapters and invalid chapters
-        const newChapters = customChapters.filter(id => 
-          !ownedChapters.includes(id) && 
-          id > PRICING.FREE_CHAPTERS && 
-          id <= 386
-        )
-        
-        logger.info({ 
-          requestedCount: customChapters.length,
-          newChaptersCount: newChapters.length,
-          alreadyOwnedCount: customChapters.length - newChapters.length
-        }, 'Filtered chapters')
+        if (invalidChapters.length > 0) {
+          logger.warn({ invalidChapters }, 'Invalid chapter IDs provided')
+        }
+
+        // Filter out already owned
+        const newChapters = validChapters.filter(id => !ownedChapters.includes(id))
 
         if (newChapters.length === 0) {
-          logger.warn({ userId, customChapters }, 'All selected chapters already owned')
           throw new Error('You already own all selected chapters')
         }
 
-        if (newChapters.length < PRICING.CUSTOM_SELECTION.minChapters) {
-          logger.warn({ 
-            userId, 
-            newChaptersCount: newChapters.length,
-            minRequired: PRICING.CUSTOM_SELECTION.minChapters 
-          }, 'Not enough new chapters')
-          throw new Error(`Minimum ${PRICING.CUSTOM_SELECTION.minChapters} new chapters required. You selected ${newChapters.length} new chapters.`)
+        if (newChapters.length < razorpayConfig.limits.minCustomChapters) {
+          throw new Error(
+            `Minimum ${razorpayConfig.limits.minCustomChapters} new chapters required. ` +
+            `You selected ${newChapters.length} new chapters.`
+          )
         }
 
         amount = getCustomPrice(newChapters.length)
         purchaseData = {
           chapters: newChapters,
           chapterCount: newChapters.length,
-          pricePerChapter: PRICING.CUSTOM_SELECTION.pricePerChapter
+          pricePerChapter: PRICING.CUSTOM_SELECTION.pricePerChapter,
+          expectedAmount: amount,
         }
-
-        logger.info({ 
-          userId, 
-          purchaseType: 'custom', 
-          chapterCount: newChapters.length, 
-          amount,
-          amountInRupees: amount / 100
-        }, 'Creating custom chapter order')
       }
       else {
-        logger.error({ purchaseType, tier, customChapters }, 'Invalid purchase request')
         throw new Error('Invalid purchase request')
       }
 
-      logger.info({ amount, amountInRupees: amount / 100 }, 'Creating Razorpay order')
+      // Create Razorpay order with retry
+      const order = await this.createRazorpayOrderWithRetry({
+        amount,
+        userId,
+        purchaseType,
+        email,
+      })
 
-      // Create Razorpay order
-      let order
+      // Store in database - cast PurchaseData to Json
+      const { data: purchase, error: insertError } = await supabaseAdmin
+        .from('purchases')
+        .insert({
+          user_id: userId,
+          purchase_type: purchaseType,
+          purchase_data: purchaseData as unknown as Json,
+          amount: amount / 100,
+          currency: 'INR',
+          razorpay_order_id: order.id,
+          status: 'pending',
+          payment_email: email,
+        })
+        .select()
+        .single()
+
+      if (insertError) {
+        logger.error({ error: insertError, orderId: order.id }, 'Failed to store purchase')
+      }
+
+      // Cache idempotency key
+      if (idempotencyKey) {
+        recentOrderKeys.set(idempotencyKey, {
+          orderId: order.id,
+          expiresAt: Date.now() + IDEMPOTENCY_TTL,
+        })
+      }
+
+      logger.info({
+        orderId: order.id,
+        purchaseId: purchase?.id,
+        amount,
+        duration: Date.now() - startTime,
+      }, 'Order created successfully')
+
+      return {
+        orderId: order.id,
+        amount: order.amount as number,
+        currency: order.currency,
+        purchaseId: purchase?.id,
+      }
+
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorStack = error instanceof Error ? error.stack : undefined
+      
+      logger.error({
+        error: { message: errorMessage, stack: errorStack },
+        params,
+        duration: Date.now() - startTime,
+      }, 'Order creation failed')
+      throw error
+    }
+  }
+
+  /**
+   * Check for existing pending orders to prevent duplicates
+   */
+  private static async checkExistingPendingOrder(
+    userId: string,
+    purchaseType: PurchaseType,  // Changed from string to PurchaseType
+    customChapters?: number[]
+  ) {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+
+    const { data: pendingOrders } = await supabaseAdmin
+      .from('purchases')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+      .eq('purchase_type', purchaseType)
+      .gte('created_at', fiveMinutesAgo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    if (pendingOrders && pendingOrders.length > 0) {
+      const pending = pendingOrders[0]
+
+      // For custom purchases, check if chapters match
+      if (purchaseType === 'custom' && customChapters) {
+        const pendingData = parsePurchaseData(pending.purchase_data)
+        if (pendingData && isCustomPurchaseData(pendingData)) {
+          const pendingSet = new Set(pendingData.chapters)
+          const requestedSet = new Set(customChapters)
+
+          // Check if same chapters
+          if (
+            pendingSet.size === requestedSet.size &&
+            [...pendingSet].every(ch => requestedSet.has(ch))
+          ) {
+            return {
+              orderId: pending.razorpay_order_id,
+              amount: pending.amount * 100,
+              currency: 'INR',
+              purchaseId: pending.id,
+              cached: true,
+            }
+          }
+        }
+      } else if (purchaseType === 'complete' && pending.razorpay_order_id) {
+        return {
+          orderId: pending.razorpay_order_id,
+          amount: pending.amount * 100,
+          currency: 'INR',
+          purchaseId: pending.id,
+          cached: true,
+        }
+      }
+    }
+
+    return null
+  }
+
+  /**
+   * Create Razorpay order with retry logic
+   */
+  private static async createRazorpayOrderWithRetry(params: {
+    amount: number
+    userId: string
+    purchaseType: string
+    email: string
+  }, retries = 3): Promise<{ id: string; amount: number; currency: string }> {
+    const { amount, userId, purchaseType, email } = params
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        order = await razorpay.orders.create({
+        const order = await razorpay.orders.create({
           amount,
           currency: 'INR',
           receipt: `rcpt_${nanoid(10)}`,
@@ -144,256 +381,357 @@ export class PaymentService {
             email,
           },
         })
-        logger.info({ orderId: order.id, amount: order.amount }, 'Razorpay order created successfully')
-      } catch (razorpayError: any) {
-        logger.error({ 
-          error: {
-            message: razorpayError.message,
-            statusCode: razorpayError.statusCode,
-            error: razorpayError.error,
-            description: razorpayError.description
-          }
-        }, 'Razorpay order creation failed')
-        throw new Error(`Failed to create Razorpay order: ${razorpayError.message || 'Unknown error'}`)
+
+        return order as { id: string; amount: number; currency: string }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        logger.warn({ attempt, error: errorMessage }, 'Razorpay order creation attempt failed')
+
+        if (attempt === retries) {
+          throw new Error(`Failed to create payment order after ${retries} attempts`)
+        }
+
+        // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100))
       }
-
-      // Store in database
-      const purchaseRecord = {
-        user_id: userId,
-        purchase_type: purchaseType,
-        purchase_data: purchaseData as unknown as Json, // Cast to Json type
-        amount: amount / 100, // Store in rupees
-        currency: 'INR',
-        razorpay_order_id: order.id,
-        status: 'pending' as const,
-        payment_email: email,
-      }
-
-      logger.info({ purchaseRecord }, 'Inserting purchase record')
-
-      const { data: purchase, error } = await supabaseAdmin
-        .from('purchases')
-        .insert(purchaseRecord)
-        .select()
-        .single()
-
-      if (error) {
-        logger.error({ 
-          error: {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint
-          },
-          orderId: order.id 
-        }, 'Failed to store purchase in database')
-        throw new Error(`Failed to create purchase record: ${error.message}`)
-      }
-
-      logger.info({ purchaseId: purchase.id, orderId: order.id }, 'Purchase record created successfully')
-
-      return {
-        orderId: order.id,
-        amount: order.amount,
-        currency: order.currency,
-        purchaseId: purchase.id,
-      }
-    } catch (error: any) {
-      logger.error({ 
-        error: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-          ...error
-        },
-        params 
-      }, 'Failed to create order - Full error details')
-      throw error
     }
+
+    throw new Error('Failed to create payment order')
   }
 
-  static async verifyPayment(params: VerifyPaymentParams, userId: string) {
+  /**
+   * Verify payment with comprehensive validation
+   */
+  static async verifyPayment(params: VerifyPaymentParams, userId: string): Promise<PurchaseRecord> {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = params
+    const startTime = Date.now()
+
     try {
-      const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = params
+      logger.info({ orderId: razorpay_order_id, paymentId: razorpay_payment_id, userId }, 'Verifying payment')
 
-      logger.info({ 
-        orderId: razorpay_order_id, 
-        paymentId: razorpay_payment_id,
-        userId 
-      }, 'Starting payment verification')
-
-      // Verify signature
-      const isValid = verifyPaymentSignature(
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature
-      )
-
-      if (!isValid) {
-        logger.warn({ orderId: razorpay_order_id }, 'Invalid payment signature')
+      // Step 1: Verify signature (timing-safe)
+      if (!verifyPaymentSignature(razorpay_order_id, razorpay_payment_id, razorpay_signature)) {
         throw new Error('Invalid payment signature')
       }
 
-      logger.info({ orderId: razorpay_order_id }, 'Payment signature verified')
+      // Step 2: Fetch payment from Razorpay and verify status
+      const payment = await fetchPaymentDetails(razorpay_payment_id)
 
-      // Fetch payment details from Razorpay
-      const payment = await razorpay.payments.fetch(razorpay_payment_id)
-
-      if (payment.status !== 'captured' && payment.status !== 'authorized') {
-        logger.warn({ 
-          paymentId: razorpay_payment_id, 
-          status: payment.status 
-        }, 'Payment not successful')
+      if (!['captured', 'authorized'].includes(payment.status as string)) {
         throw new Error(`Payment not successful. Status: ${payment.status}`)
       }
 
-      logger.info({ 
-        paymentId: razorpay_payment_id, 
-        status: payment.status,
-        method: payment.method 
-      }, 'Payment status verified')
-
-      // Get purchase record
-      const { data: purchase, error: fetchError } = await supabaseAdmin
+      // Step 3: Get purchase record
+      const { data: dbPurchase, error: fetchError } = await supabaseAdmin
         .from('purchases')
         .select('*')
         .eq('razorpay_order_id', razorpay_order_id)
         .eq('user_id', userId)
         .single()
 
-      if (fetchError || !purchase) {
-        logger.error({ error: fetchError, orderId: razorpay_order_id }, 'Purchase not found')
+      if (fetchError || !dbPurchase) {
+        logger.error({ error: fetchError, orderId: razorpay_order_id, userId }, 'Purchase not found')
         throw new Error('Purchase record not found')
       }
 
-      // Check if already processed
+      const purchase = toPurchaseRecord(dbPurchase)
+      if (!purchase) {
+        throw new Error('Invalid purchase record')
+      }
+
+      // Step 4: Check if already processed (idempotency)
       if (purchase.status === 'completed') {
         logger.info({ purchaseId: purchase.id }, 'Purchase already completed')
         return purchase
       }
 
-      // Update purchase status
+      // Step 5: Verify payment amount matches expected amount
+      const purchaseData = parsePurchaseData(purchase.purchase_data)
+      const expectedAmount = purchaseData && 'expectedAmount' in purchaseData 
+        ? purchaseData.expectedAmount 
+        : purchase.amount * 100
+      const actualAmount = payment.amount as number
+
+      if (actualAmount !== expectedAmount) {
+        logger.error({
+          expectedAmount,
+          actualAmount,
+          orderId: razorpay_order_id,
+        }, 'CRITICAL: Payment amount mismatch!')
+
+        await supabaseAdmin
+          .from('purchases')
+          .update({
+            status: 'failed',
+            failure_reason: `Amount mismatch: expected ${expectedAmount}, got ${actualAmount}`,
+          })
+          .eq('id', purchase.id)
+
+        throw new Error('Payment amount verification failed')
+      }
+
+      // Step 6: Update purchase status
       const { error: updateError } = await supabaseAdmin
         .from('purchases')
         .update({
           razorpay_payment_id,
           razorpay_signature,
           status: 'completed',
-          payment_method: payment.method,
+          payment_method: payment.method as string,
           verified_at: new Date().toISOString(),
         })
         .eq('id', purchase.id)
+        .eq('status', 'pending')
 
       if (updateError) {
-        logger.error({ error: updateError, purchaseId: purchase.id }, 'Failed to update purchase')
-        throw new Error('Failed to update purchase')
+        throw new Error('Failed to update purchase status')
       }
 
-      logger.info({ purchaseId: purchase.id }, 'Purchase updated to completed')
+      // Step 7: Grant access
+      await this.grantUserAccess(userId, purchase)
 
-      // Update user access based on purchase type
-      if (purchase.purchase_type === 'complete') {
-        // Grant complete tier
-        const { error: tierError } = await supabaseAdmin
-          .from('users')
-          .update({ tier: 'complete' })
-          .eq('id', userId)
+      logger.info({
+        orderId: razorpay_order_id,
+        paymentId: razorpay_payment_id,
+        userId,
+        purchaseType: purchase.purchase_type,
+        duration: Date.now() - startTime,
+      }, 'Payment verified and access granted')
 
-        if (tierError) {
-          logger.error({ error: tierError, userId }, 'Failed to upgrade user tier')
-          throw new Error('Failed to upgrade account')
-        }
-
-        logger.info({ userId }, '✅ User upgraded to complete tier')
-      } 
-      else if (purchase.purchase_type === 'custom') {
-        // Validate purchase_data exists and has correct shape
-        if (!isCustomPurchaseData(purchase.purchase_data)) {
-          logger.error({ purchaseData: purchase.purchase_data }, 'Invalid chapter data')
-          throw new Error('Invalid chapter data')
-        }
-
-        const chapters = purchase.purchase_data.chapters
-
-        // Try RPC function first
-        const { error: rpcError } = await supabaseAdmin.rpc('add_owned_chapters', {
-          p_user_id: userId,
-          p_chapters: chapters
-        })
-
-        if (rpcError) {
-          logger.warn({ error: rpcError }, 'RPC failed, using fallback method')
-          
-          // Fallback: manual update
-          const { data: currentUser } = await supabaseAdmin
-            .from('users')
-            .select('owned_chapters')
-            .eq('id', userId)
-            .single()
-
-          const currentOwned = currentUser?.owned_chapters || []
-          const newOwned = Array.from(new Set([...currentOwned, ...chapters]))
-            .sort((a, b) => a - b)
-
-          const { error: updateUserError } = await supabaseAdmin
-            .from('users')
-            .update({ owned_chapters: newOwned })
-            .eq('id', userId)
-
-          if (updateUserError) {
-            logger.error({ error: updateUserError, userId }, 'Failed to update owned chapters')
-            throw new Error('Failed to unlock chapters')
-          }
-
-          logger.info({ userId, addedChapters: chapters.length }, '✅ Custom chapters added (fallback)')
-        } else {
-          logger.info({ userId, addedChapters: chapters.length }, '✅ Custom chapters added (RPC)')
-        }
-      }
-
-      // Fetch updated purchase
+      // Return updated purchase
       const { data: completedPurchase } = await supabaseAdmin
         .from('purchases')
         .select('*')
         .eq('id', purchase.id)
         .single()
 
-      logger.info({ 
-        orderId: razorpay_order_id, 
-        paymentId: razorpay_payment_id, 
+      if (completedPurchase) {
+        const result = toPurchaseRecord(completedPurchase)
+        if (result) return result
+      }
+
+      return { ...purchase, status: 'completed' }
+
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorStack = error instanceof Error ? error.stack : undefined
+
+      logger.error({
+        error: { message: errorMessage, stack: errorStack },
+        params,
         userId,
-        purchaseType: purchase.purchase_type 
-      }, '✅ Payment verified and access granted successfully')
+        duration: Date.now() - startTime,
+      }, 'Payment verification failed')
 
-      return completedPurchase || purchase
-
-    } catch (error: any) {
-      logger.error({ 
-        error: {
-          message: error.message,
-          stack: error.stack,
-          ...error
-        },
-        params, 
-        userId 
-      }, '❌ Payment verification failed')
-      
-      // Mark as failed
+      // Mark purchase as failed (if not already completed)
       try {
-        const { error: markFailedError } = await supabaseAdmin
+        await supabaseAdmin
           .from('purchases')
-          .update({ status: 'failed' })
-          .eq('razorpay_order_id', params.razorpay_order_id)
+          .update({
+            status: 'failed',
+            failure_reason: errorMessage,
+          })
+          .eq('razorpay_order_id', razorpay_order_id)
           .eq('user_id', userId)
-
-        if (markFailedError) {
-          logger.error({ error: markFailedError }, 'Failed to mark purchase as failed')
-        }
-      } catch (err: any) {
-        logger.error({ error: err }, 'Exception while marking purchase as failed')
+          .eq('status', 'pending')
+      } catch (markError) {
+        logger.error({ error: markError }, 'Failed to mark purchase as failed')
       }
 
       throw error
+    }
+  }
+
+  /**
+   * Grant user access based on purchase type
+   */
+  private static async grantUserAccess(userId: string, purchase: PurchaseRecord) {
+    const purchaseData = parsePurchaseData(purchase.purchase_data)
+
+    if (purchase.purchase_type === 'complete') {
+      const { error } = await supabaseAdmin
+        .from('users')
+        .update({ tier: 'complete' })
+        .eq('id', userId)
+
+      if (error) {
+        logger.error({ error, userId }, 'Failed to upgrade user tier')
+        throw new Error('Failed to upgrade account. Please contact support.')
+      }
+
+      logger.info({ userId }, 'User upgraded to complete tier')
+    }
+    else if (purchase.purchase_type === 'custom' && purchaseData && isCustomPurchaseData(purchaseData)) {
+      const chapters = purchaseData.chapters
+
+      // Use RPC for atomic array update
+      const { error: rpcError } = await supabaseAdmin.rpc('add_owned_chapters', {
+        p_user_id: userId,
+        p_chapters: chapters,
+      })
+
+      if (rpcError) {
+        logger.warn({ error: rpcError }, 'RPC failed, using fallback')
+
+        // Fallback with optimistic locking pattern
+        let retries = 3
+        while (retries > 0) {
+          const { data: currentUser } = await supabaseAdmin
+            .from('users')
+            .select('owned_chapters, updated_at')
+            .eq('id', userId)
+            .single()
+
+          if (!currentUser) {
+            throw new Error('User not found during chapter update')
+          }
+
+          const currentOwned: number[] = currentUser.owned_chapters || []
+          const newOwned = [...new Set([...currentOwned, ...chapters])].sort((a, b) => a - b)
+
+          // Update with version check
+          const { error: updateError, count } = await supabaseAdmin
+            .from('users')
+            .update({
+              owned_chapters: newOwned,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', userId)
+            .eq('updated_at', currentUser.updated_at)
+
+          if (!updateError && count && count > 0) {
+            logger.info({ userId, addedChapters: chapters.length }, 'Chapters added (fallback)')
+            return
+          }
+
+          retries--
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 100))
+          }
+        }
+
+        throw new Error('Failed to update chapters after retries')
+      }
+
+      logger.info({ userId, addedChapters: chapters.length }, 'Chapters added (RPC)')
+    }
+  }
+
+  /**
+   * Handle webhook events from Razorpay
+   */
+  static async handleWebhookEvent(event: { event: string; payload: Record<string, { entity: Record<string, unknown> }> }) {
+    const eventType = event.event
+
+    logger.info({ eventType }, 'Processing webhook event')
+
+    switch (eventType) {
+      case 'payment.captured':
+        await this.handlePaymentCaptured(event.payload.payment.entity)
+        break
+
+      case 'payment.failed':
+        await this.handlePaymentFailed(event.payload.payment.entity)
+        break
+
+      case 'order.paid':
+        await this.handleOrderPaid(event.payload.order.entity)
+        break
+
+      case 'refund.created':
+        await this.handleRefundCreated(event.payload.refund.entity)
+        break
+
+      default:
+        logger.info({ eventType }, 'Unhandled webhook event type')
+    }
+  }
+
+  private static async handlePaymentCaptured(payment: Record<string, unknown>) {
+    const orderId = payment.order_id as string
+    const paymentId = payment.id as string
+    const method = payment.method as string
+
+    // Find purchase and verify if not already done
+    const { data: dbPurchase } = await supabaseAdmin
+      .from('purchases')
+      .select('*')
+      .eq('razorpay_order_id', orderId)
+      .single()
+
+    if (!dbPurchase) {
+      logger.warn({ orderId }, 'Purchase not found for captured payment')
+      return
+    }
+
+    const purchase = toPurchaseRecord(dbPurchase)
+    if (!purchase) {
+      logger.warn({ orderId }, 'Invalid purchase record for captured payment')
+      return
+    }
+
+    if (purchase.status === 'completed') {
+      logger.info({ orderId }, 'Purchase already completed via webhook')
+      return
+    }
+
+    // Complete the purchase
+    const { error } = await supabaseAdmin
+      .from('purchases')
+      .update({
+        razorpay_payment_id: paymentId,
+        status: 'completed',
+        payment_method: method,
+        verified_at: new Date().toISOString(),
+        verified_via: 'webhook',
+      })
+      .eq('id', purchase.id)
+      .eq('status', 'pending')
+
+    if (!error) {
+      await this.grantUserAccess(purchase.user_id, purchase)
+      logger.info({ orderId, purchaseId: purchase.id }, 'Purchase completed via webhook')
+    }
+  }
+
+  private static async handlePaymentFailed(payment: Record<string, unknown>) {
+    const orderId = payment.order_id as string
+    const errorDescription = payment.error_description as string | undefined
+    const errorReason = payment.error_reason as string | undefined
+
+    await supabaseAdmin
+      .from('purchases')
+      .update({
+        status: 'failed',
+        failure_reason: errorDescription || errorReason || 'Payment failed',
+      })
+      .eq('razorpay_order_id', orderId)
+      .eq('status', 'pending')
+
+    logger.info({ orderId, reason: errorReason }, 'Payment marked as failed via webhook')
+  }
+
+  private static async handleOrderPaid(order: Record<string, unknown>) {
+    logger.info({ orderId: order.id }, 'Order paid event received')
+  }
+
+  private static async handleRefundCreated(refund: Record<string, unknown>) {
+    const paymentId = refund.payment_id as string
+    const refundId = refund.id as string
+    const amount = refund.amount as number
+
+    const { error } = await supabaseAdmin
+      .from('purchases')
+      .update({
+        status: 'refunded',
+        refund_id: refundId,
+        refund_amount: amount / 100,
+        refunded_at: new Date().toISOString(),
+      })
+      .eq('razorpay_payment_id', paymentId)
+
+    if (!error) {
+      logger.info({ paymentId, refundId }, 'Refund recorded')
     }
   }
 }
