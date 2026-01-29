@@ -84,7 +84,8 @@ function loadPayPalScript(clientId: string, currency: string = 'USD'): Promise<b
     }
 
     const script = document.createElement('script')
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}&intent=capture&components=buttons`
+    // Added disable-funding=paylater,credit to remove PayLater and Credit options
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}&intent=capture&components=buttons&disable-funding=paylater,credit`
     script.async = true
     script.id = 'paypal-sdk'
 

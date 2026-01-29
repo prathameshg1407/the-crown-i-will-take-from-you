@@ -1,10 +1,12 @@
 // lib/razorpay/payment.types.ts
 
 import type { Json } from '@/lib/supabase/database.types'
+import type { PaymentCurrency } from './config'
 
 export type TierType = 'free' | 'complete'
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded'
 export type PurchaseType = 'complete' | 'custom'
+export type PaymentMethod = 'card' | 'upi' | 'netbanking' | 'wallet' | 'paypal' | 'emi' | string
 
 export interface CreateOrderParams {
   userId: string
@@ -13,6 +15,10 @@ export interface CreateOrderParams {
   purchaseType: PurchaseType
   tier?: 'complete'
   customChapters?: number[]
+  // New: International payment support
+  currency?: PaymentCurrency
+  isInternational?: boolean
+  userCountry?: string
 }
 
 export interface VerifyPaymentParams {
@@ -22,16 +28,20 @@ export interface VerifyPaymentParams {
 }
 
 // Purchase data types
-export interface CustomPurchaseData {
+export interface BasePurchaseData {
+  expectedAmount: number
+  currency: PaymentCurrency
+  originalAmountINR: number // Always store INR equivalent
+}
+
+export interface CustomPurchaseData extends BasePurchaseData {
   chapters: number[]
   chapterCount: number
   pricePerChapter: number
-  expectedAmount: number
 }
 
-export interface CompletePurchaseData {
+export interface CompletePurchaseData extends BasePurchaseData {
   tier: 'complete'
-  expectedAmount: number
 }
 
 export type PurchaseData = CustomPurchaseData | CompletePurchaseData
@@ -48,7 +58,7 @@ export interface PurchaseRecord {
   razorpay_payment_id: string | null
   razorpay_signature?: string | null
   status: PaymentStatus
-  payment_method?: string | null
+  payment_method?: PaymentMethod | null
   payment_email?: string | null
   verified_at?: string | null
   verified_via?: string | null
@@ -56,6 +66,8 @@ export interface PurchaseRecord {
   refund_id?: string | null
   refund_amount?: number | null
   refunded_at?: string | null
+  user_country?: string | null
+  is_international?: boolean
   created_at: string
   updated_at: string
 }
@@ -83,4 +95,26 @@ export function isCompletePurchaseData(data: unknown): data is CompletePurchaseD
 
 export function isPurchaseData(data: unknown): data is PurchaseData {
   return isCustomPurchaseData(data) || isCompletePurchaseData(data)
+}
+
+// API Response types
+export interface CreateOrderResponse {
+  success: true
+  data: {
+    orderId: string
+    amount: number
+    currency: PaymentCurrency
+    keyId: string
+    purchaseId?: string
+    isInternational: boolean
+    paypalOnly?: boolean // True for international orders
+  }
+}
+
+export interface CreateOrderError {
+  success: false
+  error: {
+    message: string
+    code?: string
+  }
 }

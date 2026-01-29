@@ -2,24 +2,40 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyWebhookSignature } from '@/lib/razorpay/client'
-import { supabaseAdmin } from '@/lib/supabase/server'
+import { PaymentService } from '@/lib/razorpay/service'
 import { logger } from '@/lib/logger'
 
 const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || ''
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  
   try {
+    // 1. Get signature from headers
     const signature = request.headers.get('x-razorpay-signature')
     
     if (!signature) {
+      logger.warn('Webhook received without signature')
       return NextResponse.json(
         { success: false, error: 'Missing signature' },
         { status: 400 }
       )
     }
 
+    // 2. Verify webhook secret is configured
+    if (!WEBHOOK_SECRET) {
+      logger.error('Webhook secret not configured')
+      return NextResponse.json(
+        { success: false, error: 'Webhook not configured' },
+        { status: 500 }
+      )
+    }
+
+    // 3. Get raw body for signature verification
     const body = await request.text()
-    const isValid = verifyWebhookSignature(body, signature, WEBHOOK_SECRET)  // ✅ Added secret parameter
+    
+    // 4. Verify signature
+    const isValid = verifyWebhookSignature(body, signature, WEBHOOK_SECRET)
 
     if (!isValid) {
       logger.warn('Invalid webhook signature')
@@ -29,30 +45,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 5. Parse event
     const event = JSON.parse(body)
-    logger.info({ event: event.event }, 'Webhook received')
+    
+    logger.info({ 
+      event: event.event,
+      accountId: event.account_id,
+    }, 'Webhook received')
 
-    // Handle different events
-    switch (event.event) {
-      case 'payment.captured':
-        await handlePaymentCaptured(event.payload.payment.entity)
-        break
-      
-      case 'payment.failed':
-        await handlePaymentFailed(event.payload.payment.entity)
-        break
-      
-      case 'refund.created':
-        await handleRefundCreated(event.payload.refund.entity)
-        break
-      
-      default:
-        logger.info({ event: event.event }, 'Unhandled webhook event')
-    }
+    // 6. Handle event
+    await PaymentService.handleWebhookEvent(event)
+
+    logger.info({
+      event: event.event,
+      duration: Date.now() - startTime,
+    }, 'Webhook processed successfully')
 
     return NextResponse.json({ success: true })
+    
   } catch (error) {
-    logger.error({ error }, 'Webhook processing failed')
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    logger.error({ 
+      error: errorMessage,
+      duration: Date.now() - startTime,
+    }, 'Webhook processing failed')
+    
+    // Return 200 to prevent Razorpay from retrying if it's a parsing error
+    // Return 500 only for actual processing failures
     return NextResponse.json(
       { success: false, error: 'Webhook processing failed' },
       { status: 500 }
@@ -60,50 +80,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handlePaymentCaptured(payment: any) {
-  try {
-    await supabaseAdmin
-      .from('purchases')
-      .update({
-        status: 'completed',
-        razorpay_payment_id: payment.id,
-        verified_at: new Date().toISOString(),
-      })
-      .eq('razorpay_order_id', payment.order_id)
-
-    logger.info({ paymentId: payment.id }, 'Payment captured via webhook')
-  } catch (error) {
-    logger.error({ error, paymentId: payment.id }, 'Failed to handle payment captured')
-  }
-}
-
-async function handlePaymentFailed(payment: any) {
-  try {
-    await supabaseAdmin
-      .from('purchases')
-      .update({ status: 'failed' })
-      .eq('razorpay_order_id', payment.order_id)
-
-    logger.info({ paymentId: payment.id }, 'Payment failed via webhook')
-  } catch (error) {
-    logger.error({ error, paymentId: payment.id }, 'Failed to handle payment failed')
-  }
-}
-
-async function handleRefundCreated(refund: any) {
-  try {
-    await supabaseAdmin
-      .from('purchases')
-      .update({
-        status: 'refunded',
-        refund_id: refund.id,
-        refund_amount: refund.amount,
-        refunded_at: new Date().toISOString(),
-      })
-      .eq('razorpay_payment_id', refund.payment_id)
-
-    logger.info({ refundId: refund.id }, 'Refund created via webhook')
-  } catch (error) {
-    logger.error({ error, refundId: refund.id }, 'Failed to handle refund created')
-  }
-}
+// Webhook endpoint should not have any caching
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'

@@ -2,7 +2,15 @@
 
 import { supabaseAdmin } from '@/lib/supabase/server'
 import { razorpay, verifyPaymentSignature, fetchPaymentDetails } from './client'
-import { getCompletePackPrice, getCustomPrice, validateChapterIds, razorpayConfig } from './config'
+import { 
+  getCompletePackPrice, 
+  getCustomPrice, 
+  validateChapterIds, 
+  razorpayConfig,
+  getPaymentCurrency,
+  isInternationalCurrency,
+  type PaymentCurrency,
+} from './config'
 import { PRICING } from '@/data/chapters'
 import { logger } from '@/lib/logger'
 import { nanoid } from 'nanoid'
@@ -38,17 +46,14 @@ if (typeof setInterval !== 'undefined') {
 
 // Helper to safely parse Json to PurchaseData
 function parsePurchaseData(data: Json): PurchaseData | null {
-  // Handle null/undefined
   if (data === null || data === undefined) {
     return null
   }
 
-  // Must be an object
   if (typeof data !== 'object' || Array.isArray(data)) {
     return null
   }
 
-  // Cast to record for property access
   const obj = data as Record<string, Json | undefined>
 
   // Check for CustomPurchaseData
@@ -63,6 +68,8 @@ function parsePurchaseData(data: Json): PurchaseData | null {
       chapterCount: obj.chapterCount,
       pricePerChapter: typeof obj.pricePerChapter === 'number' ? obj.pricePerChapter : 0,
       expectedAmount: typeof obj.expectedAmount === 'number' ? obj.expectedAmount : 0,
+      currency: (obj.currency as PaymentCurrency) || 'INR',
+      originalAmountINR: typeof obj.originalAmountINR === 'number' ? obj.originalAmountINR : 0,
     } satisfies CustomPurchaseData
   }
 
@@ -71,6 +78,8 @@ function parsePurchaseData(data: Json): PurchaseData | null {
     return {
       tier: 'complete',
       expectedAmount: typeof obj.expectedAmount === 'number' ? obj.expectedAmount : 0,
+      currency: (obj.currency as PaymentCurrency) || 'INR',
+      originalAmountINR: typeof obj.originalAmountINR === 'number' ? obj.originalAmountINR : 0,
     } satisfies CompletePurchaseData
   }
 
@@ -82,7 +91,6 @@ function toPurchaseType(value: string): PurchaseType {
   if (value === 'complete' || value === 'custom') {
     return value
   }
-  // Default fallback - should not happen with proper DB constraints
   return 'custom'
 }
 
@@ -101,7 +109,6 @@ function toPurchaseRecord(dbRecord: {
   updated_at: string
   [key: string]: unknown
 }): PurchaseRecord | null {
-  // Validate required fields
   if (!dbRecord.razorpay_order_id) {
     return null
   }
@@ -124,6 +131,13 @@ function toPurchaseRecord(dbRecord: {
     payment_method: dbRecord.payment_method as string | null,
     payment_email: dbRecord.payment_email as string | null,
     verified_at: dbRecord.verified_at as string | null,
+    verified_via: dbRecord.verified_via as string | null,
+    failure_reason: dbRecord.failure_reason as string | null,
+    refund_id: dbRecord.refund_id as string | null,
+    refund_amount: dbRecord.refund_amount as number | null,
+    refunded_at: dbRecord.refunded_at as string | null,
+    user_country: dbRecord.user_country as string | null,
+    is_international: dbRecord.is_international as boolean | undefined,
     created_at: dbRecord.created_at,
     updated_at: dbRecord.updated_at,
   }
@@ -131,14 +145,34 @@ function toPurchaseRecord(dbRecord: {
 
 export class PaymentService {
   /**
-   * Create a new payment order with idempotency protection
+   * Create a new payment order with international support
    */
   static async createOrder(params: CreateOrderParams, idempotencyKey?: string) {
-    const { userId, email, purchaseType, tier, customChapters } = params
+    const { 
+      userId, 
+      email, 
+      purchaseType, 
+      tier, 
+      customChapters,
+      isInternational = false,
+      userCountry,
+    } = params
+    
     const startTime = Date.now()
 
     try {
-      logger.info({ userId, purchaseType, idempotencyKey }, 'Creating order')
+      // Determine currency based on user location
+      const currency = getPaymentCurrency(isInternational, params.currency)
+      const isPayPalOrder = isInternationalCurrency(currency)
+      
+      logger.info({ 
+        userId, 
+        purchaseType, 
+        currency, 
+        isInternational,
+        isPayPalOrder,
+        idempotencyKey,
+      }, 'Creating order')
 
       // Check idempotency
       if (idempotencyKey) {
@@ -146,7 +180,6 @@ export class PaymentService {
         if (cached && Date.now() < cached.expiresAt) {
           logger.info({ idempotencyKey, orderId: cached.orderId }, 'Returning cached order')
 
-          // Fetch the existing order details
           const { data: existingPurchase } = await supabaseAdmin
             .from('purchases')
             .select('*')
@@ -157,19 +190,26 @@ export class PaymentService {
             return {
               orderId: cached.orderId,
               amount: existingPurchase.amount * 100,
-              currency: 'INR',
+              currency: existingPurchase.currency as PaymentCurrency,
               purchaseId: existingPurchase.id,
               cached: true,
+              isInternational,
+              paypalOnly: isPayPalOrder,
             }
           }
         }
       }
 
-      // Check for existing pending orders for same purchase
-      const existingOrderCheck = await this.checkExistingPendingOrder(userId, purchaseType, customChapters)
+      // Check for existing pending orders
+      const existingOrderCheck = await this.checkExistingPendingOrder(
+        userId, 
+        purchaseType, 
+        customChapters,
+        currency
+      )
       if (existingOrderCheck) {
         logger.info({ existingOrder: existingOrderCheck.orderId }, 'Found existing pending order')
-        return existingOrderCheck
+        return { ...existingOrderCheck, isInternational, paypalOnly: isPayPalOrder }
       }
 
       // Fetch user
@@ -188,6 +228,7 @@ export class PaymentService {
       const ownedChapters: number[] = user.owned_chapters || []
 
       let amount: number
+      let originalAmountINR: number
       let purchaseData: PurchaseData
 
       // COMPLETE PACK PURCHASE
@@ -196,22 +237,24 @@ export class PaymentService {
           throw new Error('You already own the complete pack')
         }
 
-        amount = getCompletePackPrice()
+        originalAmountINR = getCompletePackPrice('INR')
+        amount = getCompletePackPrice(currency)
+        
         purchaseData = {
           tier: 'complete',
           expectedAmount: amount,
+          currency,
+          originalAmountINR,
         }
       }
       // CUSTOM CHAPTER PURCHASE
       else if (purchaseType === 'custom' && customChapters && customChapters.length > 0) {
-        // Validate and filter chapters
         const { valid: validChapters, invalid: invalidChapters } = validateChapterIds(customChapters)
 
         if (invalidChapters.length > 0) {
           logger.warn({ invalidChapters }, 'Invalid chapter IDs provided')
         }
 
-        // Filter out already owned
         const newChapters = validChapters.filter(id => !ownedChapters.includes(id))
 
         if (newChapters.length === 0) {
@@ -225,38 +268,46 @@ export class PaymentService {
           )
         }
 
-        amount = getCustomPrice(newChapters.length)
+        originalAmountINR = getCustomPrice(newChapters.length, 'INR')
+        amount = getCustomPrice(newChapters.length, currency)
+        
         purchaseData = {
           chapters: newChapters,
           chapterCount: newChapters.length,
           pricePerChapter: PRICING.CUSTOM_SELECTION.pricePerChapter,
           expectedAmount: amount,
+          currency,
+          originalAmountINR,
         }
       }
       else {
         throw new Error('Invalid purchase request')
       }
 
-      // Create Razorpay order with retry
+      // Create Razorpay order with correct currency
       const order = await this.createRazorpayOrderWithRetry({
         amount,
+        currency,
         userId,
         purchaseType,
         email,
+        isInternational,
       })
 
-      // Store in database - cast PurchaseData to Json
+      // Store in database (amount in display units, not smallest unit)
       const { data: purchase, error: insertError } = await supabaseAdmin
         .from('purchases')
         .insert({
           user_id: userId,
           purchase_type: purchaseType,
           purchase_data: purchaseData as unknown as Json,
-          amount: amount / 100,
-          currency: 'INR',
+          amount: amount / 100, // Store in display units
+          currency,
           razorpay_order_id: order.id,
           status: 'pending',
           payment_email: email,
+          user_country: userCountry,
+          is_international: isInternational,
         })
         .select()
         .single()
@@ -277,14 +328,18 @@ export class PaymentService {
         orderId: order.id,
         purchaseId: purchase?.id,
         amount,
+        currency,
+        isPayPalOrder,
         duration: Date.now() - startTime,
       }, 'Order created successfully')
 
       return {
         orderId: order.id,
         amount: order.amount as number,
-        currency: order.currency,
+        currency: order.currency as PaymentCurrency,
         purchaseId: purchase?.id,
+        isInternational,
+        paypalOnly: isPayPalOrder,
       }
 
     } catch (error: unknown) {
@@ -301,16 +356,17 @@ export class PaymentService {
   }
 
   /**
-   * Check for existing pending orders to prevent duplicates
+   * Check for existing pending orders (updated for multi-currency)
    */
   private static async checkExistingPendingOrder(
     userId: string,
-    purchaseType: PurchaseType,  // Changed from string to PurchaseType
-    customChapters?: number[]
+    purchaseType: PurchaseType,
+    customChapters?: number[],
+    currency?: PaymentCurrency
   ) {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
 
-    const { data: pendingOrders } = await supabaseAdmin
+    let query = supabaseAdmin
       .from('purchases')
       .select('*')
       .eq('user_id', userId)
@@ -319,6 +375,13 @@ export class PaymentService {
       .gte('created_at', fiveMinutesAgo)
       .order('created_at', { ascending: false })
       .limit(1)
+
+    // If currency specified, match it
+    if (currency) {
+      query = query.eq('currency', currency)
+    }
+
+    const { data: pendingOrders } = await query
 
     if (pendingOrders && pendingOrders.length > 0) {
       const pending = pendingOrders[0]
@@ -330,7 +393,6 @@ export class PaymentService {
           const pendingSet = new Set(pendingData.chapters)
           const requestedSet = new Set(customChapters)
 
-          // Check if same chapters
           if (
             pendingSet.size === requestedSet.size &&
             [...pendingSet].every(ch => requestedSet.has(ch))
@@ -338,7 +400,7 @@ export class PaymentService {
             return {
               orderId: pending.razorpay_order_id,
               amount: pending.amount * 100,
-              currency: 'INR',
+              currency: pending.currency as PaymentCurrency,
               purchaseId: pending.id,
               cached: true,
             }
@@ -348,7 +410,7 @@ export class PaymentService {
         return {
           orderId: pending.razorpay_order_id,
           amount: pending.amount * 100,
-          currency: 'INR',
+          currency: pending.currency as PaymentCurrency,
           purchaseId: pending.id,
           cached: true,
         }
@@ -359,39 +421,41 @@ export class PaymentService {
   }
 
   /**
-   * Create Razorpay order with retry logic
+   * Create Razorpay order with retry logic (updated for multi-currency)
    */
   private static async createRazorpayOrderWithRetry(params: {
     amount: number
+    currency: PaymentCurrency
     userId: string
     purchaseType: string
     email: string
+    isInternational: boolean
   }, retries = 3): Promise<{ id: string; amount: number; currency: string }> {
-    const { amount, userId, purchaseType, email } = params
+    const { amount, currency, userId, purchaseType, email, isInternational } = params
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         const order = await razorpay.orders.create({
           amount,
-          currency: 'INR',
+          currency,
           receipt: `rcpt_${nanoid(10)}`,
           notes: {
             userId,
             purchaseType,
             email,
+            isInternational: isInternational ? 'true' : 'false',
           },
         })
 
         return order as { id: string; amount: number; currency: string }
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-        logger.warn({ attempt, error: errorMessage }, 'Razorpay order creation attempt failed')
+        logger.warn({ attempt, error: errorMessage, currency }, 'Razorpay order creation attempt failed')
 
         if (attempt === retries) {
           throw new Error(`Failed to create payment order after ${retries} attempts`)
         }
 
-        // Exponential backoff
         await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100))
       }
     }
@@ -400,7 +464,7 @@ export class PaymentService {
   }
 
   /**
-   * Verify payment with comprehensive validation
+   * Verify payment (updated for multi-currency)
    */
   static async verifyPayment(params: VerifyPaymentParams, userId: string): Promise<PurchaseRecord> {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = params
@@ -445,17 +509,34 @@ export class PaymentService {
         return purchase
       }
 
-      // Step 5: Verify payment amount matches expected amount
+      // Step 5: Verify payment currency and amount
       const purchaseData = parsePurchaseData(purchase.purchase_data)
       const expectedAmount = purchaseData && 'expectedAmount' in purchaseData 
         ? purchaseData.expectedAmount 
         : purchase.amount * 100
       const actualAmount = payment.amount as number
+      const paymentCurrency = payment.currency as string
 
-      if (actualAmount !== expectedAmount) {
+      // Verify currency matches
+      if (paymentCurrency.toUpperCase() !== purchase.currency.toUpperCase()) {
+        logger.error({
+          expectedCurrency: purchase.currency,
+          actualCurrency: paymentCurrency,
+          orderId: razorpay_order_id,
+        }, 'CRITICAL: Payment currency mismatch!')
+        throw new Error('Payment currency verification failed')
+      }
+
+      // Allow small variance for international payments (0.5% tolerance)
+      const tolerance = isInternationalCurrency(purchase.currency) ? 0.005 : 0
+      const minExpected = Math.floor(expectedAmount * (1 - tolerance))
+      const maxExpected = Math.ceil(expectedAmount * (1 + tolerance))
+
+      if (actualAmount < minExpected || actualAmount > maxExpected) {
         logger.error({
           expectedAmount,
           actualAmount,
+          tolerance,
           orderId: razorpay_order_id,
         }, 'CRITICAL: Payment amount mismatch!')
 
@@ -471,14 +552,18 @@ export class PaymentService {
       }
 
       // Step 6: Update purchase status
+      const paymentMethod = payment.method as string
+      const isPayPal = paymentMethod === 'paypal' || isInternationalCurrency(purchase.currency)
+
       const { error: updateError } = await supabaseAdmin
         .from('purchases')
         .update({
           razorpay_payment_id,
           razorpay_signature,
           status: 'completed',
-          payment_method: payment.method as string,
+          payment_method: isPayPal ? 'paypal' : paymentMethod,
           verified_at: new Date().toISOString(),
+          verified_via: 'api',
         })
         .eq('id', purchase.id)
         .eq('status', 'pending')
@@ -495,6 +580,8 @@ export class PaymentService {
         paymentId: razorpay_payment_id,
         userId,
         purchaseType: purchase.purchase_type,
+        currency: purchase.currency,
+        paymentMethod: isPayPal ? 'paypal' : paymentMethod,
         duration: Date.now() - startTime,
       }, 'Payment verified and access granted')
 
@@ -523,7 +610,6 @@ export class PaymentService {
         duration: Date.now() - startTime,
       }, 'Payment verification failed')
 
-      // Mark purchase as failed (if not already completed)
       try {
         await supabaseAdmin
           .from('purchases')
@@ -589,7 +675,6 @@ export class PaymentService {
           const currentOwned: number[] = currentUser.owned_chapters || []
           const newOwned = [...new Set([...currentOwned, ...chapters])].sort((a, b) => a - b)
 
-          // Update with version check
           const { error: updateError, count } = await supabaseAdmin
             .from('users')
             .update({
@@ -652,7 +737,6 @@ export class PaymentService {
     const paymentId = payment.id as string
     const method = payment.method as string
 
-    // Find purchase and verify if not already done
     const { data: dbPurchase } = await supabaseAdmin
       .from('purchases')
       .select('*')
@@ -675,13 +759,14 @@ export class PaymentService {
       return
     }
 
-    // Complete the purchase
+    const isPayPal = method === 'paypal' || isInternationalCurrency(purchase.currency)
+
     const { error } = await supabaseAdmin
       .from('purchases')
       .update({
         razorpay_payment_id: paymentId,
         status: 'completed',
-        payment_method: method,
+        payment_method: isPayPal ? 'paypal' : method,
         verified_at: new Date().toISOString(),
         verified_via: 'webhook',
       })

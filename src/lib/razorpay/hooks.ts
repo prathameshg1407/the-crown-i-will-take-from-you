@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth/AuthContext'
 import { useCurrency } from '@/lib/currency/CurrencyContext'
 import toast from 'react-hot-toast'
 import { PurchaseType } from './payment.types'
+import { formatAmount, type PaymentCurrency } from './config'
 import { nanoid } from 'nanoid'
 
 // Types
@@ -52,6 +53,15 @@ interface RazorpayOptions {
     backdropclose: boolean
   }
   handler: (response: RazorpayResponse) => void
+  // Method-specific options
+  method?: {
+    netbanking?: boolean
+    card?: boolean
+    upi?: boolean
+    wallet?: boolean
+    emi?: boolean
+    paypal?: boolean
+  }
 }
 
 interface RazorpayInstance {
@@ -89,14 +99,12 @@ function loadRazorpayScript(): Promise<boolean> {
       return
     }
 
-    // Check if already loaded
     if (window.Razorpay) {
       isScriptLoaded = true
       resolve(true)
       return
     }
 
-    // Check for existing script
     const existingScript = document.querySelector(
       'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
     ) as HTMLScriptElement | null
@@ -115,7 +123,6 @@ function loadRazorpayScript(): Promise<boolean> {
       return
     }
 
-    // Create and load script
     const script = document.createElement('script')
     script.src = 'https://checkout.razorpay.com/v1/checkout.js'
     script.async = true
@@ -136,7 +143,7 @@ function loadRazorpayScript(): Promise<boolean> {
   return scriptLoadPromise
 }
 
-// Preload script on module load
+// Preload script
 if (typeof window !== 'undefined') {
   setTimeout(() => loadRazorpayScript(), 2000)
 }
@@ -145,23 +152,20 @@ export function useRazorpay() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRazorpayReady, setIsRazorpayReady] = useState(false)
   const { user, refreshUser } = useAuth()
-  const { location, isInternational, convertFromINR } = useCurrency()
+  const { location, isInternational } = useCurrency()
 
-  // Prevent double-clicks
   const processingRef = useRef(false)
-  // Store current razorpay instance for cleanup
   const razorpayInstanceRef = useRef<RazorpayInstance | null>(null)
 
   useEffect(() => {
     loadRazorpayScript().then(setIsRazorpayReady)
 
-    // Cleanup on unmount
     return () => {
       if (razorpayInstanceRef.current) {
         try {
           razorpayInstanceRef.current.close()
         } catch {
-          // Ignore errors on cleanup
+          // Ignore
         }
       }
     }
@@ -171,7 +175,7 @@ export function useRazorpay() {
     const verifyingToast = toast.loading('Verifying payment...')
 
     try {
-      const verifyResponse = await fetch('/api/payments/razorpay-verify', {
+      const verifyResponse = await fetch('/api/payments/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -189,16 +193,13 @@ export function useRazorpay() {
       }
 
       toast.dismiss(verifyingToast)
-
-      // Refresh user data
       await refreshUser()
 
-      toast.success('🎉 Payment successful! Your content has been unlocked.', {
+      toast.success(data.data?.message || '🎉 Payment successful! Your content has been unlocked.', {
         duration: 6000,
         style: { background: '#065f46', color: '#fff' },
       })
 
-      // Scroll to chapters
       setTimeout(() => {
         const chaptersSection = document.getElementById('chapters')
         chaptersSection?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -252,7 +253,6 @@ export function useRazorpay() {
       customChapters?: number[]
     }
   ) => {
-    // Prevent double-clicks
     if (processingRef.current || isProcessing) {
       return
     }
@@ -266,11 +266,9 @@ export function useRazorpay() {
     setIsProcessing(true)
     const loadingToast = toast.loading('Preparing checkout...')
 
-    // Generate idempotency key
     const idempotencyKey = `${user.id}-${purchaseType}-${Date.now()}-${nanoid(6)}`
 
     try {
-      // Ensure Razorpay is loaded
       if (!isRazorpayReady) {
         const loaded = await loadRazorpayScript()
         if (!loaded) {
@@ -285,10 +283,10 @@ export function useRazorpay() {
 
       toast.loading('Creating order...', { id: loadingToast })
 
-      // Create order with timeout
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000)
 
+      // Include international info in request
       const response = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: {
@@ -301,6 +299,10 @@ export function useRazorpay() {
           purchaseType,
           tier: options.tier,
           customChapters: options.customChapters,
+          // Pass location info for currency selection
+          isInternational,
+          userCountry: location?.country,
+          userCurrency: location?.currency,
         }),
       })
 
@@ -312,39 +314,28 @@ export function useRazorpay() {
         throw new Error(data.error?.message || 'Failed to create order')
       }
 
-      const { orderId, amount, currency, keyId } = data.data
+      const { 
+        orderId, 
+        amount, 
+        currency, 
+        keyId, 
+        paypalOnly 
+      } = data.data
 
       toast.dismiss(loadingToast)
 
-      // Calculate converted amount for international users
-      const amountInRupees = amount / 100
-      let convertedPriceText = ''
-      let convertedAmount = ''
-
-      if (isInternational && location) {
-        try {
-          const converted = await convertFromINR(amountInRupees)
-          convertedPriceText = ` (≈ ${converted.formatted})`
-          convertedAmount = converted.formatted
-        } catch (e) {
-          console.error('Price conversion failed:', e)
-        }
-      }
-
       // Build description
       const chapterCount = options.customChapters?.length
+      const formattedAmount = formatAmount(amount, currency as PaymentCurrency)
+      
       let description: string
-
       if (purchaseType === 'complete') {
-        description = isInternational && convertedPriceText
-          ? `Complete Story Pack${convertedPriceText}`
-          : 'Complete Story Access - All Chapters'
+        description = `Complete Story Pack - ${formattedAmount}`
       } else {
-        description = isInternational && convertedPriceText
-          ? `${chapterCount} Chapters${convertedPriceText}`
-          : `${chapterCount} Custom ${chapterCount === 1 ? 'Chapter' : 'Chapters'}`
+        description = `${chapterCount} Chapters - ${formattedAmount}`
       }
 
+      // Configure payment options based on region
       const razorpayOptions: RazorpayOptions = {
         key: keyId,
         amount,
@@ -361,9 +352,8 @@ export function useRazorpay() {
           purchaseType,
           tier: options.tier || '',
           chapterCount: chapterCount || 0,
-          userCountry: location?.country || 'India',
-          userCurrency: location?.currency || 'INR',
-          convertedAmount: convertedAmount || '',
+          userCountry: location?.country || 'Unknown',
+          currency,
         },
         theme: {
           color: '#9f1239',
@@ -382,10 +372,19 @@ export function useRazorpay() {
         handler: handlePaymentSuccess,
       }
 
-      // Info for international users
-      if (isInternational) {
+      // For international orders (PayPal only), disable other methods
+      if (paypalOnly) {
+        razorpayOptions.method = {
+          netbanking: false,
+          card: false,
+          upi: false,
+          wallet: false,
+          emi: false,
+          paypal: true,
+        }
+
         toast(
-          `Payment will be in INR. Your bank will convert from ${location?.currency || 'your currency'}.`,
+          `International payment via PayPal (${currency})`,
           {
             icon: '💱',
             duration: 5000,
@@ -416,7 +415,7 @@ export function useRazorpay() {
       processingRef.current = false
       setIsProcessing(false)
     }
-  }, [user, isRazorpayReady, isInternational, location, convertFromINR, isProcessing, handlePaymentSuccess, handlePaymentFailure])
+  }, [user, isRazorpayReady, isInternational, location, isProcessing, handlePaymentSuccess, handlePaymentFailure])
 
   return {
     initializePayment,

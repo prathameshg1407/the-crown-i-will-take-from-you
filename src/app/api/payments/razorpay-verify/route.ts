@@ -14,7 +14,10 @@ const verifyPaymentSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  
   try {
+    // 1. Validate session
     const cookieStore = await cookies()
     const accessToken = cookieStore.get('access_token')?.value
 
@@ -28,7 +31,7 @@ export async function POST(request: NextRequest) {
     let payload
     try {
       payload = await verifyAccessToken(accessToken)
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { success: false, error: { message: 'Invalid token', code: 'INVALID_TOKEN' } },
         { status: 401 }
@@ -37,6 +40,7 @@ export async function POST(request: NextRequest) {
 
     const userId = payload.sub
 
+    // 2. Parse and validate request
     const body = await request.json()
     const validation = verifyPaymentSchema.safeParse(body)
 
@@ -53,9 +57,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 3. Verify payment
     const purchase = await PaymentService.verifyPayment(validation.data, userId)
 
-    // ✅ Type guard and safe access
+    // 4. Build success message
     let message = 'Purchase completed successfully!'
     
     if (purchase.purchase_type === 'complete') {
@@ -66,8 +71,17 @@ export async function POST(request: NextRequest) {
       'chapterCount' in purchase.purchase_data &&
       typeof purchase.purchase_data.chapterCount === 'number'
     ) {
-      message = `${purchase.purchase_data.chapterCount} chapters unlocked successfully!`
+      const count = purchase.purchase_data.chapterCount
+      message = `${count} chapter${count > 1 ? 's' : ''} unlocked successfully!`
     }
+
+    logger.info({
+      userId,
+      purchaseId: purchase.id,
+      purchaseType: purchase.purchase_type,
+      currency: purchase.currency,
+      duration: Date.now() - startTime,
+    }, 'Payment verified successfully')
 
     return NextResponse.json({
       success: true,
@@ -76,18 +90,28 @@ export async function POST(request: NextRequest) {
           id: purchase.id,
           purchaseType: purchase.purchase_type,
           amount: purchase.amount,
+          currency: purchase.currency,
           status: purchase.status,
         },
         message,
       },
     })
+    
   } catch (error) {
-    logger.error({ error }, 'Payment verification failed')
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    
+    logger.error({ 
+      error: errorMessage,
+      duration: Date.now() - startTime,
+    }, 'Payment verification failed')
+    
     return NextResponse.json(
       { 
         success: false, 
         error: { 
-          message: error instanceof Error ? error.message : 'Payment verification failed'
+          message: errorMessage === 'Invalid payment signature' 
+            ? 'Payment verification failed. Please contact support if amount was deducted.'
+            : (error instanceof Error ? error.message : 'Payment verification failed')
         } 
       },
       { status: 500 }
