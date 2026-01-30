@@ -36,9 +36,9 @@ export const paypalConfig = {
   supportedCurrencies: ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'JPY'] as const,
   
   // USD Pricing (matched to your INR pricing)
-  // ₹1299 ≈ $15.99 USD, ₹19 ≈ $0.25 USD
+  // ₹1299 ≈ $18.47 USD, ₹19 ≈ $0.25 USD
   pricing: {
-    complete: 15.99,
+    complete: 18.47,
     customPerChapter: 0.25,
     minCustomAmount: 2.50, // 10 chapters minimum
   },

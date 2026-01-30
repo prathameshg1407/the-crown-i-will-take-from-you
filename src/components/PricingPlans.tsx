@@ -186,7 +186,7 @@ export default function PricingPlans() {
 
   // USD prices mapping
   const usdPrices: Record<string, number> = {
-    complete: 15.99,
+    complete: 18.47,
     free: 0,
   }
 
