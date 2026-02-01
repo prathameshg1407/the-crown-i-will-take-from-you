@@ -7,26 +7,42 @@ import { useAuth } from '@/lib/auth/AuthContext'
 import { useRazorpay } from '@/lib/razorpay/hooks'
 import { useCurrency } from '@/lib/currency/CurrencyContext'
 import { chapters, PRICING } from '@/data/chapters'
-import { Check, ShoppingCart, ArrowLeft, Search, Crown, CreditCard, X, Sparkles, Globe, RefreshCw } from 'lucide-react'
+import { 
+  Check, 
+  ShoppingCart, 
+  ArrowLeft, 
+  Search, 
+  Crown, 
+  CreditCard, 
+  X, 
+  Sparkles, 
+  Globe, 
+  RefreshCw,
+  Loader2
+} from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+import toast from 'react-hot-toast'
 
-// PayPal imports commented out
-// import dynamic from 'next/dynamic'
-// const PayPalButton = dynamic(() => import('@/components/PayPalButton'), {
-//   ssr: false,
-//   loading: () => (
-//     <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse flex items-center justify-center">
-//       <span className="text-neutral-500 text-sm">Loading PayPal...</span>
-//     </div>
-//   ),
-// })
+// ============================================================================
+// Dynamic Imports
+// ============================================================================
+
+const PayPalButton = dynamic(() => import('@/components/PayPalButton'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse flex items-center justify-center">
+      <span className="text-neutral-500 text-sm">Loading PayPal...</span>
+    </div>
+  ),
+})
 
 // ============================================================================
 // Types
 // ============================================================================
 
-// type PaymentMethod = 'razorpay' | 'paypal'
+type PaymentMethod = 'razorpay' | 'paypal'
 
 interface ChapterCardProps {
   chapter: typeof chapters[number]
@@ -34,6 +50,12 @@ interface ChapterCardProps {
   onToggle: (id: number) => void
   convertedPrice: string | null
   isInternational: boolean
+}
+
+interface ConvertedPrices {
+  perChapter: string | null
+  total: string | null
+  completePack: string | null
 }
 
 // ============================================================================
@@ -56,13 +78,25 @@ function PriceDisplay({
   } | null>(null)
 
   useEffect(() => {
+    let cancelled = false
+
     if (isInternational && inrPrice > 0) {
       convertFromINR(inrPrice).then((result) => {
-        setConverted({
-          formatted: result.formatted,
-          currency: result.currency,
-        })
+        if (!cancelled) {
+          setConverted({
+            formatted: result.formatted,
+            currency: result.currency,
+          })
+        }
+      }).catch((error) => {
+        console.error('Price conversion failed:', error)
       })
+    } else {
+      setConverted(null)
+    }
+
+    return () => {
+      cancelled = true
     }
   }, [inrPrice, isInternational, convertFromINR])
 
@@ -105,9 +139,13 @@ const ChapterCard = memo(function ChapterCard({
 }: ChapterCardProps) {
   const priceINR = PRICING.CUSTOM_SELECTION.pricePerChapter
 
+  const handleClick = useCallback(() => {
+    onToggle(chapter.id)
+  }, [onToggle, chapter.id])
+
   return (
     <button
-      onClick={() => onToggle(chapter.id)}
+      onClick={handleClick}
       className={`text-left p-4 rounded-xl border transition-all group active:scale-[0.98] ${
         isSelected 
           ? 'bg-[#9f1239]/10 border-[#9f1239] shadow-lg shadow-[#9f1239]/20' 
@@ -163,6 +201,56 @@ function LoadingScreen() {
 }
 
 // ============================================================================
+// Payment Method Selector Component
+// ============================================================================
+
+interface PaymentMethodSelectorProps {
+  paymentMethod: PaymentMethod
+  onMethodChange: (method: PaymentMethod) => void
+  isInternational: boolean
+}
+
+function PaymentMethodSelector({ 
+  paymentMethod, 
+  onMethodChange,
+  isInternational 
+}: PaymentMethodSelectorProps) {
+  return (
+    <div className="mt-6 inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5">
+      <button
+        onClick={() => onMethodChange('razorpay')}
+        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-ui text-sm transition-all ${
+          paymentMethod === 'razorpay'
+            ? 'bg-[#9f1239] text-white shadow-lg'
+            : 'text-neutral-400 hover:text-neutral-200'
+        }`}
+      >
+        <CreditCard className="w-4 h-4" />
+        <span>India (UPI/Cards)</span>
+      </button>
+      <button
+        onClick={() => onMethodChange('paypal')}
+        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-ui text-sm transition-all ${
+          paymentMethod === 'paypal'
+            ? 'bg-[#0070ba] text-white shadow-lg'
+            : 'text-neutral-400 hover:text-neutral-200'
+        }`}
+      >
+        <Globe className="w-4 h-4" />
+        <span>International (PayPal)</span>
+      </button>
+      
+      {/* Auto-selected indicator for international users */}
+      {isInternational && paymentMethod === 'paypal' && (
+        <span className="ml-2 px-2 py-1 bg-blue-900/30 text-blue-400 text-xs rounded-full self-center">
+          Recommended
+        </span>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
 // Custom Selection Inner Component
 // ============================================================================
 
@@ -179,20 +267,31 @@ function CustomSelectionInner() {
   } = useCurrency()
   const router = useRouter()
   
+  // State
   const [selectedChapters, setSelectedChapters] = useState<number[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [convertedPrices, setConvertedPrices] = useState<{
-    perChapter: string | null
-    total: string | null
-    completePack: string | null
-  }>({ perChapter: null, total: null, completePack: null })
+  const [isRefreshingLocation, setIsRefreshingLocation] = useState(false)
+  const [isPayPalProcessing, setIsPayPalProcessing] = useState(false)
+  const [convertedPrices, setConvertedPrices] = useState<ConvertedPrices>({
+    perChapter: null,
+    total: null,
+    completePack: null
+  })
   
-  // const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-  //   (searchParams.get('payment') as PaymentMethod) || 'razorpay'
-  // )
+  // Payment method - auto-select PayPal for international users
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
+    (searchParams.get('payment') as PaymentMethod) || 'razorpay'
+  )
 
   const userTier = user?.tier || 'free'
   const hasCompletePack = userTier === 'complete'
+
+  // Auto-select PayPal for international users
+  useEffect(() => {
+    if (isInternational && !searchParams.get('payment')) {
+      setPaymentMethod('paypal')
+    }
+  }, [isInternational, searchParams])
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -239,25 +338,44 @@ function CustomSelectionInner() {
 
   // Convert prices when international
   useEffect(() => {
+    let cancelled = false
+
     if (isInternational && !isCurrencyLoading) {
       const convertPrices = async () => {
-        const [perChapter, total, completePack] = await Promise.all([
-          convertFromINR(PRICING.CUSTOM_SELECTION.pricePerChapter),
-          convertFromINR(costs.totalINR),
-          convertFromINR(PRICING.COMPLETE_PACK.price),
-        ])
-        
-        setConvertedPrices({
-          perChapter: perChapter.formatted,
-          total: total.formatted,
-          completePack: completePack.formatted,
-        })
+        try {
+          const [perChapter, total, completePack] = await Promise.all([
+            convertFromINR(PRICING.CUSTOM_SELECTION.pricePerChapter),
+            convertFromINR(costs.totalINR),
+            convertFromINR(PRICING.COMPLETE_PACK.price),
+          ])
+          
+          if (!cancelled) {
+            setConvertedPrices({
+              perChapter: perChapter.formatted,
+              total: total.formatted,
+              completePack: completePack.formatted,
+            })
+          }
+        } catch (error) {
+          console.error('Failed to convert prices:', error)
+        }
       }
       convertPrices()
+    } else if (!isInternational) {
+      setConvertedPrices({
+        perChapter: null,
+        total: null,
+        completePack: null
+      })
+    }
+
+    return () => {
+      cancelled = true
     }
   }, [isInternational, isCurrencyLoading, costs.totalINR, convertFromINR])
 
   const canPurchase = selectedChapters.length >= PRICING.CUSTOM_SELECTION.minChapters
+  const isProcessing = isRazorpayProcessing || isPayPalProcessing
 
   // Callbacks
   const toggleChapter = useCallback((chapterId: number) => {
@@ -276,18 +394,66 @@ function CustomSelectionInner() {
     setSelectedChapters([])
   }, [])
 
-  const handleRazorpayPurchase = useCallback(async () => {
-    if (!canPurchase) return
-    await initializePayment('custom', {
-      customChapters: selectedChapters,
-    })
-  }, [canPurchase, initializePayment, selectedChapters])
+  const handlePaymentMethodChange = useCallback((method: PaymentMethod) => {
+    setPaymentMethod(method)
+  }, [])
 
-  // PayPal success handler commented out
-  // const handlePaymentSuccess = useCallback(() => {
-  //   refreshUser?.()
-  //   router.push('/#chapters')
-  // }, [refreshUser, router])
+  const handleRefreshLocation = useCallback(async () => {
+    setIsRefreshingLocation(true)
+    try {
+      await refreshLocation()
+    } catch (error) {
+      console.error('Failed to refresh location:', error)
+      toast.error('Failed to detect location')
+    } finally {
+      setIsRefreshingLocation(false)
+    }
+  }, [refreshLocation])
+
+  const handleRazorpayPurchase = useCallback(async () => {
+    if (!canPurchase || isProcessing) return
+    
+    try {
+      await initializePayment('custom', {
+        customChapters: selectedChapters,
+      })
+    } catch (error) {
+      console.error('Razorpay purchase failed:', error)
+      toast.error('Failed to start checkout. Please try again.')
+    }
+  }, [canPurchase, isProcessing, initializePayment, selectedChapters])
+
+  const handlePayPalSuccess = useCallback(async () => {
+    setIsPayPalProcessing(false)
+    
+    try {
+      await refreshUser?.()
+      toast.success('🎉 Payment successful! Your chapters have been unlocked.', {
+        duration: 6000,
+        style: { background: '#065f46', color: '#fff' },
+      })
+      router.push('/#chapters')
+    } catch (error) {
+      console.error('Failed to refresh user:', error)
+      // Still redirect, the user data will refresh eventually
+      router.push('/#chapters')
+    }
+  }, [refreshUser, router])
+
+  const handlePayPalError = useCallback((error: Error) => {
+    console.error('PayPal error:', error)
+    setIsPayPalProcessing(false)
+    toast.error(error.message || 'Payment failed. Please try again.')
+  }, [])
+
+  const handlePayPalCancel = useCallback(() => {
+    setIsPayPalProcessing(false)
+    toast('Payment cancelled', { icon: 'ℹ️', duration: 3000 })
+  }, [])
+
+  const handlePayPalProcessing = useCallback((processing: boolean) => {
+    setIsPayPalProcessing(processing)
+  }, [])
 
   const clearSearch = useCallback(() => setSearchQuery(''), [])
 
@@ -304,7 +470,10 @@ function CustomSelectionInner() {
       <div className="min-h-screen bg-[#050505] relative overflow-hidden">
         <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10" />
         <div className="max-w-4xl mx-auto px-6 py-24">
-          <Link href="/" className="inline-flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-8">
+          <Link 
+            href="/" 
+            className="inline-flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-8"
+          >
             <ArrowLeft className="w-4 h-4" />
             <span className="text-sm font-ui">Back to Home</span>
           </Link>
@@ -312,9 +481,16 @@ function CustomSelectionInner() {
             <div className="w-16 h-16 bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
               <Check className="w-8 h-8 text-green-400" />
             </div>
-            <h1 className="text-3xl font-heading text-neutral-100 mb-4">You Already Have Complete Access</h1>
-            <p className="text-neutral-400 font-body mb-8">You have unlimited access to all chapters with your Complete Pack.</p>
-            <Link href="/#chapters" className="inline-block px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all active:scale-95">
+            <h1 className="text-3xl font-heading text-neutral-100 mb-4">
+              You Already Have Complete Access
+            </h1>
+            <p className="text-neutral-400 font-body mb-8">
+              You have unlimited access to all chapters with your Complete Pack.
+            </p>
+            <Link 
+              href="/#chapters" 
+              className="inline-block px-8 py-3 bg-[#9f1239] text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:bg-[#881337] transition-all active:scale-95"
+            >
               Start Reading
             </Link>
           </div>
@@ -326,6 +502,11 @@ function CustomSelectionInner() {
   const alreadyOwnedCount = ownedChapters.length
   const showRecommendation = selectedChapters.length >= 50
 
+  // Get display price for button
+  const buttonPrice = isInternational && convertedPrices.total 
+    ? convertedPrices.total 
+    : `₹${costs.totalINR}`
+
   return (
     <div className="min-h-screen bg-[#050505] relative overflow-hidden">
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900/20 via-black to-black -z-10" />
@@ -335,13 +516,18 @@ function CustomSelectionInner() {
         <div className="max-w-7xl mx-auto px-6 py-12">
           {/* Header */}
           <div className="mb-12">
-            <Link href="/" className="inline-flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-8 active:scale-95">
+            <Link 
+              href="/" 
+              className="inline-flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-8 active:scale-95"
+            >
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm font-ui">Back to Home</span>
             </Link>
+            
             <h1 className="text-4xl md:text-6xl font-heading text-neutral-100 mb-4 tracking-tight">
               Custom Chapter Selection
             </h1>
+            
             <p className="text-lg text-neutral-400 font-body">
               Pick exactly which chapters you want • <PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.pricePerChapter} />/chapter
             </p>
@@ -354,54 +540,46 @@ function CustomSelectionInner() {
                   {location.country} • Prices shown in {location.currency}
                 </span>
                 <button 
-                  onClick={refreshLocation}
-                  className="ml-2 p-1 hover:bg-neutral-800 rounded-full transition-colors"
+                  onClick={handleRefreshLocation}
+                  disabled={isRefreshingLocation}
+                  className="ml-2 p-1 hover:bg-neutral-800 rounded-full transition-colors disabled:opacity-50"
                   title="Refresh location"
                 >
-                  <RefreshCw className="w-3 h-3 text-neutral-500" />
+                  <RefreshCw className={`w-3 h-3 text-neutral-500 ${isRefreshingLocation ? 'animate-spin' : ''}`} />
                 </button>
               </div>
             )}
             
-            {/* Payment Method Selector - Commented out, only Razorpay now */}
-            {/* <div className="mt-6 inline-flex bg-neutral-900/60 border border-neutral-800 rounded-xl p-1.5">
-              <button
-                onClick={() => setPaymentMethod('razorpay')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-ui text-sm transition-all ${
-                  paymentMethod === 'razorpay'
-                    ? 'bg-[#9f1239] text-white shadow-lg'
-                    : 'text-neutral-400 hover:text-neutral-200'
-                }`}
-              >
-                <CreditCard className="w-4 h-4" />
-                <span>India (UPI/Cards)</span>
-              </button>
-              <button
-                onClick={() => setPaymentMethod('paypal')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-ui text-sm transition-all ${
-                  paymentMethod === 'paypal'
-                    ? 'bg-[#0070ba] text-white shadow-lg'
-                    : 'text-neutral-400 hover:text-neutral-200'
-                }`}
-              >
-                <Globe className="w-4 h-4" />
-                <span>International (PayPal)</span>
-              </button>
-            </div> */}
+            {/* Payment Method Selector */}
+            <PaymentMethodSelector
+              paymentMethod={paymentMethod}
+              onMethodChange={handlePaymentMethodChange}
+              isInternational={isInternational}
+            />
 
             {/* Payment Info */}
             <div className="mt-4 flex items-center gap-2 text-neutral-500 text-sm">
               <CreditCard className="w-4 h-4" />
               <span>
-                Pay with UPI, Credit/Debit Cards, Net Banking
-                {isInternational && ' • Payment processed in INR'}
+                {paymentMethod === 'razorpay' 
+                  ? 'Pay with UPI, Credit/Debit Cards, Net Banking'
+                  : 'Pay securely with PayPal'
+                }
+                {isInternational && paymentMethod === 'razorpay' && ' • Payment processed in INR'}
               </span>
             </div>
 
             {/* International User Note */}
-            {isInternational && (
+            {isInternational && paymentMethod === 'razorpay' && (
               <p className="mt-2 text-xs text-amber-500/80">
                 💡 Prices shown in {location?.currency}. Payment will be processed in INR — your bank will handle conversion.
+              </p>
+            )}
+
+            {/* PayPal recommendation for international */}
+            {isInternational && paymentMethod === 'razorpay' && (
+              <p className="mt-2 text-xs text-blue-400">
+                💳 For smoother international payments, consider using PayPal.
               </p>
             )}
             
@@ -415,10 +593,10 @@ function CustomSelectionInner() {
                       💡 Consider the Complete Pack!
                     </p>
                     <p className="text-amber-200/70 text-sm font-body">
-                      You're selecting {selectedChapters.length} chapters for{' '}
+                      You&apos;re selecting {selectedChapters.length} chapters for{' '}
                       <PriceDisplay inrPrice={costs.totalINR} />. 
                       The Complete Pack gives you all {PRICING.COMPLETE_PACK.chapters} chapters for just{' '}
-                      <PriceDisplay inrPrice={costs.completePackINR} /> — that's only{' '}
+                      <PriceDisplay inrPrice={costs.completePackINR} /> — that&apos;s only{' '}
                       <PriceDisplay inrPrice={PRICING.COMPLETE_PACK.pricePerChapter} />/chapter!
                     </p>
                     <Link 
@@ -437,12 +615,20 @@ function CustomSelectionInner() {
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-lg p-4 hover:bg-neutral-900/60 transition-colors">
-              <div className="text-2xl font-heading text-neutral-100 mb-1">{availableChapters.length}</div>
-              <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">Available</div>
+              <div className="text-2xl font-heading text-neutral-100 mb-1">
+                {availableChapters.length}
+              </div>
+              <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">
+                Available
+              </div>
             </div>
             <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-lg p-4 hover:bg-neutral-900/60 transition-colors">
-              <div className="text-2xl font-heading text-[#9f1239] mb-1">{selectedChapters.length}</div>
-              <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">Selected</div>
+              <div className="text-2xl font-heading text-[#9f1239] mb-1">
+                {selectedChapters.length}
+              </div>
+              <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">
+                Selected
+              </div>
             </div>
             <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-lg p-4 hover:bg-neutral-900/60 transition-colors">
               <div className="text-2xl font-heading text-neutral-100 mb-1">
@@ -452,11 +638,17 @@ function CustomSelectionInner() {
                   <>₹{costs.totalINR}</>
                 )}
               </div>
-              <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">Total Cost</div>
+              <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">
+                Total Cost
+              </div>
             </div>
             <div className="bg-neutral-900/40 border border-neutral-800/60 rounded-lg p-4 hover:bg-neutral-900/60 transition-colors">
-              <div className="text-2xl font-heading text-green-400 mb-1">{alreadyOwnedCount}</div>
-              <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">Owned</div>
+              <div className="text-2xl font-heading text-green-400 mb-1">
+                {alreadyOwnedCount}
+              </div>
+              <div className="text-xs text-neutral-500 font-ui uppercase tracking-wider">
+                Owned
+              </div>
             </div>
           </div>
 
@@ -505,7 +697,9 @@ function CustomSelectionInner() {
               <div className="w-16 h-16 bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Check className="w-8 h-8 text-green-400" />
               </div>
-              <h3 className="text-xl font-heading text-neutral-100 mb-2">All Premium Chapters Owned!</h3>
+              <h3 className="text-xl font-heading text-neutral-100 mb-2">
+                All Premium Chapters Owned!
+              </h3>
               <p className="text-neutral-400 font-body mb-6">
                 You already own all {alreadyOwnedCount} premium chapters.
               </p>
@@ -522,7 +716,9 @@ function CustomSelectionInner() {
           {availableChapters.length === 0 && searchQuery && (
             <div className="text-center py-16 bg-neutral-900/40 border border-neutral-800/60 rounded-xl">
               <Search className="w-12 h-12 text-neutral-600 mx-auto mb-4" />
-              <h3 className="text-xl font-heading text-neutral-300 mb-2">No chapters found</h3>
+              <h3 className="text-xl font-heading text-neutral-300 mb-2">
+                No chapters found
+              </h3>
               <p className="text-neutral-500 font-body mb-4">
                 No chapters match &quot;{searchQuery}&quot;
               </p>
@@ -564,7 +760,9 @@ function CustomSelectionInner() {
               <div className="text-sm text-neutral-400 font-body mb-1">
                 {selectedChapters.length} chapter{selectedChapters.length !== 1 ? 's' : ''} selected
                 {selectedChapters.length > 0 && !canPurchase && (
-                  <span className="text-red-400 ml-2">(min {PRICING.CUSTOM_SELECTION.minChapters} required)</span>
+                  <span className="text-red-400 ml-2">
+                    (min {PRICING.CUSTOM_SELECTION.minChapters} required)
+                  </span>
                 )}
               </div>
               <div className="text-2xl font-heading text-neutral-100">
@@ -572,7 +770,9 @@ function CustomSelectionInner() {
                 {isInternational && convertedPrices.total ? (
                   <>
                     {convertedPrices.total}
-                    <span className="text-base text-neutral-500 ml-2">(₹{costs.totalINR})</span>
+                    <span className="text-base text-neutral-500 ml-2">
+                      (₹{costs.totalINR})
+                    </span>
                   </>
                 ) : (
                   <>₹{costs.totalINR}</>
@@ -580,46 +780,57 @@ function CustomSelectionInner() {
               </div>
             </div>
 
-            {/* Payment Button - Only Razorpay */}
+            {/* Payment Buttons */}
             <div className="w-full md:w-auto">
-              <button
-                onClick={handleRazorpayPurchase}
-                disabled={!canPurchase || isRazorpayProcessing}
-                className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95"
-              >
-                {isRazorpayProcessing ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-4 h-4" />
-                    Pay ₹{costs.totalINR}
-                  </>
-                )}
-              </button>
-              
-              {/* PayPal button commented out */}
-              {/* {paymentMethod === 'paypal' && (
+              {paymentMethod === 'razorpay' ? (
+                <button
+                  onClick={handleRazorpayPurchase}
+                  disabled={!canPurchase || isProcessing}
+                  className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95"
+                >
+                  {isRazorpayProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-4 h-4" />
+                      Pay {buttonPrice}
+                    </>
+                  )}
+                </button>
+              ) : (
                 <div className={`w-full md:w-64 ${!canPurchase ? 'opacity-50 pointer-events-none' : ''}`}>
                   <PayPalButton
                     purchaseType="custom"
                     chapters={selectedChapters}
-                    disabled={!canPurchase}
-                    onSuccess={handlePaymentSuccess}
-                    onError={(error) => console.error('PayPal error:', error)}
+                    amountINR={costs.totalINR}
+                    disabled={!canPurchase || isProcessing}
+                    onSuccess={handlePayPalSuccess}
+                    onError={handlePayPalError}
+                    onCancel={handlePayPalCancel}
+                    onProcessing={handlePayPalProcessing}
                   />
                 </div>
-              )} */}
+              )}
             </div>
           </div>
           
           {/* Payment method info */}
           <div className="mt-3 text-center md:text-right">
             <p className="text-xs text-neutral-500">
-              🔒 Secure payment powered by Razorpay • UPI, Cards, Net Banking
-              {isInternational && ' • Payment in INR'}
+              {paymentMethod === 'razorpay' ? (
+                <>
+                  🔒 Secure payment powered by Razorpay • UPI, Cards, Net Banking
+                  {isInternational && ' • Payment in INR'}
+                </>
+              ) : (
+                <>
+                  🔒 Secure payment powered by PayPal
+                  {isInternational && location && ` • Pay in ${location.currency}`}
+                </>
+              )}
             </p>
           </div>
         </div>

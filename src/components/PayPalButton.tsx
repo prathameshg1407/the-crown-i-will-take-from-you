@@ -1,276 +1,283 @@
 // components/PayPalButton.tsx
 "use client"
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
-import { usePayPal } from '@/lib/paypal/hooks'
-import { Loader2, AlertCircle, RefreshCw } from 'lucide-react'
-import type { PurchaseType } from '@/lib/supabase/database.types'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js'
+import { useCurrency } from '@/lib/currency/CurrencyContext'
+import { Loader2 } from 'lucide-react'
+
+// ============================================================================
+// Types
+// ============================================================================
 
 interface PayPalButtonProps {
-  purchaseType: PurchaseType
-  tier?: 'complete'
-  customChapters?: number[]
-  onSuccess?: () => void
-  onError?: (error: string) => void
-  className?: string
+  purchaseType: 'complete' | 'custom'
+  chapters?: number[]
+  amountINR: number
+  disabled?: boolean
+  onSuccess: () => void
+  onError: (error: Error) => void
+  onCancel?: () => void
+  onProcessing?: (processing: boolean) => void
 }
 
-export default function PayPalButton({
+interface CreateOrderResponse {
+  success: boolean
+  data?: {
+    orderId: string
+    approvalUrl?: string
+  }
+  error?: {
+    message: string
+  }
+}
+
+interface CaptureOrderResponse {
+  success: boolean
+  data?: {
+    message: string
+    tier?: string
+    chaptersUnlocked?: number[]
+  }
+  error?: {
+    message: string
+  }
+}
+
+// ============================================================================
+// PayPal Button Inner Component
+// ============================================================================
+
+function PayPalButtonInner({
   purchaseType,
-  tier,
-  customChapters,
+  chapters,
+  amountINR,
+  disabled = false,
   onSuccess,
   onError,
-  className = '',
+  onCancel,
+  onProcessing,
 }: PayPalButtonProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [renderAttempt, setRenderAttempt] = useState(0)
-  const [renderError, setRenderError] = useState<string | null>(null)
-  const [hasRendered, setHasRendered] = useState(false)
-  
-  // Refs to track component lifecycle
-  const isMountedRef = useRef(true)
-  const isRenderingRef = useRef(false)
-  const renderIdRef = useRef(0)
+  const [{ isPending, isResolved, isRejected }] = usePayPalScriptReducer()
+  const { location } = useCurrency()
+  const [isCreating, setIsCreating] = useState(false)
+  const [isCapturing, setIsCapturing] = useState(false)
+  const orderIdRef = useRef<string | null>(null)
 
-  const { 
-    isLoading, 
-    isReady, 
-    isProcessing, 
-    error: hookError,
-    currency,
-    renderButton,
-  } = usePayPal({
-    onSuccess,
-    onError,
-  })
+  const isButtonDisabled = disabled || isPending || isCreating || isCapturing
 
-  // Create stable key for options to detect changes
-  const optionsKey = useMemo(() => {
-    const chaptersKey = customChapters ? customChapters.sort().join(',') : ''
-    return `${purchaseType}-${tier || ''}-${chaptersKey}`
-  }, [purchaseType, tier, customChapters])
+  // Create PayPal order
+  const createOrder = useCallback(async (): Promise<string> => {
+    setIsCreating(true)
+    onProcessing?.(true)
 
-  // Store latest options in ref for access in async operations
-  const optionsRef = useRef({ purchaseType, tier, customChapters })
-  optionsRef.current = { purchaseType, tier, customChapters }
+    try {
+      const response = await fetch('/api/payments/paypal/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          purchaseType,
+          customChapters: chapters,
+          amountINR,
+          currency: location?.currency || 'USD',
+          country: location?.country,
+        }),
+      })
 
-  // Track component mount state
-  useEffect(() => {
-    isMountedRef.current = true
-    
-    return () => {
-      isMountedRef.current = false
+      const data: CreateOrderResponse = await response.json()
+
+      if (!response.ok || !data.success || !data.data?.orderId) {
+        throw new Error(data.error?.message || 'Failed to create PayPal order')
+      }
+
+      orderIdRef.current = data.data.orderId
+      return data.data.orderId
+
+    } catch (error) {
+      console.error('PayPal create order error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create order'
+      onError(new Error(errorMessage))
+      throw error
+    } finally {
+      setIsCreating(false)
     }
-  }, [])
+  }, [purchaseType, chapters, amountINR, location, onError, onProcessing])
 
-  // Main render effect
-  useEffect(() => {
-    // Generate unique ID for this render attempt
-    const currentRenderId = ++renderIdRef.current
+  // Capture PayPal order (on approval)
+  const onApprove = useCallback(async (data: { orderID: string }) => {
+    setIsCapturing(true)
+    onProcessing?.(true)
 
-    const performRender = async () => {
-      // Skip if already rendering or already rendered
-      if (isRenderingRef.current || hasRendered) {
-        return
+    try {
+      const response = await fetch('/api/payments/paypal/capture-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          orderId: data.orderID,
+        }),
+      })
+
+      const result: CaptureOrderResponse = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error?.message || 'Payment capture failed')
       }
 
-      // Wait for SDK to be ready
-      if (!isReady) {
-        return
-      }
+      // Success!
+      onSuccess()
 
-      // Check container exists
-      const container = containerRef.current
-      if (!container) {
-        return
-      }
-
-      // Verify container is in DOM
-      if (!document.body.contains(container)) {
-        console.warn('[PayPal] Container not in DOM, skipping render')
-        return
-      }
-
-      isRenderingRef.current = true
-      setRenderError(null)
-
-      try {
-        // Small delay to ensure DOM stability after React updates
-        await new Promise(resolve => setTimeout(resolve, 100))
-
-        // Check if this render is still valid
-        if (currentRenderId !== renderIdRef.current) {
-          console.log('[PayPal] Render superseded by newer attempt')
-          return
-        }
-
-        // Check if still mounted
-        if (!isMountedRef.current) {
-          console.log('[PayPal] Component unmounted, aborting render')
-          return
-        }
-
-        // Re-verify container is still in DOM after delay
-        if (!container || !document.body.contains(container)) {
-          console.warn('[PayPal] Container removed during delay, aborting render')
-          return
-        }
-
-        // Clear any existing content
-        container.innerHTML = ''
-
-        // Get current options from ref
-        const { purchaseType: currentType, tier: currentTier, customChapters: currentChapters } = optionsRef.current
-
-        const success = await renderButton(container, currentType, {
-          tier: currentTier,
-          customChapters: currentChapters,
-        })
-
-        // Verify render is still valid after async operation
-        if (currentRenderId !== renderIdRef.current || !isMountedRef.current) {
-          return
-        }
-
-        if (success) {
-          setHasRendered(true)
-        } else {
-          setRenderError('Failed to load PayPal button')
-        }
-      } catch (error) {
-        console.error('[PayPal] Render error:', error)
-        
-        // Only set error if this render is still valid
-        if (currentRenderId === renderIdRef.current && isMountedRef.current) {
-          setRenderError(
-            error instanceof Error ? error.message : 'Failed to load PayPal button'
-          )
-        }
-      } finally {
-        isRenderingRef.current = false
-      }
+    } catch (error) {
+      console.error('PayPal capture error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Payment failed'
+      onError(new Error(errorMessage))
+    } finally {
+      setIsCapturing(false)
+      onProcessing?.(false)
     }
+  }, [onSuccess, onError, onProcessing])
 
-    performRender()
-  }, [isReady, renderAttempt, hasRendered, renderButton])
+  // Handle cancel
+  const handleCancel = useCallback(() => {
+    orderIdRef.current = null
+    onProcessing?.(false)
+    onCancel?.()
+  }, [onCancel, onProcessing])
 
-  // Reset when options change
-  useEffect(() => {
-    // Only reset if we've already rendered
-    if (hasRendered) {
-      // Increment render ID to invalidate any in-progress renders
-      renderIdRef.current++
-      
-      setHasRendered(false)
-      isRenderingRef.current = false
-      
-      // Clear container safely
-      if (containerRef.current && document.body.contains(containerRef.current)) {
-        containerRef.current.innerHTML = ''
-      }
-    }
-  }, [optionsKey]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      // Invalidate any pending renders
-      renderIdRef.current++
-      
-      // Clear container if it exists
-      if (containerRef.current) {
-        try {
-          containerRef.current.innerHTML = ''
-        } catch {
-          // Container may already be removed
-        }
-      }
-    }
-  }, [])
-
-  const handleRetry = useCallback(() => {
-    // Invalidate any in-progress renders
-    renderIdRef.current++
-    
-    setHasRendered(false)
-    setRenderError(null)
-    isRenderingRef.current = false
-    
-    // Clear container safely
-    if (containerRef.current && document.body.contains(containerRef.current)) {
-      containerRef.current.innerHTML = ''
-    }
-    
-    // Trigger new render attempt
-    setRenderAttempt(prev => prev + 1)
-  }, [])
-
-  const displayError = renderError || hookError
+  // Handle error
+  const handleError = useCallback((error: Record<string, unknown>) => {
+    console.error('PayPal error:', error)
+    onProcessing?.(false)
+    onError(new Error('PayPal encountered an error. Please try again.'))
+  }, [onError, onProcessing])
 
   // Loading state
-  if (isLoading) {
+  if (isPending) {
     return (
-      <div className={`flex flex-col items-center justify-center py-6 ${className}`}>
-        <Loader2 className="w-6 h-6 animate-spin text-blue-400 mb-2" />
-        <span className="text-sm text-neutral-400">Loading PayPal...</span>
+      <div className="h-12 bg-neutral-800/50 rounded-lg flex items-center justify-center">
+        <Loader2 className="w-5 h-5 text-neutral-400 animate-spin" />
+        <span className="ml-2 text-neutral-400 text-sm">Loading PayPal...</span>
       </div>
     )
   }
 
-  // Error state (when SDK fails to load)
-  if (displayError && !isReady) {
+  // Error state
+  if (isRejected) {
     return (
-      <div className={`text-center py-4 px-4 bg-red-900/20 border border-red-800/50 rounded-lg ${className}`}>
-        <AlertCircle className="w-6 h-6 text-red-400 mx-auto mb-2" />
-        <p className="text-sm text-red-300 mb-3">{displayError}</p>
-        <button
-          onClick={handleRetry}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-red-800/50 hover:bg-red-800/70 text-red-200 rounded-lg text-sm transition-colors"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Try Again
-        </button>
+      <div className="h-12 bg-red-900/20 border border-red-800/50 rounded-lg flex items-center justify-center">
+        <span className="text-red-400 text-sm">Failed to load PayPal</span>
+      </div>
+    )
+  }
+
+  // Processing state
+  if (isCapturing) {
+    return (
+      <div className="h-12 bg-blue-900/20 border border-blue-800/50 rounded-lg flex items-center justify-center">
+        <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+        <span className="ml-2 text-blue-400 text-sm">Processing payment...</span>
       </div>
     )
   }
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Processing Overlay */}
-      {isProcessing && (
-        <div className="absolute inset-0 bg-neutral-900/90 flex flex-col items-center justify-center z-10 rounded-lg backdrop-blur-sm">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-400 mb-3" />
-          <span className="text-sm text-white font-medium">Processing payment...</span>
-          <span className="text-xs text-neutral-400 mt-1">Please wait</span>
-        </div>
-      )}
-      
-      {/* PayPal Button Container */}
-      <div 
-        ref={containerRef} 
-        className="paypal-button-container min-h-[50px]"
-        data-currency={currency}
-        data-options-key={optionsKey}
+    <div className={`paypal-button-container ${isButtonDisabled ? 'opacity-50 pointer-events-none' : ''}`}>
+      <PayPalButtons
+        style={{
+          layout: 'horizontal',
+          color: 'blue',
+          shape: 'rect',
+          label: 'pay',
+          height: 48,
+        }}
+        disabled={isButtonDisabled}
+        forceReRender={[amountINR, purchaseType, chapters?.join(',')]}
+        createOrder={createOrder}
+        onApprove={onApprove}
+        onCancel={handleCancel}
+        onError={handleError}
       />
-      
-      {/* Currency Info */}
-      <p className="text-xs text-neutral-500 text-center mt-3">
-        Secure payment via PayPal • {currency}
-      </p>
-
-      {/* Render Error with Retry */}
-      {renderError && isReady && (
-        <div className="mt-3 text-center">
-          <p className="text-xs text-red-400 mb-2">{renderError}</p>
-          <button
-            onClick={handleRetry}
-            className="text-xs text-blue-400 hover:text-blue-300 underline"
-          >
-            Click to retry
-          </button>
-        </div>
-      )}
     </div>
+  )
+}
+
+// ============================================================================
+// PayPal Button Wrapper with Provider
+// ============================================================================
+
+export default function PayPalButton(props: PayPalButtonProps) {
+  const { location } = useCurrency()
+  const [clientId, setClientId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch PayPal client ID
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchClientId() {
+      try {
+        const response = await fetch('/api/payments/paypal/client-id')
+        const data = await response.json()
+
+        if (!cancelled) {
+          if (data.success && data.clientId) {
+            setClientId(data.clientId)
+          } else {
+            setError('PayPal is not configured')
+          }
+          setIsLoading(false)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Failed to fetch PayPal client ID:', err)
+          setError('Failed to load PayPal')
+          setIsLoading(false)
+        }
+      }
+    }
+
+    fetchClientId()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse flex items-center justify-center">
+        <span className="text-neutral-500 text-sm">Loading PayPal...</span>
+      </div>
+    )
+  }
+
+  if (error || !clientId) {
+    return (
+      <div className="h-12 bg-red-900/20 border border-red-800/50 rounded-lg flex items-center justify-center">
+        <span className="text-red-400 text-sm">{error || 'PayPal unavailable'}</span>
+      </div>
+    )
+  }
+
+  // Determine currency for PayPal
+  const currency = location?.currency || 'USD'
+
+  return (
+    <PayPalScriptProvider
+      options={{
+        clientId,
+        currency,
+        intent: 'capture',
+        components: 'buttons',
+      }}
+    >
+      <PayPalButtonInner {...props} />
+    </PayPalScriptProvider>
   )
 }

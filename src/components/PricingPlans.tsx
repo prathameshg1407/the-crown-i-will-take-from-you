@@ -2,7 +2,7 @@
 "use client"
 
 import { pricingPlans, PRICING } from "@/data/chapters"
-import { Check, Crown, Sparkles, Zap, CreditCard, AlertCircle, Globe, RefreshCw } from "lucide-react"
+import { Check, Crown, Sparkles, Zap, CreditCard, AlertCircle, Globe, RefreshCw, Loader2 } from "lucide-react"
 import { useAuth } from "@/lib/auth/AuthContext"
 import { useRazorpay } from "@/lib/razorpay/hooks"
 import { useCurrency } from "@/lib/currency/CurrencyContext"
@@ -10,16 +10,37 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import dynamic from 'next/dynamic'
 import PaymentMethodSelector, { PaymentMethod } from './PaymentMethodSelector'
+import toast from 'react-hot-toast'
 
-// Dynamically import PayPal button to avoid SSR issues
+// ============================================================================
+// Dynamic Imports
+// ============================================================================
+
 const PayPalButton = dynamic(() => import('./PayPalButton'), {
   ssr: false,
   loading: () => (
-    <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse" />
+    <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse flex items-center justify-center">
+      <span className="text-neutral-500 text-sm">Loading PayPal...</span>
+    </div>
   ),
 })
 
-// Skeleton component
+// ============================================================================
+// Constants
+// ============================================================================
+
+// USD prices for PayPal (pre-calculated to avoid runtime conversion issues)
+const USD_PRICES = {
+  complete: 18.47,
+  free: 0,
+  perChapter: 0.25,
+  minCustom: 2.50,
+} as const
+
+// ============================================================================
+// Skeleton Component
+// ============================================================================
+
 function PricingPlansSkeleton() {
   return (
     <section id="pricing" className="w-full max-w-7xl mx-auto px-6 md:px-8 py-20 md:py-32">
@@ -61,7 +82,10 @@ function PricingPlansSkeleton() {
   )
 }
 
-// Price display component with conversion
+// ============================================================================
+// Price Display Component
+// ============================================================================
+
 function PriceDisplay({ 
   inrPrice,
   usdPrice,
@@ -82,27 +106,43 @@ function PriceDisplay({
   } | null>(null)
 
   useEffect(() => {
+    let cancelled = false
+
     if (isInternational && inrPrice > 0) {
       if (usdPrice !== undefined) {
+        // Use pre-defined USD price
         setConverted({
           formatted: `$${usdPrice.toFixed(2)}`,
           currency: 'USD',
         })
       } else {
-        convertFromINR(inrPrice).then((result) => {
-          setConverted({
-            formatted: result.formatted,
-            currency: result.currency,
+        // Convert dynamically
+        convertFromINR(inrPrice)
+          .then((result) => {
+            if (!cancelled) {
+              setConverted({
+                formatted: result.formatted,
+                currency: result.currency,
+              })
+            }
           })
-        })
+          .catch((error) => {
+            console.error('Price conversion failed:', error)
+          })
       }
+    } else {
+      setConverted(null)
+    }
+
+    return () => {
+      cancelled = true
     }
   }, [inrPrice, usdPrice, isInternational, convertFromINR])
 
   if (inrPrice === 0) return <span className={className}>Free</span>
 
   if (isLoading) {
-    return <span className={`animate-pulse ${className}`}>Loading...</span>
+    return <span className={`animate-pulse ${className}`}>...</span>
   }
 
   if (isInternational && converted) {
@@ -121,9 +161,13 @@ function PriceDisplay({
   return <span className={className}>₹{inrPrice.toLocaleString('en-IN')}</span>
 }
 
+// ============================================================================
+// Main Component
+// ============================================================================
+
 export default function PricingPlans() {
   const [mounted, setMounted] = useState(false)
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, refreshUser } = useAuth()
   const { initializePayment, isProcessing: isRazorpayProcessing } = useRazorpay()
   const { 
     location, 
@@ -135,20 +179,40 @@ export default function PricingPlans() {
   const [activeTab, setActiveTab] = useState<'packages' | 'custom'>('packages')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('razorpay')
   const [error, setError] = useState<string | null>(null)
+  const [isRefreshingLocation, setIsRefreshingLocation] = useState(false)
+  const [isPayPalProcessing, setIsPayPalProcessing] = useState(false)
 
+  // Hydration fix
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // Auto-select payment method based on location
   useEffect(() => {
     if (mounted && !isCurrencyLoading) {
       setPaymentMethod(isInternational ? 'paypal' : 'razorpay')
     }
   }, [mounted, isCurrencyLoading, isInternational])
 
+  // Derived state
   const userTier = mounted ? (user?.tier || 'free') : 'free'
   const hasCompletePack = mounted ? (userTier === 'complete') : false
   const ownedChaptersCount = mounted ? (user?.ownedChapters?.length ?? 0) : 0
+  const isPayPal = paymentMethod === 'paypal'
+  const isProcessing = isRazorpayProcessing || isPayPalProcessing
+
+  // Handlers
+  const handleRefreshLocation = useCallback(async () => {
+    setIsRefreshingLocation(true)
+    try {
+      await refreshLocation()
+    } catch (err) {
+      console.error('Failed to refresh location:', err)
+      toast.error('Failed to detect location')
+    } finally {
+      setIsRefreshingLocation(false)
+    }
+  }, [refreshLocation])
 
   const handleRazorpayPurchase = useCallback(async () => {
     if (!isAuthenticated) {
@@ -170,27 +234,46 @@ export default function PricingPlans() {
     }
   }, [isAuthenticated, initializePayment])
 
-  const handlePaymentSuccess = useCallback(() => {
+  const handlePaymentSuccess = useCallback(async () => {
+    setIsPayPalProcessing(false)
+    
+    try {
+      await refreshUser?.()
+      toast.success('🎉 Payment successful! Complete Pack unlocked.', {
+        duration: 6000,
+        style: { background: '#065f46', color: '#fff' },
+      })
+    } catch (err) {
+      console.error('Failed to refresh user:', err)
+    }
+    
+    // Scroll to chapters
     setTimeout(() => {
-      window.location.reload()
+      const chaptersSection = document.getElementById('chapters')
+      chaptersSection?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 1500)
+  }, [refreshUser])
+
+  const handlePaymentError = useCallback((error: Error) => {
+    setIsPayPalProcessing(false)
+    setError(error.message || 'Payment failed. Please try again.')
   }, [])
 
-  const handlePaymentError = useCallback((errorMessage: string) => {
-    setError(errorMessage)
+  const handlePaymentCancel = useCallback(() => {
+    setIsPayPalProcessing(false)
+    toast('Payment cancelled', { icon: 'ℹ️', duration: 3000 })
   }, [])
 
+  const handlePaymentProcessing = useCallback((processing: boolean) => {
+    setIsPayPalProcessing(processing)
+  }, [])
+
+  const clearError = useCallback(() => setError(null), [])
+
+  // Loading state
   if (!mounted) {
     return <PricingPlansSkeleton />
   }
-
-  // USD prices mapping
-  const usdPrices: Record<string, number> = {
-    complete: 18.47,
-    free: 0,
-  }
-
-  const isPayPal = paymentMethod === 'paypal'
 
   return (
     <section 
@@ -222,11 +305,12 @@ export default function PricingPlans() {
               {location.country} • {isInternational ? 'PayPal (International)' : 'Razorpay (India)'}
             </span>
             <button 
-              onClick={refreshLocation}
-              className="ml-2 p-1 hover:bg-neutral-800 rounded-full transition-colors"
+              onClick={handleRefreshLocation}
+              disabled={isRefreshingLocation}
+              className="ml-2 p-1 hover:bg-neutral-800 rounded-full transition-colors disabled:opacity-50"
               title="Refresh location"
             >
-              <RefreshCw className="w-3 h-3 text-neutral-500" />
+              <RefreshCw className={`w-3 h-3 text-neutral-500 ${isRefreshingLocation ? 'animate-spin' : ''}`} />
             </button>
           </div>
         )}
@@ -261,7 +345,7 @@ export default function PricingPlans() {
             <div className="flex-1">
               <p className="text-sm text-red-300">{error}</p>
               <button
-                onClick={() => setError(null)}
+                onClick={clearError}
                 className="text-xs text-red-400 hover:text-red-300 mt-1 underline"
               >
                 Dismiss
@@ -327,6 +411,7 @@ export default function PricingPlans() {
           {pricingPlans.map((plan) => {
             const isPurchased = hasCompletePack && plan.id === 'complete'
             const isFree = plan.id === 'free'
+            const planUsdPrice = USD_PRICES[plan.id as keyof typeof USD_PRICES] ?? 0
 
             return (
               <div
@@ -380,21 +465,19 @@ export default function PricingPlans() {
                 <div className="mb-6 md:mb-8">
                   <div className="flex items-baseline gap-2 mb-2">
                     <span className="text-4xl md:text-5xl lg:text-6xl font-heading text-neutral-100">
-                      {isPayPal && usdPrices[plan.id] !== undefined ? (
-                        plan.price === 0 ? 'Free' : `$${usdPrices[plan.id]}`
+                      {plan.price === 0 ? (
+                        'Free'
+                      ) : isPayPal ? (
+                        `$${planUsdPrice.toFixed(2)}`
                       ) : (
-                        <PriceDisplay 
-                          inrPrice={plan.price} 
-                          usdPrice={isPayPal ? usdPrices[plan.id] : undefined}
-                          isInternational={isPayPal}
-                        />
+                        <PriceDisplay inrPrice={plan.price} />
                       )}
                     </span>
                   </div>
                   {plan.pricePerChapter && (
                     <div className="text-xs md:text-sm text-neutral-500 font-body">
                       {isPayPal ? (
-                        `~$${(usdPrices[plan.id] / plan.chaptersCount).toFixed(2)}/chapter`
+                        `~$${(planUsdPrice / plan.chaptersCount).toFixed(2)}/chapter`
                       ) : (
                         <>~<PriceDisplay inrPrice={plan.pricePerChapter} />/chapter</>
                       )}
@@ -402,6 +485,7 @@ export default function PricingPlans() {
                   )}
                 </div>
 
+                {/* Chapter Count */}
                 <div className="mb-6 p-4 bg-gradient-to-br from-[#9f1239]/10 to-transparent border border-[#9f1239]/30 rounded-xl">
                   <div className="text-2xl md:text-3xl font-heading text-[#9f1239] mb-1">
                     {plan.chaptersCount}
@@ -411,6 +495,7 @@ export default function PricingPlans() {
                   </div>
                 </div>
 
+                {/* Features */}
                 <ul className="space-y-3 mb-6 md:mb-8">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-3">
@@ -447,25 +532,28 @@ export default function PricingPlans() {
                 ) : isPayPal ? (
                   <PayPalButton
                     purchaseType="complete"
-                    tier="complete"
+                    amountINR={plan.price}
+                    disabled={isProcessing}
                     onSuccess={handlePaymentSuccess}
                     onError={handlePaymentError}
+                    onCancel={handlePaymentCancel}
+                    onProcessing={handlePaymentProcessing}
                   />
                 ) : (
                   <button
                     onClick={handleRazorpayPurchase}
-                    disabled={isRazorpayProcessing}
+                    disabled={isProcessing}
                     className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-lg font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:from-red-500 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-lg"
                   >
                     {isRazorpayProcessing ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                         <span>Processing...</span>
                       </>
                     ) : (
                       <>
                         <Zap className="w-4 h-4" />
-                        <span>Pay with Razorpay</span>
+                        <span>Pay ₹{plan.price.toLocaleString('en-IN')}</span>
                       </>
                     )}
                   </button>
@@ -485,10 +573,22 @@ export default function PricingPlans() {
               Custom Chapter Selection
             </h3>
             <p className="text-sm md:text-base text-neutral-400 font-body mb-4 md:mb-6">
-              Pick exactly which chapters you want • {isPayPal ? '$0.25' : <PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.pricePerChapter} />}/chapter
+              Pick exactly which chapters you want •{' '}
+              {isPayPal ? (
+                `$${USD_PRICES.perChapter}`
+              ) : (
+                <PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.pricePerChapter} />
+              )}
+              /chapter
             </p>
             <p className="text-xs md:text-sm text-neutral-500 font-body mb-6 md:mb-8">
-              Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters ({isPayPal ? '$2.50' : <PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.minAmount} />})
+              Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters (
+              {isPayPal ? (
+                `$${USD_PRICES.minCustom}`
+              ) : (
+                <PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.minAmount} />
+              )}
+              )
             </p>
             
             {!isAuthenticated ? (

@@ -9,7 +9,10 @@ import { PurchaseType } from './payment.types'
 import { formatAmount, type PaymentCurrency } from './config'
 import { nanoid } from 'nanoid'
 
+// ============================================================================
 // Types
+// ============================================================================
+
 interface RazorpayResponse {
   razorpay_order_id: string
   razorpay_payment_id: string
@@ -53,7 +56,6 @@ interface RazorpayOptions {
     backdropclose: boolean
   }
   handler: (response: RazorpayResponse) => void
-  // Method-specific options
   method?: {
     netbanking?: boolean
     card?: boolean
@@ -80,7 +82,15 @@ declare global {
   }
 }
 
-// Script loading state
+interface PaymentOptions {
+  tier?: 'complete'
+  customChapters?: number[]
+}
+
+// ============================================================================
+// Script Loading
+// ============================================================================
+
 let scriptLoadPromise: Promise<boolean> | null = null
 let isScriptLoaded = false
 
@@ -143,10 +153,21 @@ function loadRazorpayScript(): Promise<boolean> {
   return scriptLoadPromise
 }
 
-// Preload script
-if (typeof window !== 'undefined') {
-  setTimeout(() => loadRazorpayScript(), 2000)
+// ============================================================================
+// Error Messages
+// ============================================================================
+
+const ERROR_MESSAGES: Record<string, string> = {
+  BAD_REQUEST_ERROR: 'Invalid payment details. Please check and retry.',
+  GATEWAY_ERROR: 'Payment gateway error. Please try again in a moment.',
+  SERVER_ERROR: 'Server error. Please try again or contact support.',
+  NETWORK_ERROR: 'Network error. Please check your connection and retry.',
+  PAYMENT_CANCELLED: 'Payment was cancelled.',
 }
+
+// ============================================================================
+// Main Hook
+// ============================================================================
 
 export function useRazorpay() {
   const [isProcessing, setIsProcessing] = useState(false)
@@ -156,26 +177,34 @@ export function useRazorpay() {
 
   const processingRef = useRef(false)
   const razorpayInstanceRef = useRef<RazorpayInstance | null>(null)
+  const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Preload script with cleanup
   useEffect(() => {
-    loadRazorpayScript().then(setIsRazorpayReady)
+    preloadTimeoutRef.current = setTimeout(() => {
+      loadRazorpayScript().then(setIsRazorpayReady)
+    }, 2000)
 
     return () => {
+      if (preloadTimeoutRef.current) {
+        clearTimeout(preloadTimeoutRef.current)
+      }
       if (razorpayInstanceRef.current) {
         try {
           razorpayInstanceRef.current.close()
         } catch {
-          // Ignore
+          // Ignore close errors
         }
       }
     }
   }, [])
 
+  // Handle successful payment
   const handlePaymentSuccess = useCallback(async (response: RazorpayResponse) => {
     const verifyingToast = toast.loading('Verifying payment...')
 
     try {
-      const verifyResponse = await fetch('/api/payments/verify', {
+      const verifyResponse = await fetch('/api/payments/razorpay-verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -193,27 +222,39 @@ export function useRazorpay() {
       }
 
       toast.dismiss(verifyingToast)
-      await refreshUser()
+      
+      // Refresh user data
+      try {
+        await refreshUser()
+      } catch (refreshError) {
+        console.warn('Failed to refresh user, will retry:', refreshError)
+      }
 
-      toast.success(data.data?.message || '🎉 Payment successful! Your content has been unlocked.', {
-        duration: 6000,
-        style: { background: '#065f46', color: '#fff' },
-      })
+      toast.success(
+        data.data?.message || '🎉 Payment successful! Your content has been unlocked.',
+        {
+          duration: 6000,
+          style: { background: '#065f46', color: '#fff' },
+        }
+      )
 
+      // Scroll to chapters section
       setTimeout(() => {
         const chaptersSection = document.getElementById('chapters')
-        chaptersSection?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        if (chaptersSection) {
+          chaptersSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
       }, 1500)
 
     } catch (error) {
       console.error('Payment verification error:', error)
       toast.dismiss(verifyingToast)
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Payment verification failed. Please contact support if amount was deducted.',
-        { duration: 7000 }
-      )
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Payment verification failed. Please contact support if amount was deducted.'
+      
+      toast.error(errorMessage, { duration: 7000 })
     } finally {
       processingRef.current = false
       setIsProcessing(false)
@@ -221,17 +262,12 @@ export function useRazorpay() {
     }
   }, [refreshUser])
 
+  // Handle payment failure
   const handlePaymentFailure = useCallback((error: RazorpayError) => {
     console.error('Payment failure:', error)
 
-    const errorMessages: Record<string, string> = {
-      BAD_REQUEST_ERROR: 'Invalid payment details. Please check and retry.',
-      GATEWAY_ERROR: 'Payment gateway error. Please try again in a moment.',
-      SERVER_ERROR: 'Server error. Please try again or contact support.',
-    }
-
     const errorMessage =
-      errorMessages[error.code] ||
+      ERROR_MESSAGES[error.code] ||
       error.description ||
       error.reason ||
       'Payment failed. Please try again.'
@@ -246,14 +282,22 @@ export function useRazorpay() {
     razorpayInstanceRef.current = null
   }, [])
 
+  // Handle modal dismiss
+  const handleModalDismiss = useCallback(() => {
+    processingRef.current = false
+    setIsProcessing(false)
+    razorpayInstanceRef.current = null
+    toast('Payment cancelled', { icon: 'ℹ️', duration: 3000 })
+  }, [])
+
+  // Initialize payment
   const initializePayment = useCallback(async (
     purchaseType: PurchaseType,
-    options: {
-      tier?: 'complete'
-      customChapters?: number[]
-    }
+    options: PaymentOptions = {}
   ) => {
-    if (processingRef.current || isProcessing) {
+    // Prevent double-clicks using only ref (synchronous check)
+    if (processingRef.current) {
+      console.warn('Payment already in progress')
       return
     }
 
@@ -269,6 +313,7 @@ export function useRazorpay() {
     const idempotencyKey = `${user.id}-${purchaseType}-${Date.now()}-${nanoid(6)}`
 
     try {
+      // Ensure Razorpay is loaded
       if (!isRazorpayReady) {
         const loaded = await loadRazorpayScript()
         if (!loaded) {
@@ -283,10 +328,10 @@ export function useRazorpay() {
 
       toast.loading('Creating order...', { id: loadingToast })
 
+      // Create order with timeout
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-      // Include international info in request
       const response = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: {
@@ -299,7 +344,6 @@ export function useRazorpay() {
           purchaseType,
           tier: options.tier,
           customChapters: options.customChapters,
-          // Pass location info for currency selection
           isInternational,
           userCountry: location?.country,
           userCurrency: location?.currency,
@@ -328,14 +372,11 @@ export function useRazorpay() {
       const chapterCount = options.customChapters?.length
       const formattedAmount = formatAmount(amount, currency as PaymentCurrency)
       
-      let description: string
-      if (purchaseType === 'complete') {
-        description = `Complete Story Pack - ${formattedAmount}`
-      } else {
-        description = `${chapterCount} Chapters - ${formattedAmount}`
-      }
+      const description = purchaseType === 'complete'
+        ? `Complete Story Pack - ${formattedAmount}`
+        : `${chapterCount} Chapters - ${formattedAmount}`
 
-      // Configure payment options based on region
+      // Configure Razorpay options
       const razorpayOptions: RazorpayOptions = {
         key: keyId,
         amount,
@@ -360,11 +401,7 @@ export function useRazorpay() {
           backdrop_color: '#0a0a0a',
         },
         modal: {
-          ondismiss: () => {
-            processingRef.current = false
-            setIsProcessing(false)
-            toast('Payment cancelled', { icon: 'ℹ️', duration: 3000 })
-          },
+          ondismiss: handleModalDismiss,
           escape: true,
           confirm_close: false,
           backdropclose: false,
@@ -393,6 +430,7 @@ export function useRazorpay() {
         )
       }
 
+      // Create and open Razorpay instance
       const razorpayInstance = new window.Razorpay(razorpayOptions)
       razorpayInstanceRef.current = razorpayInstance
 
@@ -409,16 +447,41 @@ export function useRazorpay() {
       if (error instanceof Error && error.name === 'AbortError') {
         toast.error('Request timed out. Please try again.')
       } else {
-        toast.error(error instanceof Error ? error.message : 'Payment initialization failed')
+        toast.error(
+          error instanceof Error ? error.message : 'Payment initialization failed'
+        )
       }
 
       processingRef.current = false
       setIsProcessing(false)
     }
-  }, [user, isRazorpayReady, isInternational, location, isProcessing, handlePaymentSuccess, handlePaymentFailure])
+  }, [
+    user, 
+    isRazorpayReady, 
+    isInternational, 
+    location, 
+    handlePaymentSuccess, 
+    handlePaymentFailure,
+    handleModalDismiss
+  ])
+
+  // Close Razorpay modal programmatically
+  const closePayment = useCallback(() => {
+    if (razorpayInstanceRef.current) {
+      try {
+        razorpayInstanceRef.current.close()
+      } catch {
+        // Ignore
+      }
+      razorpayInstanceRef.current = null
+    }
+    processingRef.current = false
+    setIsProcessing(false)
+  }, [])
 
   return {
     initializePayment,
+    closePayment,
     isProcessing,
     isRazorpayReady,
   }
