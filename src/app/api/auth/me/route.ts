@@ -1,9 +1,11 @@
-// app/api/auth/me/route.ts
+// src/app/api/auth/me/route.ts
+
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyAccessToken } from '@/lib/auth/jwt'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
+import { getSiteId } from '@/lib/site/config'
 
 interface ReadingProgressRecord {
   is_completed: boolean
@@ -33,18 +35,23 @@ export async function GET(_request: NextRequest) {
     }
 
     const userId = payload.sub
+    
+    // Get current site ID
+    const siteId = await getSiteId()
 
-    // Fetch user from database
+    // Fetch user from database - verify they belong to this site
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('*')
       .eq('id', userId)
+      .eq('site_id', siteId)  // ✅ Verify user belongs to this site
       .single()
 
     if (userError) {
       logger.error({ 
         error: userError, 
         userId,
+        siteId,
         message: userError.message,
       }, 'Database error fetching user')
       
@@ -55,7 +62,7 @@ export async function GET(_request: NextRequest) {
     }
 
     if (!user) {
-      logger.error({ userId }, 'User not found in database')
+      logger.error({ userId, siteId }, 'User not found in database for this site')
       return NextResponse.json(
         { success: false, error: { message: 'User not found', code: 'USER_NOT_FOUND' } },
         { status: 404 }
@@ -66,6 +73,7 @@ export async function GET(_request: NextRequest) {
       userId, 
       email: user.email,
       tier: user.tier,
+      siteId,
       owned_chapters_count: user.owned_chapters?.length || 0,
     }, 'User data retrieved')
 

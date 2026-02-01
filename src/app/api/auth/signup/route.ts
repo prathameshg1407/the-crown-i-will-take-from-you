@@ -1,4 +1,5 @@
-// app/api/auth/signup/route.ts
+// src/app/api/auth/signup/route.ts
+
 import { NextRequest } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import { hashPassword } from '@/lib/auth/password'
@@ -13,6 +14,7 @@ import {
 } from '@/lib/api/response'
 import { logger } from '@/lib/logger'
 import { getClientIp, getUserAgent } from '@/lib/request'
+import { getSiteId } from '@/lib/site/config'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,16 +22,20 @@ export async function POST(request: NextRequest) {
     const clientIp = getClientIp(request)
     const userAgent = getUserAgent(request)
     
+    // Get current site ID
+    const siteId = await getSiteId()
+    
     // Validate input
     const validatedData = signupSchema.parse(body)
     
-    // Check if user already exists
+    // Check if user already exists ON THIS SITE
     const { data: existingUser } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('email', validatedData.email)
+      .eq('site_id', siteId)  // ✅ Check only for this site
       .single()
-    
+      
     if (existingUser) {
       return errorResponse('Email already registered', 409, 'EMAIL_EXISTS')
     }
@@ -37,16 +43,17 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await hashPassword(validatedData.password)
     
-    // Create user
+    // Create user with site_id
     const { data: user, error: createError } = await supabaseAdmin
       .from('users')
       .insert({
         email: validatedData.email,
         password_hash: passwordHash,
         name: validatedData.name,
+        site_id: siteId,  // ✅ Associate user with this site
         // tier will default to 'free' from database
       })
-      .select('id, email, name, tier, created_at') // ✅ Changed from current_tier to tier
+      .select('id, email, name, tier, created_at')
       .single()
     
     if (createError || !user) {
@@ -58,7 +65,7 @@ export async function POST(request: NextRequest) {
     const accessToken = await generateAccessToken({
       sub: user.id,
       email: user.email,
-      tier: user.tier, // ✅ Changed from current_tier to tier
+      tier: user.tier,
     })
     
     const { refreshToken } = await createSession({
@@ -78,10 +85,11 @@ export async function POST(request: NextRequest) {
       metadata: {
         email: user.email,
         has_name: !!user.name,
+        site_id: siteId,  // ✅ Log site in audit
       },
     })
     
-    logger.info({ userId: user.id, email: user.email }, 'User signed up')
+    logger.info({ userId: user.id, email: user.email, siteId }, 'User signed up')
     
     const response = successResponse(
       {
@@ -89,7 +97,7 @@ export async function POST(request: NextRequest) {
           id: user.id,
           email: user.email,
           name: user.name,
-          tier: user.tier, // ✅ Changed from current_tier to tier
+          tier: user.tier,
         },
         accessToken,
         message: 'Account created successfully.',
