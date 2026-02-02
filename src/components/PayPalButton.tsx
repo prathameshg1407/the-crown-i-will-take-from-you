@@ -1,8 +1,12 @@
 // components/PayPalButton.tsx
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js'
+import { useCallback, useRef, useState } from 'react'
+import {
+  PayPalScriptProvider,
+  PayPalButtons,
+  usePayPalScriptReducer,
+} from '@paypal/react-paypal-js'
 import { useCurrency } from '@/lib/currency/CurrencyContext'
 import { Loader2 } from 'lucide-react'
 
@@ -25,7 +29,6 @@ interface CreateOrderResponse {
   success: boolean
   data?: {
     orderId: string
-    approvalUrl?: string
   }
   error?: {
     message: string
@@ -45,6 +48,50 @@ interface CaptureOrderResponse {
 }
 
 // ============================================================================
+// Constants
+// ============================================================================
+
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+
+// ============================================================================
+// Loading State Component
+// ============================================================================
+
+function LoadingState({ message }: { message: string }) {
+  return (
+    <div className="h-12 bg-neutral-800/50 rounded-lg flex items-center justify-center">
+      <Loader2 className="w-5 h-5 text-neutral-400 animate-spin" />
+      <span className="ml-2 text-neutral-400 text-sm">{message}</span>
+    </div>
+  )
+}
+
+// ============================================================================
+// Error State Component
+// ============================================================================
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="h-12 bg-red-900/20 border border-red-800/50 rounded-lg flex items-center justify-center">
+      <span className="text-red-400 text-sm">{message}</span>
+    </div>
+  )
+}
+
+// ============================================================================
+// Processing State Component
+// ============================================================================
+
+function ProcessingState() {
+  return (
+    <div className="h-12 bg-blue-900/20 border border-blue-800/50 rounded-lg flex items-center justify-center">
+      <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+      <span className="ml-2 text-blue-400 text-sm">Processing payment...</span>
+    </div>
+  )
+}
+
+// ============================================================================
 // PayPal Button Inner Component
 // ============================================================================
 
@@ -58,15 +105,15 @@ function PayPalButtonInner({
   onCancel,
   onProcessing,
 }: PayPalButtonProps) {
-  const [{ isPending, isResolved, isRejected }] = usePayPalScriptReducer()
+  const [{ isPending, isRejected }] = usePayPalScriptReducer()
   const { location } = useCurrency()
+  
   const [isCreating, setIsCreating] = useState(false)
   const [isCapturing, setIsCapturing] = useState(false)
   const orderIdRef = useRef<string | null>(null)
 
   const isButtonDisabled = disabled || isPending || isCreating || isCapturing
 
-  // Create PayPal order
   const createOrder = useCallback(async (): Promise<string> => {
     setIsCreating(true)
     onProcessing?.(true)
@@ -74,9 +121,7 @@ function PayPalButtonInner({
     try {
       const response = await fetch('/api/payments/paypal/create-order', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           purchaseType,
@@ -95,9 +140,7 @@ function PayPalButtonInner({
 
       orderIdRef.current = data.data.orderId
       return data.data.orderId
-
     } catch (error) {
-      console.error('PayPal create order error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to create order'
       onError(new Error(errorMessage))
       throw error
@@ -106,7 +149,6 @@ function PayPalButtonInner({
     }
   }, [purchaseType, chapters, amountINR, location, onError, onProcessing])
 
-  // Capture PayPal order (on approval)
   const onApprove = useCallback(async (data: { orderID: string }) => {
     setIsCapturing(true)
     onProcessing?.(true)
@@ -114,13 +156,9 @@ function PayPalButtonInner({
     try {
       const response = await fetch('/api/payments/paypal/capture-order', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          orderId: data.orderID,
-        }),
+        body: JSON.stringify({ orderId: data.orderID }),
       })
 
       const result: CaptureOrderResponse = await response.json()
@@ -129,11 +167,8 @@ function PayPalButtonInner({
         throw new Error(result.error?.message || 'Payment capture failed')
       }
 
-      // Success!
       onSuccess()
-
     } catch (error) {
-      console.error('PayPal capture error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Payment failed'
       onError(new Error(errorMessage))
     } finally {
@@ -142,51 +177,31 @@ function PayPalButtonInner({
     }
   }, [onSuccess, onError, onProcessing])
 
-  // Handle cancel
   const handleCancel = useCallback(() => {
     orderIdRef.current = null
     onProcessing?.(false)
     onCancel?.()
   }, [onCancel, onProcessing])
 
-  // Handle error
-  const handleError = useCallback((error: Record<string, unknown>) => {
-    console.error('PayPal error:', error)
+  const handleError = useCallback(() => {
     onProcessing?.(false)
     onError(new Error('PayPal encountered an error. Please try again.'))
   }, [onError, onProcessing])
 
-  // Loading state
   if (isPending) {
-    return (
-      <div className="h-12 bg-neutral-800/50 rounded-lg flex items-center justify-center">
-        <Loader2 className="w-5 h-5 text-neutral-400 animate-spin" />
-        <span className="ml-2 text-neutral-400 text-sm">Loading PayPal...</span>
-      </div>
-    )
+    return <LoadingState message="Loading PayPal..." />
   }
 
-  // Error state
   if (isRejected) {
-    return (
-      <div className="h-12 bg-red-900/20 border border-red-800/50 rounded-lg flex items-center justify-center">
-        <span className="text-red-400 text-sm">Failed to load PayPal</span>
-      </div>
-    )
+    return <ErrorState message="Failed to load PayPal" />
   }
 
-  // Processing state
   if (isCapturing) {
-    return (
-      <div className="h-12 bg-blue-900/20 border border-blue-800/50 rounded-lg flex items-center justify-center">
-        <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
-        <span className="ml-2 text-blue-400 text-sm">Processing payment...</span>
-      </div>
-    )
+    return <ProcessingState />
   }
 
   return (
-    <div className={`paypal-button-container ${isButtonDisabled ? 'opacity-50 pointer-events-none' : ''}`}>
+    <div className={isButtonDisabled ? 'opacity-50 pointer-events-none' : ''}>
       <PayPalButtons
         style={{
           layout: 'horizontal',
@@ -210,91 +225,19 @@ function PayPalButtonInner({
 // PayPal Button Wrapper with Provider
 // ============================================================================
 
-// Get client ID from environment variable as fallback
-const ENV_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
-
 export default function PayPalButton(props: PayPalButtonProps) {
   const { location } = useCurrency()
-  const [clientId, setClientId] = useState<string | null>(ENV_CLIENT_ID || null)
-  const [isLoading, setIsLoading] = useState(!ENV_CLIENT_ID) // Skip loading if env var exists
-  const [error, setError] = useState<string | null>(null)
 
-  // Fetch PayPal client ID from API (with env fallback)
-  useEffect(() => {
-    // If we already have client ID from env, skip the API call
-    if (ENV_CLIENT_ID) {
-      console.log('Using PayPal client ID from environment variable')
-      setClientId(ENV_CLIENT_ID)
-      setIsLoading(false)
-      return
-    }
-
-    let cancelled = false
-
-    async function fetchClientId() {
-      try {
-        const response = await fetch('/api/payments/paypal/client-id')
-        const data = await response.json()
-
-        if (!cancelled) {
-          if (data.success && data.clientId) {
-            setClientId(data.clientId)
-          } else {
-            // Final fallback - check env again
-            if (ENV_CLIENT_ID) {
-              setClientId(ENV_CLIENT_ID)
-            } else {
-              setError('PayPal is not configured')
-            }
-          }
-          setIsLoading(false)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          console.error('Failed to fetch PayPal client ID:', err)
-          // Fallback to env variable on error
-          if (ENV_CLIENT_ID) {
-            console.log('Falling back to environment variable for PayPal client ID')
-            setClientId(ENV_CLIENT_ID)
-            setIsLoading(false)
-          } else {
-            setError('Failed to load PayPal')
-            setIsLoading(false)
-          }
-        }
-      }
-    }
-
-    fetchClientId()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  if (isLoading) {
-    return (
-      <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse flex items-center justify-center">
-        <span className="text-neutral-500 text-sm">Loading PayPal...</span>
-      </div>
-    )
+  if (!PAYPAL_CLIENT_ID) {
+    return <ErrorState message="PayPal is not configured" />
   }
 
-  if (error || !clientId) {
-    return (
-      <div className="h-12 bg-red-900/20 border border-red-800/50 rounded-lg flex items-center justify-center">
-        <span className="text-red-400 text-sm">{error || 'PayPal unavailable'}</span>
-      </div>
-    )
-  }
-
-  // Determine currency for PayPal
   const currency = location?.currency || 'USD'
 
   return (
     <PayPalScriptProvider
       options={{
-        clientId,
+        clientId: PAYPAL_CLIENT_ID,
         currency,
         intent: 'capture',
         components: 'buttons',
