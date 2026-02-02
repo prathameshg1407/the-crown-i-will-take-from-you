@@ -7,7 +7,6 @@ import { Toaster } from "react-hot-toast";
 import UserMenuFixed from "@/components/auth/UserMenu";
 import Script from "next/script";
 import RazorpayLoader from "@/components/RazorpayLoader";
-import PayPalProvider from "@/components/providers/PayPalProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import ReportButton from "@/components/ReportButton";
@@ -77,7 +76,6 @@ export const metadata: Metadata = {
   authors: [{ name: "Wilbright (윌브라이트)", url: siteUrl }],
   creator: "Wilbright",
   publisher: "The Crown I Will Take From You",
-
   metadataBase: new URL(siteUrl),
   alternates: {
     canonical: "/",
@@ -86,7 +84,6 @@ export const metadata: Metadata = {
       "ko-KR": "/ko",
     },
   },
-
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -113,7 +110,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-
   twitter: {
     card: "summary_large_image",
     title: "The Crown I Will Take From You | Korean Fantasy Web Novel",
@@ -121,7 +117,6 @@ export const metadata: Metadata = {
       "An epic Korean fantasy regression revenge romance web novel. Follow Medea's journey of betrayal, time travel, and ultimate revenge.",
     images: ["/twitter-image.jpg"],
   },
-
   robots: {
     index: true,
     follow: true,
@@ -134,19 +129,12 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-
-  // Add verification codes when you have them
-  // verification: {
-  //   google: "your-actual-google-code",
-  // },
-
   appLinks: {
     web: {
       url: siteUrl,
       should_fallback: true,
     },
   },
-
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -165,10 +153,8 @@ export const metadata: Metadata = {
       },
     ],
   },
-
   manifest: "/manifest.json",
   category: "literature",
-
   other: {
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
@@ -180,7 +166,6 @@ export const metadata: Metadata = {
   },
 };
 
-// JSON-LD Structured Data
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -190,9 +175,7 @@ const jsonLd = {
       url: siteUrl,
       name: "The Crown I Will Take From You",
       description: "Korean Fantasy Web Novel - English Translation",
-      publisher: {
-        "@id": `${siteUrl}/#organization`,
-      },
+      publisher: { "@id": `${siteUrl}/#organization` },
       potentialAction: [
         {
           "@type": "SearchAction",
@@ -221,10 +204,6 @@ const jsonLd = {
         caption: "The Crown I Will Take From You",
       },
       image: { "@id": `${siteUrl}/#logo` },
-      // Add real social links when available
-      // sameAs: [
-      //   "https://twitter.com/yourtwitter",
-      // ],
     },
     {
       "@type": "Book",
@@ -300,12 +279,10 @@ export default function RootLayout({
         />
         <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
         <link rel="dns-prefetch" href="https://www.paypal.com" />
-
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-
         <Script
           src="https://checkout.razorpay.com/v1/checkout.js"
           strategy="afterInteractive"
@@ -313,9 +290,8 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <RazorpayLoader />
-        <CurrencyProvider> 
-        <AuthProvider>
-          <PayPalProvider>
+        <CurrencyProvider>
+          <AuthProvider>
             <UserMenuFixed />
             <a
               href="#main-content"
@@ -335,31 +311,20 @@ export default function RootLayout({
                 },
                 success: {
                   duration: 6000,
-                  iconTheme: {
-                    primary: "#9f1239",
-                    secondary: "#fff",
-                  },
+                  iconTheme: { primary: "#9f1239", secondary: "#fff" },
                 },
                 error: {
                   duration: 5000,
-                  iconTheme: {
-                    primary: "#ef4444",
-                    secondary: "#fff",
-                  },
+                  iconTheme: { primary: "#ef4444", secondary: "#fff" },
                 },
                 loading: {
-                  iconTheme: {
-                    primary: "#9f1239",
-                    secondary: "#fff",
-                  },
+                  iconTheme: { primary: "#9f1239", secondary: "#fff" },
                 },
               }}
             />
-          </PayPalProvider>
-        </AuthProvider>
-         </CurrencyProvider> 
-                <ReportButton />
-
+          </AuthProvider>
+        </CurrencyProvider>
+        <ReportButton />
         <SpeedInsights />
         <Analytics />
       </body>
