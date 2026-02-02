@@ -10,15 +10,12 @@ import { z } from 'zod'
 const createOrderSchema = z.object({
   purchaseType: z.enum(['complete', 'custom']),
   customChapters: z.array(z.number().int().positive()).optional(),
-  currency: z.string().optional(),
-  // These are sent by frontend but not needed for validation
   amountINR: z.number().optional(),
-  country: z.string().optional(),
+  currency: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user
     const cookieStore = await cookies()
     const accessToken = cookieStore.get('access_token')?.value
 
@@ -39,24 +36,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Parse and validate request
     const body = await request.json()
-    
-    logger.debug({ body }, 'PayPal create-order request body')
-    
     const validation = createOrderSchema.safeParse(body)
 
     if (!validation.success) {
-      logger.error({ errors: validation.error.issues }, 'Validation failed')
       return NextResponse.json(
         { success: false, error: { message: 'Invalid request' } },
         { status: 400 }
       )
     }
 
-    const { purchaseType, customChapters, currency } = validation.data
+    const { purchaseType, customChapters } = validation.data
 
-    // Validate custom purchase has chapters
     if (purchaseType === 'custom' && (!customChapters || customChapters.length === 0)) {
       return NextResponse.json(
         { success: false, error: { message: 'Please select chapters to purchase' } },
@@ -64,22 +55,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create PayPal order
-    // Set tier automatically based on purchaseType
+    // Always use USD for PayPal
     const order = await PayPalService.createOrder({
       userId: payload.sub,
       email: payload.email,
       purchaseType,
       tier: purchaseType === 'complete' ? 'complete' : undefined,
       customChapters: purchaseType === 'custom' ? customChapters : undefined,
-      currency: currency || 'USD',
+      currency: 'USD', // Always USD!
     })
 
     logger.info({ 
       userId: payload.sub, 
       orderId: order.orderId,
       purchaseType,
-      currency: order.currency,
+      currency: 'USD',
     }, 'PayPal order created')
 
     return NextResponse.json({

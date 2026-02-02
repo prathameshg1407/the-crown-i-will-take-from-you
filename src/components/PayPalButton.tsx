@@ -7,7 +7,6 @@ import {
   PayPalButtons,
   usePayPalScriptReducer,
 } from '@paypal/react-paypal-js'
-import { useCurrency } from '@/lib/currency/CurrencyContext'
 import { Loader2 } from 'lucide-react'
 
 // ============================================================================
@@ -39,8 +38,6 @@ interface CaptureOrderResponse {
   success: boolean
   data?: {
     message: string
-    tier?: string
-    chaptersUnlocked?: number[]
   }
   error?: {
     message: string
@@ -52,6 +49,9 @@ interface CaptureOrderResponse {
 // ============================================================================
 
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+
+// Always use USD for PayPal - it's most widely supported
+const PAYPAL_CURRENCY = 'USD'
 
 // ============================================================================
 // State Components
@@ -98,7 +98,6 @@ function PayPalButtonInner({
   onProcessing,
 }: PayPalButtonProps) {
   const [{ isPending, isRejected }] = usePayPalScriptReducer()
-  const { location } = useCurrency()
   
   const [isCreating, setIsCreating] = useState(false)
   const [isCapturing, setIsCapturing] = useState(false)
@@ -108,10 +107,6 @@ function PayPalButtonInner({
 
   const createOrder = useCallback(async (): Promise<string> => {
     console.log('=== PayPal createOrder called ===')
-    console.log('purchaseType:', purchaseType)
-    console.log('chapters:', chapters)
-    console.log('amountINR:', amountINR)
-    console.log('location:', location)
     
     setIsCreating(true)
     onProcessing?.(true)
@@ -121,8 +116,7 @@ function PayPalButtonInner({
         purchaseType,
         customChapters: chapters,
         amountINR,
-        currency: location?.currency || 'USD',
-        country: location?.country,
+        currency: PAYPAL_CURRENCY, // Always USD
       }
       
       console.log('Request body:', requestBody)
@@ -134,42 +128,29 @@ function PayPalButtonInner({
         body: JSON.stringify(requestBody),
       })
 
-      console.log('Response status:', response.status)
-      
       const data: CreateOrderResponse = await response.json()
-      console.log('Response data:', data)
+      console.log('Response:', data)
 
-      if (!response.ok) {
-        console.error('Response not OK:', response.status, data)
-        throw new Error(data.error?.message || `HTTP ${response.status}`)
+      if (!response.ok || !data.success || !data.data?.orderId) {
+        throw new Error(data.error?.message || 'Failed to create order')
       }
 
-      if (!data.success) {
-        console.error('API returned success: false', data)
-        throw new Error(data.error?.message || 'Failed to create PayPal order')
-      }
-
-      if (!data.data?.orderId) {
-        console.error('No orderId in response', data)
-        throw new Error('No order ID returned')
-      }
-
-      console.log('Order created successfully:', data.data.orderId)
+      console.log('Order created:', data.data.orderId)
       orderIdRef.current = data.data.orderId
       return data.data.orderId
       
     } catch (error) {
-      console.error('=== PayPal createOrder ERROR ===', error)
+      console.error('PayPal createOrder error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to create order'
       onError(new Error(errorMessage))
-      throw error // Important: must throw to close PayPal popup
+      throw error
     } finally {
       setIsCreating(false)
     }
-  }, [purchaseType, chapters, amountINR, location, onError, onProcessing])
+  }, [purchaseType, chapters, amountINR, onError, onProcessing])
 
   const onApprove = useCallback(async (data: { orderID: string }) => {
-    console.log('=== PayPal onApprove called ===', data.orderID)
+    console.log('=== PayPal onApprove ===', data.orderID)
     
     setIsCapturing(true)
     onProcessing?.(true)
@@ -183,10 +164,9 @@ function PayPalButtonInner({
       })
 
       const result: CaptureOrderResponse = await response.json()
-      console.log('Capture response:', result)
 
       if (!response.ok || !result.success) {
-        throw new Error(result.error?.message || 'Payment capture failed')
+        throw new Error(result.error?.message || 'Payment failed')
       }
 
       onSuccess()
@@ -201,14 +181,14 @@ function PayPalButtonInner({
   }, [onSuccess, onError, onProcessing])
 
   const handleCancel = useCallback(() => {
-    console.log('=== PayPal cancelled ===')
+    console.log('PayPal cancelled')
     orderIdRef.current = null
     onProcessing?.(false)
     onCancel?.()
   }, [onCancel, onProcessing])
 
   const handleError = useCallback((err: Record<string, unknown>) => {
-    console.error('=== PayPal error ===', err)
+    console.error('PayPal error:', err)
     onProcessing?.(false)
     onError(new Error('PayPal encountered an error. Please try again.'))
   }, [onError, onProcessing])
@@ -251,22 +231,15 @@ function PayPalButtonInner({
 // ============================================================================
 
 export default function PayPalButton(props: PayPalButtonProps) {
-  const { location } = useCurrency()
-
-  console.log('PayPalButton render - Client ID exists:', !!PAYPAL_CLIENT_ID)
-
   if (!PAYPAL_CLIENT_ID) {
-    console.error('NEXT_PUBLIC_PAYPAL_CLIENT_ID is not set')
     return <ErrorState message="PayPal is not configured" />
   }
-
-  const currency = location?.currency || 'USD'
 
   return (
     <PayPalScriptProvider
       options={{
         clientId: PAYPAL_CLIENT_ID,
-        currency,
+        currency: PAYPAL_CURRENCY, // Always USD
         intent: 'capture',
         components: 'buttons',
       }}
