@@ -210,14 +210,25 @@ function PayPalButtonInner({
 // PayPal Button Wrapper with Provider
 // ============================================================================
 
+// Get client ID from environment variable as fallback
+const ENV_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+
 export default function PayPalButton(props: PayPalButtonProps) {
   const { location } = useCurrency()
-  const [clientId, setClientId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [clientId, setClientId] = useState<string | null>(ENV_CLIENT_ID || null)
+  const [isLoading, setIsLoading] = useState(!ENV_CLIENT_ID) // Skip loading if env var exists
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch PayPal client ID
+  // Fetch PayPal client ID from API (with env fallback)
   useEffect(() => {
+    // If we already have client ID from env, skip the API call
+    if (ENV_CLIENT_ID) {
+      console.log('Using PayPal client ID from environment variable')
+      setClientId(ENV_CLIENT_ID)
+      setIsLoading(false)
+      return
+    }
+
     let cancelled = false
 
     async function fetchClientId() {
@@ -229,15 +240,27 @@ export default function PayPalButton(props: PayPalButtonProps) {
           if (data.success && data.clientId) {
             setClientId(data.clientId)
           } else {
-            setError('PayPal is not configured')
+            // Final fallback - check env again
+            if (ENV_CLIENT_ID) {
+              setClientId(ENV_CLIENT_ID)
+            } else {
+              setError('PayPal is not configured')
+            }
           }
           setIsLoading(false)
         }
       } catch (err) {
         if (!cancelled) {
           console.error('Failed to fetch PayPal client ID:', err)
-          setError('Failed to load PayPal')
-          setIsLoading(false)
+          // Fallback to env variable on error
+          if (ENV_CLIENT_ID) {
+            console.log('Falling back to environment variable for PayPal client ID')
+            setClientId(ENV_CLIENT_ID)
+            setIsLoading(false)
+          } else {
+            setError('Failed to load PayPal')
+            setIsLoading(false)
+          }
         }
       }
     }
