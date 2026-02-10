@@ -196,17 +196,21 @@ export async function getSessionByRefreshToken(
       sessionUpdateTimestamps.set(data.id, Date.now())
       cleanupDebounceCache()
       
-      // Fire and forget
-      supabaseAdmin
-        .from('sessions')
-        .update({ last_used_at: new Date().toISOString() })
-        .eq('id', data.id)
-        .then(() => {
+      // Fire and forget background update
+      void (async () => {
+        try {
+          await supabaseAdmin
+            .from('sessions')
+            .update({ last_used_at: new Date().toISOString() })
+            .eq('id', data.id)
           logger.debug({ sessionId: data.id }, 'Session last_used_at updated')
-        })
-        .catch((err) => {
-          logger.warn({ error: err, sessionId: data.id }, 'Failed to update last_used_at')
-        })
+        } catch (err) {
+          logger.warn({ 
+            error: err instanceof Error ? err.message : String(err), 
+            sessionId: data.id 
+          }, 'Failed to update last_used_at')
+        }
+      })()
     }
     
     return data as SessionData
