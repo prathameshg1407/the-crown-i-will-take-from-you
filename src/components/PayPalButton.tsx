@@ -106,7 +106,7 @@ function PayPalButtonInner({
   const isButtonDisabled = disabled || isPending || isCreating || isCapturing
 
   const createOrder = useCallback(async (): Promise<string> => {
-    console.log('=== PayPal createOrder called ===')
+    // console.log removed'=== PayPal createOrder called ===')
     
     setIsCreating(true)
     onProcessing?.(true)
@@ -119,7 +119,7 @@ function PayPalButtonInner({
         currency: PAYPAL_CURRENCY, // Always USD
       }
       
-      console.log('Request body:', requestBody)
+      // console.log removed'Request body:', requestBody)
 
       const response = await fetch('/api/payments/paypal/create-order', {
         method: 'POST',
@@ -129,13 +129,13 @@ function PayPalButtonInner({
       })
 
       const data: CreateOrderResponse = await response.json()
-      console.log('Response:', data)
+      // console.log removed'Response:', data)
 
       if (!response.ok || !data.success || !data.data?.orderId) {
         throw new Error(data.error?.message || 'Failed to create order')
       }
 
-      console.log('Order created:', data.data.orderId)
+      // console.log removed'Order created:', data.data.orderId)
       orderIdRef.current = data.data.orderId
       return data.data.orderId
       
@@ -150,7 +150,7 @@ function PayPalButtonInner({
   }, [purchaseType, chapters, amountINR, onError, onProcessing])
 
   const onApprove = useCallback(async (data: { orderID: string }) => {
-    console.log('=== PayPal onApprove ===', data.orderID)
+    // console.log removed'=== PayPal onApprove ===', data.orderID)
     
     setIsCapturing(true)
     onProcessing?.(true)
@@ -181,7 +181,7 @@ function PayPalButtonInner({
   }, [onSuccess, onError, onProcessing])
 
   const handleCancel = useCallback(() => {
-    console.log('PayPal cancelled')
+    // console.log removed'PayPal cancelled')
     orderIdRef.current = null
     onProcessing?.(false)
     onCancel?.()

@@ -84,10 +84,13 @@ export async function POST(request: NextRequest) {
       name: user.name ?? undefined,
     })
     
-    // Create session with siteId
+    // Create session with ALL required parameters
     const { refreshToken, sessionId } = await createSession({
       userId: user.id,
       siteId: siteId,
+      userEmail: user.email,      // ADDED
+      userTier: user.tier,        // ADDED
+      userName: user.name,        // ADDED
       ipAddress: clientIp,
       userAgent: userAgent,
     })

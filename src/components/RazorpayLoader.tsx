@@ -10,7 +10,7 @@ export default function RazorpayLoader() {
   useEffect(() => {
     // Check if already loaded
     if (window.Razorpay) {
-      console.log('Razorpay already available')
+      // console.log removed'Razorpay already available')
       setStatus('ready')
     }
   }, [])
@@ -20,7 +20,7 @@ export default function RazorpayLoader() {
       src="https://checkout.razorpay.com/v1/checkout.js"
       strategy="afterInteractive"
       onLoad={() => {
-        console.log('Razorpay script loaded')
+        // console.log removed'Razorpay script loaded')
         setStatus('ready')
       }}
       onError={() => {

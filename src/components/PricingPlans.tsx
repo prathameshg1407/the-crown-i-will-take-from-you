@@ -20,7 +20,7 @@ const PayPalButton = dynamic(() => import('./PayPalButton'), {
   ssr: false,
   loading: () => (
     <div className="h-12 bg-neutral-800/50 rounded-lg animate-pulse flex items-center justify-center">
-      <span className="text-neutral-500 text-sm">Loading PayPal...</span>
+      <span className="text-neutral-500 text-sm">Loading PayPal&hellip;</span>
     </div>
   ),
 })
@@ -142,7 +142,7 @@ function PriceDisplay({
   if (inrPrice === 0) return <span className={className}>Free</span>
 
   if (isLoading) {
-    return <span className={`animate-pulse ${className}`}>...</span>
+    return <span className={`animate-pulse ${className}`}>&hellip;</span>
   }
 
   if (isInternational && converted) {
@@ -548,7 +548,7 @@ export default function PricingPlans() {
                     {isRazorpayProcessing ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Processing...</span>
+                        <span>Processing&hellip;</span>
                       </>
                     ) : (
                       <>
@@ -579,7 +579,7 @@ export default function PricingPlans() {
               ) : (
                 <PriceDisplay inrPrice={PRICING.CUSTOM_SELECTION.pricePerChapter} />
               )}
-              /chapter
+              {"/chapter"}
             </p>
             <p className="text-xs md:text-sm text-neutral-500 font-body mb-6 md:mb-8">
               Minimum {PRICING.CUSTOM_SELECTION.minChapters} chapters (

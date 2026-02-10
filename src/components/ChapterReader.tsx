@@ -469,7 +469,7 @@ const LockedScreen = memo(function LockedScreen({
                   className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
                   aria-hidden="true"
                 />
-                <span>Processing...</span>
+                <span>Processing&hellip;</span>
               </>
             ) : (
               <>
@@ -577,7 +577,7 @@ const LoadingScreen = memo(function LoadingScreen() {
     >
       <div className="text-center">
         <Loader2 className="w-8 h-8 text-[#9f1239] animate-spin mx-auto mb-3" aria-hidden="true" />
-        <p className="text-neutral-400 font-body text-xs">Loading chapter...</p>
+        <p className="text-neutral-400 font-body text-xs">Loading chapter&hellip;</p>
       </div>
     </div>
   )

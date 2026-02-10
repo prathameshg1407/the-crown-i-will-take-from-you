@@ -1,4 +1,4 @@
-// src/app/api/auth/me/route.ts
+// app/api/auth/me/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyAccessToken } from '@/lib/auth/jwt'
@@ -68,6 +68,15 @@ export async function GET(_request: NextRequest) {
       )
     }
 
+    // Check if user is active
+    if (!user.is_active) {
+      logger.warn({ userId, siteId }, 'Inactive user attempted to access /me')
+      return NextResponse.json(
+        { success: false, error: { message: 'Account deactivated', code: 'ACCOUNT_DEACTIVATED' } },
+        { status: 403 }
+      )
+    }
+
     logger.debug({ 
       userId, 
       email: user.email,
@@ -108,14 +117,20 @@ export async function GET(_request: NextRequest) {
       logger.warn({ error: statsError }, 'Failed to fetch user stats - continuing with defaults')
     }
 
-    // Update last login in background
+    // Update last login in background (debounced by not updating if recent)
     void (async () => {
       try {
-        await supabaseAdmin
-          .from('users')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', userId)
-          .eq('site_id', siteId)
+        // Only update if last_login was more than 5 minutes ago
+        const lastLogin = user.last_login ? new Date(user.last_login) : null
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+        
+        if (!lastLogin || lastLogin < fiveMinutesAgo) {
+          await supabaseAdmin
+            .from('users')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', userId)
+            .eq('site_id', siteId)
+        }
       } catch (err) {
         logger.warn({ error: err }, 'Failed to update last login')
       }

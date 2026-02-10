@@ -45,6 +45,7 @@ const TOKEN_REFRESH_INTERVAL = 10 * 60 * 1000 // 10 minutes
 const USER_FETCH_INTERVAL = 5 * 60 * 1000 // 5 minutes
 const RETRY_DELAY_MS = 3000
 const MAX_RETRIES = 3
+const MAX_FETCH_RETRIES = 2 // Prevent infinite loops in fetchUser
 
 // Storage keys
 const STORAGE_KEY_USER = 'auth_user_cache'
@@ -65,11 +66,13 @@ const isOnline = (): boolean => {
 const log = {
   debug: (message: string, data?: object) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[Auth] ${message}`, data || '')
+      console.debug(`[Auth] ${message}`, data || '')
     }
   },
   info: (message: string, data?: object) => {
-    console.log(`[Auth] ${message}`, data || '')
+    if (process.env.NODE_ENV === 'development') {
+      console.info(`[Auth] ${message}`, data || '')
+    }
   },
   warn: (message: string, data?: object) => {
     console.warn(`[Auth] ${message}`, data || '')
@@ -178,6 +181,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const lastSuccessfulFetch = useRef<number>(Date.now())
   const initialLoadComplete = useRef(false)
   const mountedRef = useRef(true)
+  const fetchInProgress = useRef(false)
 
   const isAuthenticated = !!user
 
@@ -198,13 +202,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const refreshTokens = useCallback(async (): Promise<boolean> => {
     // Prevent concurrent refresh calls
     if (isRefreshing.current && refreshPromise.current) {
+      log.debug('Waiting for existing refresh...')
       return refreshPromise.current
     }
 
     // Skip if offline
     if (!isOnline()) {
       log.debug('Offline - skipping token refresh')
-      return true
+      return true // Return true to not trigger logout
     }
 
     isRefreshing.current = true
@@ -212,6 +217,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refreshPromise.current = (async () => {
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
+          log.debug(`Token refresh attempt ${attempt}/${MAX_RETRIES}`)
+          
           const response = await fetch('/api/auth/refresh', {
             method: 'POST',
             credentials: 'include',
@@ -221,7 +228,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           })
 
           if (response.ok) {
-            log.info('Token refreshed successfully')
+            const data = await response.json()
+            log.info('Token refreshed successfully', { 
+              rotated: data.data?.rotated,
+              rotationReused: data.data?.rotationReused 
+            })
             return true
           }
 
@@ -234,9 +245,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
           }
 
-          // Auth errors (401/403) - don't logout, just return false
+          // Auth errors (401/403) - session is truly expired
           if (response.status === 401 || response.status === 403) {
-            log.warn('Token refresh failed - session may have expired')
+            const errorData = await response.json().catch(() => ({}))
+            log.warn('Token refresh failed - session expired', { 
+              code: errorData.error?.code 
+            })
             return false
           }
 
@@ -245,7 +259,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           return false
 
         } catch (error) {
-          log.warn(`Token refresh network error (attempt ${attempt}/${MAX_RETRIES})`)
+          log.warn(`Token refresh network error (attempt ${attempt}/${MAX_RETRIES})`, {
+            error: error instanceof Error ? error.message : 'Unknown'
+          })
           if (attempt < MAX_RETRIES) {
             await sleep(RETRY_DELAY_MS * attempt)
           }
@@ -268,9 +284,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // FETCH USER
   // ===========================================================================
 
-  const fetchUser = useCallback(async (silent = false): Promise<boolean> => {
+  const fetchUser = useCallback(async (
+    silent = false, 
+    retryCount = 0
+  ): Promise<boolean> => {
+    // Prevent infinite loops
+    if (retryCount >= MAX_FETCH_RETRIES) {
+      log.warn('Max fetch retries reached - giving up')
+      if (!silent) {
+        setUserWithCache(null)
+        if (mountedRef.current) {
+          setStats(null)
+          setIsLoading(false)
+        }
+      }
+      return false
+    }
+
+    // Prevent concurrent fetches
+    if (fetchInProgress.current && retryCount === 0) {
+      log.debug('Fetch already in progress, skipping')
+      return false
+    }
+
+    fetchInProgress.current = true
+
     if (!silent) {
-      log.debug('Fetching user data...')
+      log.debug('Fetching user data...', { retryCount })
     }
 
     try {
@@ -298,48 +338,48 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Handle 401 - try to refresh token
       if (response.status === 401) {
-        log.debug('Access token expired, attempting refresh...')
+        log.debug('Access token expired, attempting refresh...', { retryCount })
         
         const refreshed = await refreshTokens()
         
         if (refreshed) {
-          // Retry fetch after successful refresh
-          const retryResponse = await fetch('/api/auth/me', {
-            credentials: 'include',
-            cache: 'no-store',
-          })
-
-          if (retryResponse.ok) {
-            const data = await retryResponse.json()
-            
-            if (data.success && data.data?.user) {
-              const transformedUser = transformUserData(data.data.user)
-              setUserWithCache(transformedUser)
-              
-              if (mountedRef.current) {
-                setStats(data.data.stats || null)
-              }
-              
-              lastSuccessfulFetch.current = Date.now()
-              log.info('User data fetched after token refresh')
-              return true
-            }
-          }
+          // Retry with incremented counter to prevent infinite loop
+          log.debug('Token refreshed, retrying user fetch')
+          fetchInProgress.current = false // Allow retry
+          return await fetchUser(silent, retryCount + 1)
         }
 
-        // Refresh failed - check if this is initial load
+        // Refresh failed - this is a definitive session expiration
         if (!initialLoadComplete.current && !getCachedUser()) {
           // No cached user and initial load failed - user is not logged in
           log.debug('Initial load with no valid session')
-          setUserWithCache(null)
-          if (mountedRef.current) {
-            setStats(null)
+        } else {
+          // Had a session that's now expired
+          log.warn('Session definitively expired - logging out')
+          if (!silent) {
+            toast.error('Your session has expired. Please log in again.', {
+              duration: 5000
+            })
           }
-          return false
         }
+        
+        setUserWithCache(null)
+        if (mountedRef.current) {
+          setStats(null)
+        }
+        return false
+      }
 
-        // Keep cached user if we had one
-        log.warn('Auth refresh failed - keeping cached user')
+      // Handle 403 - account deactivated
+      if (response.status === 403) {
+        log.warn('Account deactivated or forbidden')
+        setUserWithCache(null)
+        if (mountedRef.current) {
+          setStats(null)
+        }
+        if (!silent) {
+          toast.error('Your account has been deactivated.', { duration: 5000 })
+        }
         return false
       }
 
@@ -349,11 +389,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return false
       }
 
+      // Other errors (404, etc.)
+      log.warn(`Unexpected response status: ${response.status}`)
       return false
 
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      log.error('Failed to fetch user', { error: message })
+      log.error('Failed to fetch user', { error: message, retryCount })
 
       // Keep cached user on network errors
       if (!isOnline()) {
@@ -363,6 +405,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return false
 
     } finally {
+      fetchInProgress.current = false
       if (mountedRef.current) {
         setIsLoading(false)
       }
@@ -577,8 +620,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Refresh if more than 5 minutes since last fetch
         if (timeSinceLastFetch > 5 * 60 * 1000) {
           log.debug('Tab visible after long absence - refreshing')
-          await refreshTokens()
-          await fetchUser(true)
+          
+          // Try token refresh first
+          const refreshed = await refreshTokens()
+          
+          if (refreshed) {
+            // Only fetch user if refresh succeeded
+            await fetchUser(true)
+          } else {
+            // Don't immediately logout - check if we're offline
+            if (!isOnline()) {
+              log.debug('User is offline - keeping cached state')
+              toast('You appear to be offline', { 
+                icon: '📡',
+                duration: 2000 
+              })
+            } else {
+              // Online but refresh failed - session expired
+              log.warn('Session expired on visibility change')
+              // fetchUser will handle the logout
+              await fetchUser(true)
+            }
+          }
         }
       }
     }
@@ -594,8 +657,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const handleOnline = async () => {
       log.info('Back online - refreshing session')
       toast.success('Back online')
-      await refreshTokens()
-      await fetchUser(true)
+      
+      const refreshed = await refreshTokens()
+      if (refreshed) {
+        await fetchUser(true)
+      }
     }
 
     const handleOffline = () => {
@@ -617,6 +683,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const handleStorageChange = (e: StorageEvent) => {
       // Handle logout from another tab
       if (e.key === STORAGE_KEY_LOGOUT) {
+        log.info('Logout detected from another tab')
         setUserWithCache(null)
         setStats(null)
         router.push('/login')
@@ -628,12 +695,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (e.newValue) {
           try {
             const newUser = JSON.parse(e.newValue)
+            log.debug('User data synced from another tab')
             setUser(newUser)
           } catch {
             // Ignore parse errors
           }
         } else {
           // User was cleared in another tab
+          log.debug('User cleared in another tab')
           setUser(null)
           setStats(null)
         }

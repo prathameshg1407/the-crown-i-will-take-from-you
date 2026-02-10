@@ -2,14 +2,15 @@
 import { NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { ZodError, ZodIssue } from 'zod'
+import { getExpirationSeconds, JWT_REFRESH_EXPIRES_IN } from '@/lib/auth/jwt'
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: {
     message: string
     code?: string
-    details?: any
+    details?: unknown
   }
 }
 
@@ -30,7 +31,7 @@ export function errorResponse(
   message: string,
   status: number = 400,
   code?: string,
-  details?: any
+  details?: unknown
 ): NextResponse<ApiResponse> {
   logger.error({ message, code, details, status }, 'API Error')
   
@@ -41,7 +42,7 @@ export function errorResponse(
         message,
         code,
         details,
-      },
+        },
     },
     { status }
   )
@@ -82,6 +83,7 @@ export function setAuthCookies(
   refreshToken: string
 ): NextResponse {
   const isProduction = process.env.NODE_ENV === 'production'
+  const refreshMaxAge = getExpirationSeconds(JWT_REFRESH_EXPIRES_IN)
   
   response.cookies.set('access_token', accessToken, {
     httpOnly: true,
@@ -95,7 +97,7 @@ export function setAuthCookies(
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    maxAge: refreshMaxAge,
     path: '/',
   })
   
