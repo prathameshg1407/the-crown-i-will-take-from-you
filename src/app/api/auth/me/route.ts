@@ -16,17 +16,21 @@ export async function GET(_request: NextRequest) {
     const accessToken = cookieStore.get('access_token')?.value
 
     if (!accessToken) {
+      logger.debug('No access token in request')
       return NextResponse.json(
         { success: false, error: { message: 'Not authenticated', code: 'NO_TOKEN' } },
         { status: 401 }
       )
     }
 
+    // Verify access token
     let payload
     try {
       payload = await verifyAccessToken(accessToken)
     } catch (error) {
-      logger.debug('Access token verification failed - client should refresh')
+      logger.debug({ 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }, 'Access token verification failed - client should refresh')
       return NextResponse.json(
         { success: false, error: { message: 'Token expired', code: 'TOKEN_EXPIRED' } },
         { status: 401 }
@@ -47,11 +51,18 @@ export async function GET(_request: NextRequest) {
       .single()
 
     if (userError) {
+      if (userError.code === 'PGRST116') {
+        logger.warn({ userId, siteId }, 'User not found in database')
+        return NextResponse.json(
+          { success: false, error: { message: 'User not found', code: 'USER_NOT_FOUND' } },
+          { status: 404 }
+        )
+      }
+      
       logger.error({ 
         error: userError, 
         userId,
         siteId,
-        message: userError.message,
       }, 'Database error fetching user')
       
       return NextResponse.json(
@@ -61,7 +72,7 @@ export async function GET(_request: NextRequest) {
     }
 
     if (!user) {
-      logger.error({ userId, siteId }, 'User not found in database for this site')
+      logger.warn({ userId, siteId }, 'User not found for this site')
       return NextResponse.json(
         { success: false, error: { message: 'User not found', code: 'USER_NOT_FOUND' } },
         { status: 404 }
@@ -85,7 +96,7 @@ export async function GET(_request: NextRequest) {
       owned_chapters_count: user.owned_chapters?.length || 0,
     }, 'User data retrieved')
 
-    // Fetch user stats with site-scoped session count
+    // Fetch user stats
     let stats = {
       activeSessions: 0,
       chaptersCompleted: 0,
@@ -94,30 +105,35 @@ export async function GET(_request: NextRequest) {
 
     try {
       // Get active sessions for this site only
-      const { data: sessions } = await supabaseAdmin
+      const { data: sessions, error: sessionsError } = await supabaseAdmin
         .from('sessions')
         .select('id')
         .eq('user_id', userId)
         .eq('site_id', siteId)
         .gt('expires_at', new Date().toISOString())
 
-      const { data: progress } = await supabaseAdmin
+      if (!sessionsError && sessions) {
+        stats.activeSessions = sessions.length
+      }
+
+      // Get reading progress if table exists
+      const { data: progress, error: progressError } = await supabaseAdmin
         .from('reading_progress')
         .select('is_completed')
         .eq('user_id', userId)
 
-      const progressRecords = (progress || []) as ReadingProgressRecord[]
-
-      stats = {
-        activeSessions: sessions?.length || 0,
-        chaptersCompleted: progressRecords.filter((p) => p.is_completed).length,
-        chaptersInProgress: progressRecords.filter((p) => !p.is_completed).length,
+      if (!progressError && progress) {
+        const progressRecords = progress as ReadingProgressRecord[]
+        stats.chaptersCompleted = progressRecords.filter((p) => p.is_completed).length
+        stats.chaptersInProgress = progressRecords.filter((p) => !p.is_completed).length
       }
     } catch (statsError) {
-      logger.warn({ error: statsError }, 'Failed to fetch user stats - continuing with defaults')
+      logger.warn({ 
+        error: statsError instanceof Error ? statsError.message : 'Unknown error' 
+      }, 'Failed to fetch user stats - continuing with defaults')
     }
 
-    // Update last login in background (debounced by not updating if recent)
+    // Update last login in background (debounced)
     void (async () => {
       try {
         // Only update if last_login was more than 5 minutes ago
@@ -130,14 +146,20 @@ export async function GET(_request: NextRequest) {
             .update({ last_login: new Date().toISOString() })
             .eq('id', userId)
             .eq('site_id', siteId)
+          
+          logger.debug({ userId }, 'Updated last login timestamp')
         }
       } catch (err) {
-        logger.warn({ error: err }, 'Failed to update last login')
+        logger.warn({ 
+          error: err instanceof Error ? err.message : 'Unknown error' 
+        }, 'Failed to update last login')
       }
     })()
 
     // Ensure owned_chapters is properly formatted
-    const ownedChapters = Array.isArray(user.owned_chapters) ? user.owned_chapters : []
+    const ownedChapters = Array.isArray(user.owned_chapters) 
+      ? user.owned_chapters 
+      : []
 
     return NextResponse.json({
       success: true,

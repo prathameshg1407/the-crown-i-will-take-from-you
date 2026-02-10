@@ -2,11 +2,13 @@
 import { SignJWT, jwtVerify, JWTPayload as JoseJWTPayload } from 'jose'
 import { nanoid } from 'nanoid'
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!)
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'your-secret-key-at-least-32-characters-long-for-security'
+)
 
-// ✅ Increased expiration times for better UX
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30m' // Increased from 15m
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '100y' // Increased to effectively never expire
+// Token expiration times
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30m'
+const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '100y'
 
 export interface JWTPayload {
   sub: string
@@ -65,12 +67,14 @@ export async function verifyAccessToken(token: string): Promise<JWTPayload> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET)
     
+    // Validate required fields
     if (!payload.sub || !payload.email || !payload.tier) {
-      throw new Error('Invalid token payload')
+      throw new Error('Invalid token payload - missing required fields')
     }
     
+    // Validate token type
     if (payload.type !== 'access') {
-      throw new Error('Invalid token type')
+      throw new Error('Invalid token type - expected access token')
     }
     
     return {
@@ -83,7 +87,13 @@ export async function verifyAccessToken(token: string): Promise<JWTPayload> {
       iat: payload.iat,
       exp: payload.exp,
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('expired')) {
+        throw new Error('Token expired')
+      }
+      throw error
+    }
     throw new Error('Invalid or expired token')
   }
 }
@@ -92,8 +102,9 @@ export async function verifyRefreshToken(token: string): Promise<RefreshTokenPay
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET)
     
-    if (!payload.sub || payload.type !== 'refresh') {
-      throw new Error('Invalid refresh token')
+    // Validate required fields
+    if (!payload.sub || payload.type !== 'refresh' || !payload.jti) {
+      throw new Error('Invalid refresh token - missing required fields')
     }
     
     return {
@@ -103,7 +114,13 @@ export async function verifyRefreshToken(token: string): Promise<RefreshTokenPay
       iat: payload.iat,
       exp: payload.exp,
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message.includes('expired')) {
+        throw new Error('Refresh token expired')
+      }
+      throw error
+    }
     throw new Error('Invalid or expired refresh token')
   }
 }
@@ -112,7 +129,10 @@ export async function verifyToken(token: string): Promise<JoseJWTPayload> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET)
     return payload
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('expired')) {
+      throw new Error('Token expired')
+    }
     throw new Error('Invalid or expired token')
   }
 }
@@ -120,6 +140,10 @@ export async function verifyToken(token: string): Promise<JoseJWTPayload> {
 export function getExpirationSeconds(timeString: string): number {
   const unit = timeString.slice(-1)
   const value = parseInt(timeString.slice(0, -1))
+  
+  if (isNaN(value)) {
+    return 1800 // Default to 30 minutes
+  }
   
   switch (unit) {
     case 's': return value
@@ -131,4 +155,5 @@ export function getExpirationSeconds(timeString: string): number {
   }
 }
 
+// Export for use in other modules
 export { JWT_REFRESH_EXPIRES_IN }

@@ -1,14 +1,236 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// schema.prisma
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ========================================
+// ENUMS
+// ========================================
+
+enum PaymentStatus {
+  pending
+  completed
+  failed
+  refunded
+}
+
+enum TransactionType {
+  purchase
+  refund
+}
+
+enum PurchaseType {
+  complete
+  custom
+}
+
+enum TierType {
+  free
+  complete
+}
+
+enum PaymentProvider {
+  razorpay
+  paypal
+}
+
+// ========================================
+// MODELS
+// ========================================
+
+model Site {
+  id         Int       @id @default(autoincrement())
+  site_key   String    @unique
+  site_name  String
+  domain     String
+  is_active  Boolean   @default(true)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  users              User[]
+  sessions           Session[]
+  session_rotations  SessionRotation[]
+
+  @@map("sites")
+}
+
+model User {
+  id                      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                   String
+  password_hash           String
+  site_id                 Int
+  name                    String?
+  password_reset_token    String?   @unique
+  password_reset_expires  DateTime? @db.Timestamptz(6)
+  tier                    TierType  @default(free)
+  owned_chapters          Int[]     @default([])
+  avatar_url              String?
+  is_active               Boolean   @default(true)
+  last_login              DateTime? @db.Timestamptz(6)
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  site             Site              @relation(fields: [site_id], references: [id], onDelete: Cascade)
+  purchases        Purchase[]
+  reading_progress ReadingProgress[]
+  sessions         Session[]
+  audit_logs       AuditLog[]
+
+  @@unique([email, site_id])
+  @@index([site_id])
+  @@index([email])
+  @@index([tier])
+  @@index([password_reset_token])
+  @@map("users")
+}
+
+model Purchase {
+  id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String           @db.Uuid
+  purchase_type       PurchaseType
+  purchase_data       Json?
+  amount              Int
+  currency            String           @default("INR")
+  payment_provider    PaymentProvider  @default(razorpay)
+  razorpay_order_id   String?          @unique
+  razorpay_payment_id String?          @unique
+  razorpay_signature  String?
+  paypal_order_id     String?          @unique
+  paypal_capture_id   String?          @unique
+  original_currency   String?
+  original_amount     Int?
+  status              PaymentStatus    @default(pending)
+  transaction_type    TransactionType  @default(purchase)
+  payment_method      String?
+  payment_email       String?
+  payment_contact     String?
+  refund_id           String?          @unique
+  refund_amount       Int?
+  refund_reason       String?
+  refunded_at         DateTime?        @db.Timestamptz(6)
+  ip_address          String?
+  user_agent          String?
+  verified_at         DateTime?        @db.Timestamptz(6)
+  expires_at          DateTime?        @db.Timestamptz(6)
+  created_at          DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime         @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([status])
+  @@index([transaction_type])
+  @@index([payment_provider])
+  @@index([created_at])
+  @@map("purchases")
+}
+
+model ReadingProgress {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String    @db.Uuid
+  chapter_id            Int
+  chapter_slug          String
+  is_completed          Boolean   @default(false)
+  last_position         Int       @default(0)
+  reading_time_seconds  Int       @default(0)
+  started_at            DateTime  @default(now()) @db.Timestamptz(6)
+  completed_at          DateTime? @db.Timestamptz(6)
+  last_read_at          DateTime  @default(now()) @db.Timestamptz(6)
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, chapter_id])
+  @@index([user_id])
+  @@index([chapter_id])
+  @@index([chapter_slug])
+  @@index([is_completed])
+  @@index([last_read_at])
+  @@map("reading_progress")
+}
+
+model Session {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id          String    @db.Uuid
+  site_id          Int
+  user_email       String?
+  user_tier        String?
+  user_name        String?
+  refresh_token    String    @unique
+  access_token_jti String?   @unique
+  ip_address       String?
+  user_agent       String?
+  device_info      Json?
+  expires_at       DateTime  @db.Timestamptz(6)
+  last_used_at     DateTime  @default(now()) @db.Timestamptz(6)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  user              User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  site              Site              @relation(fields: [site_id], references: [id], onDelete: Cascade)
+  session_rotations SessionRotation[]
+
+  @@index([user_id])
+  @@index([site_id])
+  @@index([expires_at])
+  @@index([last_used_at])
+  @@map("sessions")
+}
+
+model SessionRotation {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  old_jti        String   @unique
+  new_session_id String   @db.Uuid
+  site_id        Int
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  expires_at     DateTime @db.Timestamptz(6)
+
+  // Relations
+  new_session Session @relation(fields: [new_session_id], references: [id], onDelete: Cascade)
+  site        Site    @relation(fields: [site_id], references: [id], onDelete: Cascade)
+
+  @@index([old_jti])
+  @@index([new_session_id])
+  @@index([expires_at])
+  @@index([site_id])
+  @@map("session_rotations")
+}
+
+model AuditLog {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String?  @db.Uuid
+  event_type    String
+  resource_type String?
+  resource_id   String?
+  ip_address    String?
+  user_agent    String?
+  metadata      Json?
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  user User? @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([user_id])
+  @@index([event_type])
+  @@index([resource_type])
+  @@index([created_at])
+  @@map("audit_logs")
+}
+
+model Report {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  message    String   @db.Text
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([created_at])
+  @@map("reports")
 }

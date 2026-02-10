@@ -33,17 +33,17 @@ interface SessionData {
   user_tier: string | null
   user_name: string | null
   refresh_token: string
-  access_token_jti: string
+  access_token_jti: string | null
   ip_address: string | null
   user_agent: string | null
   device_info: Json
   expires_at: string
-  last_used_at: string
+  last_used_at: string | null
   created_at: string
 }
 
 // =============================================================================
-// DEBOUNCE CACHE (prevents excessive DB writes)
+// DEBOUNCE CACHE
 // =============================================================================
 
 const sessionUpdateTimestamps = new Map<string, number>()
@@ -53,11 +53,15 @@ const MAX_CACHE_ENTRIES = 1000
 function cleanupDebounceCache(): void {
   if (sessionUpdateTimestamps.size > MAX_CACHE_ENTRIES) {
     const cutoff = Date.now() - UPDATE_DEBOUNCE_MS * 2
+    const toDelete: string[] = []
+    
     for (const [key, timestamp] of sessionUpdateTimestamps.entries()) {
       if (timestamp < cutoff) {
-        sessionUpdateTimestamps.delete(key)
+        toDelete.push(key)
       }
     }
+    
+    toDelete.forEach(key => sessionUpdateTimestamps.delete(key))
   }
 }
 
@@ -100,16 +104,22 @@ export async function createSession({
         user_agent: userAgent || null,
         device_info: deviceInfo as Json,
         expires_at: expiresAt.toISOString(),
+        last_used_at: new Date().toISOString(),
       })
       .select()
       .single()
     
     if (error) {
       logger.error({ error, userId, siteId }, 'Failed to create session')
-      throw new Error('Failed to create session')
+      throw new Error('Failed to create session: ' + error.message)
     }
     
-    logger.info({ userId, siteId, sessionId: data.id }, 'Session created')
+    logger.info({ 
+      userId, 
+      siteId, 
+      sessionId: data.id,
+      expiresAt 
+    }, 'Session created successfully')
     
     return {
       refreshToken,
@@ -139,15 +149,20 @@ export async function getSessionByRefreshToken(
       .eq('site_id', siteId)
       .single()
     
-    if (error || !data) {
-      logger.debug({ 
-        error: error?.message, 
-        siteId,
-        hasToken: !!refreshToken 
-      }, 'Session not found for site')
+    if (error) {
+      if (error.code === 'PGRST116') {
+        logger.debug({ siteId }, 'Session not found')
+      } else {
+        logger.error({ error, siteId }, 'Database error fetching session')
+      }
       return null
     }
     
+    if (!data) {
+      return null
+    }
+    
+    // Check expiration with grace period
     const expiresAt = new Date(data.expires_at)
     const now = new Date()
     const graceDeadline = new Date(expiresAt.getTime() + gracePeriodMs)
@@ -156,24 +171,24 @@ export async function getSessionByRefreshToken(
       logger.info({ 
         sessionId: data.id,
         siteId,
-        expiresAt, 
-        graceDeadline,
-        expiredBy: now.getTime() - graceDeadline.getTime()
+        expiresAt: expiresAt.toISOString(), 
+        graceDeadline: graceDeadline.toISOString(),
+        expiredBy: Math.round((now.getTime() - graceDeadline.getTime()) / 1000) + 's'
       }, 'Session expired beyond grace period')
       
       return null
     }
     
-    if (now > expiresAt) {
+    if (now > expiresAt && gracePeriodMs > 0) {
       logger.info({ 
         sessionId: data.id,
         siteId,
-        expiredAgo: now.getTime() - expiresAt.getTime(),
-        graceRemaining: graceDeadline.getTime() - now.getTime()
+        expiredAgo: Math.round((now.getTime() - expiresAt.getTime()) / 1000) + 's',
+        graceRemaining: Math.round((graceDeadline.getTime() - now.getTime()) / 1000) + 's'
       }, 'Session in grace period - allowing refresh')
     }
     
-    // Debounced background update
+    // Update last_used_at in background (debounced)
     const lastUpdate = sessionUpdateTimestamps.get(data.id)
     const shouldUpdate = !lastUpdate || (Date.now() - lastUpdate > UPDATE_DEBOUNCE_MS)
     
@@ -181,27 +196,28 @@ export async function getSessionByRefreshToken(
       sessionUpdateTimestamps.set(data.id, Date.now())
       cleanupDebounceCache()
       
-      void (async () => {
-        try {
-          await supabaseAdmin
-            .from('sessions')
-            .update({ last_used_at: new Date().toISOString() })
-            .eq('id', data.id)
-        } catch (err) {
-          logger.warn({ error: err }, 'Failed to update session last_used_at')
-        }
-      })()
+      // Fire and forget
+      supabaseAdmin
+        .from('sessions')
+        .update({ last_used_at: new Date().toISOString() })
+        .eq('id', data.id)
+        .then(() => {
+          logger.debug({ sessionId: data.id }, 'Session last_used_at updated')
+        })
+        .catch((err) => {
+          logger.warn({ error: err, sessionId: data.id }, 'Failed to update last_used_at')
+        })
     }
     
     return data as SessionData
   } catch (error) {
-    logger.error({ error, siteId }, 'Error getting session')
+    logger.error({ error, siteId }, 'Error getting session by refresh token')
     return null
   }
 }
 
 // =============================================================================
-// SESSION ROTATION TRACKING (for multi-tab support)
+// SESSION ROTATION TRACKING
 // =============================================================================
 
 export async function storeRotationMapping(
@@ -217,13 +233,18 @@ export async function storeRotationMapping(
         new_session_id: newSessionId,
         site_id: siteId,
         created_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 min
+        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 minutes
       }, {
         onConflict: 'old_jti,site_id'
       })
     
     if (error) {
-      logger.warn({ error, oldJti, newSessionId }, 'Failed to store rotation mapping')
+      logger.warn({ 
+        error: error.message, 
+        oldJti, 
+        newSessionId,
+        siteId 
+      }, 'Failed to store rotation mapping')
       return false
     }
     
@@ -240,7 +261,7 @@ export async function checkRecentRotation(
   siteId: number
 ): Promise<SessionData | null> {
   try {
-    // First check if this token was recently rotated
+    // Check if this JTI was recently rotated
     const { data: rotation, error: rotationError } = await supabaseAdmin
       .from('session_rotations')
       .select('new_session_id')
@@ -263,10 +284,19 @@ export async function checkRecentRotation(
       .single()
     
     if (sessionError || !session) {
+      logger.warn({ 
+        error: sessionError, 
+        newSessionId: rotation.new_session_id 
+      }, 'New session not found for rotation')
       return null
     }
     
-    logger.info({ oldJti, newSessionId: session.id }, 'Found recent rotation')
+    logger.info({ 
+      oldJti, 
+      newSessionId: session.id,
+      siteId 
+    }, 'Found recent rotation - reusing')
+    
     return session as SessionData
   } catch (error) {
     logger.debug({ error, oldJti }, 'Error checking recent rotation')
@@ -287,7 +317,7 @@ export async function cleanupRotationMappings(): Promise<number> {
     }
     
     if (count && count > 0) {
-      logger.debug({ count }, 'Cleaned up rotation mappings')
+      logger.debug({ count }, 'Cleaned up expired rotation mappings')
     }
     
     return count || 0
@@ -324,17 +354,13 @@ export async function deleteSession(sessionId: string): Promise<boolean> {
   }
 }
 
-/**
- * Marks a session for deletion by setting its expiry to a short future time.
- * This allows concurrent requests (e.g. from multiple tabs) to succeed 
- * within a grace window during token rotation.
- */
 export async function softDeleteSession(
   sessionId: string, 
-  graceSeconds: number = 300 // Default 5 minutes for multi-tab support
+  graceSeconds: number = 120 // 2 minutes default for multi-tab support
 ): Promise<boolean> {
   try {
     const expiresAt = new Date(Date.now() + graceSeconds * 1000).toISOString()
+    
     const { error } = await supabaseAdmin
       .from('sessions')
       .update({ expires_at: expiresAt })
@@ -345,7 +371,12 @@ export async function softDeleteSession(
       return false
     }
     
-    logger.debug({ sessionId, expiresAt, graceSeconds }, 'Session soft deleted (grace period)')
+    logger.debug({ 
+      sessionId, 
+      expiresAt, 
+      graceSeconds 
+    }, 'Session soft deleted with grace period')
+    
     return true
   } catch (error) {
     logger.warn({ error, sessionId }, 'Error soft deleting session')
@@ -376,7 +407,13 @@ export async function deleteAllUserSessions(
       throw new Error('Failed to delete sessions')
     }
     
-    logger.info({ userId, siteId, exceptSessionId, count }, 'User sessions deleted')
+    logger.info({ 
+      userId, 
+      siteId, 
+      exceptSessionId, 
+      count 
+    }, 'User sessions deleted')
+    
     return count || 0
   } catch (error) {
     logger.error({ error, userId, siteId }, 'Error deleting user sessions')
@@ -394,6 +431,7 @@ export async function extendSession(
   additionalYears: number = 100
 ): Promise<Date | null> {
   try {
+    // First verify session exists and belongs to site
     const { data: session, error: fetchError } = await supabaseAdmin
       .from('sessions')
       .select('expires_at, site_id')
@@ -402,15 +440,17 @@ export async function extendSession(
       .single()
     
     if (fetchError || !session) {
-      logger.warn({ sessionId, siteId }, 'Session not found for extension')
+      logger.warn({ sessionId, siteId, error: fetchError }, 'Session not found for extension')
       return null
     }
     
+    // Calculate new expiry
     const currentExpiry = new Date(session.expires_at)
     const now = new Date()
     const baseDate = currentExpiry > now ? currentExpiry : now
     const newExpiry = new Date(baseDate.getTime() + additionalYears * 365 * 24 * 60 * 60 * 1000)
     
+    // Update session
     const { error } = await supabaseAdmin
       .from('sessions')
       .update({ 
@@ -418,13 +458,20 @@ export async function extendSession(
         last_used_at: now.toISOString()
       })
       .eq('id', sessionId)
+      .eq('site_id', siteId)
     
     if (error) {
       logger.error({ error, sessionId, siteId }, 'Failed to extend session')
       return null
     }
     
-    logger.info({ sessionId, siteId, newExpiry }, 'Session extended')
+    logger.info({ 
+      sessionId, 
+      siteId, 
+      oldExpiry: currentExpiry.toISOString(),
+      newExpiry: newExpiry.toISOString() 
+    }, 'Session extended successfully')
+    
     return newExpiry
   } catch (error) {
     logger.error({ error, sessionId, siteId }, 'Error extending session')
@@ -459,7 +506,7 @@ export async function getUserSessionCount(userId: string, siteId: number): Promi
 
 export async function cleanExpiredSessions(siteId?: number): Promise<number> {
   try {
-    // Clean sessions that are more than 24 hours past expiry
+    // Clean sessions expired more than 24 hours ago
     const cleanupDeadline = new Date(Date.now() - 24 * 60 * 60 * 1000)
     
     let query = supabaseAdmin
@@ -479,10 +526,14 @@ export async function cleanExpiredSessions(siteId?: number): Promise<number> {
     }
     
     // Also clean up rotation mappings
-    await cleanupRotationMappings()
+    const rotationCount = await cleanupRotationMappings()
     
-    if (count && count > 0) {
-      logger.info({ count, siteId }, 'Expired sessions cleaned')
+    if ((count && count > 0) || rotationCount > 0) {
+      logger.info({ 
+        sessionsDeleted: count || 0, 
+        rotationsDeleted: rotationCount,
+        siteId 
+      }, 'Expired sessions and rotations cleaned')
     }
     
     return count || 0
@@ -544,7 +595,7 @@ function parseUserAgent(userAgent?: string): DeviceInfo | null {
   if (!userAgent) return null
   
   const info: DeviceInfo = {
-    raw: userAgent.substring(0, 500),
+    raw: userAgent.substring(0, 500), // Limit length
   }
   
   // Browser detection

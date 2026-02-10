@@ -17,6 +17,7 @@
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@paypal/react-paypal-js": "^8.9.2",
+    "@prisma/client": "^7.3.0",
     "@radix-ui/react-visually-hidden": "^1.2.4",
     "@supabase/supabase-js": "^2.91.0",
     "@vercel/analytics": "^1.6.1",
