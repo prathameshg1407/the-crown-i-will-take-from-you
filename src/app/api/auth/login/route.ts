@@ -33,15 +33,21 @@ export async function POST(request: NextRequest) {
       .from('users')
       .select('id, email, password_hash, name, tier, is_active')
       .eq('email', validatedData.email)
-      .eq('site_id', siteId)  // ✅ Only find user on this site
+      .eq('site_id', siteId)
       .single()
     
     if (fetchError || !user) {
+      logger.warn({ 
+        email: validatedData.email, 
+        siteId,
+        error: fetchError?.message 
+      }, 'Login attempt - user not found')
       return errorResponse('Invalid email or password', 401, 'INVALID_CREDENTIALS')
     }
     
     // Check if account is active
     if (!user.is_active) {
+      logger.warn({ userId: user.id, siteId }, 'Login attempt - account deactivated')
       return errorResponse('Account has been deactivated', 403, 'ACCOUNT_DEACTIVATED')
     }
     
@@ -62,22 +68,26 @@ export async function POST(request: NextRequest) {
         user_agent: userAgent,
         metadata: { 
           reason: 'invalid_password',
-          site_id: siteId,  // ✅ Log site in audit
+          site_id: siteId,
         },
       })
       
+      logger.warn({ userId: user.id, siteId }, 'Login attempt - invalid password')
       return errorResponse('Invalid email or password', 401, 'INVALID_CREDENTIALS')
     }
     
-    // Generate tokens
+    // Generate access token
     const accessToken = await generateAccessToken({
       sub: user.id,
       email: user.email,
       tier: user.tier,
+      name: user.name ?? undefined,
     })
     
-    const { refreshToken } = await createSession({
+    // Create session with siteId
+    const { refreshToken, sessionId } = await createSession({
       userId: user.id,
+      siteId: siteId,
       ipAddress: clientIp,
       userAgent: userAgent,
     })
@@ -87,6 +97,7 @@ export async function POST(request: NextRequest) {
       .from('users')
       .update({ last_login: new Date().toISOString() })
       .eq('id', user.id)
+      .eq('site_id', siteId)
     
     // Log successful login
     await supabaseAdmin.from('audit_logs').insert({
@@ -97,11 +108,17 @@ export async function POST(request: NextRequest) {
       ip_address: clientIp,
       user_agent: userAgent,
       metadata: {
-        site_id: siteId,  // ✅ Log site in audit
+        site_id: siteId,
+        session_id: sessionId,
       },
     })
     
-    logger.info({ userId: user.id, email: user.email, siteId }, 'User logged in')
+    logger.info({ 
+      userId: user.id, 
+      email: user.email, 
+      siteId,
+      sessionId 
+    }, 'User logged in')
     
     const response = successResponse({
       user: {
@@ -111,11 +128,13 @@ export async function POST(request: NextRequest) {
         tier: user.tier,
       },
       accessToken,
+      sessionId,
     })
     
     return setAuthCookies(response, accessToken, refreshToken)
     
   } catch (error) {
+    logger.error({ error }, 'Login error')
     return handleApiError(error)
   }
 }

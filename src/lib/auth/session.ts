@@ -6,6 +6,7 @@ import type { Json } from '@/lib/supabase/database.types'
 
 interface CreateSessionParams {
   userId: string
+  siteId: number
   ipAddress?: string
   userAgent?: string
 }
@@ -19,7 +20,8 @@ interface DeviceInfo {
 }
 
 export async function createSession({ 
-  userId, 
+  userId,
+  siteId,
   ipAddress, 
   userAgent 
 }: CreateSessionParams) {
@@ -35,6 +37,7 @@ export async function createSession({
       .from('sessions')
       .insert({
         user_id: userId,
+        site_id: siteId,
         refresh_token: refreshToken,
         access_token_jti: jti,
         ip_address: ipAddress || null,
@@ -46,11 +49,11 @@ export async function createSession({
       .single()
     
     if (error) {
-      logger.error({ error }, 'Failed to create session')
+      logger.error({ error, userId, siteId }, 'Failed to create session')
       throw new Error('Failed to create session')
     }
     
-    logger.info({ userId, sessionId: data.id }, 'Session created')
+    logger.info({ userId, siteId, sessionId: data.id }, 'Session created')
     
     return {
       refreshToken,
@@ -58,14 +61,15 @@ export async function createSession({
       sessionId: data.id
     }
   } catch (error) {
-    logger.error({ error, userId }, 'Error creating session')
+    logger.error({ error, userId, siteId }, 'Error creating session')
     throw error
   }
 }
 
-// Extended grace period support
+// Extended grace period support with site isolation
 export async function getSessionByRefreshToken(
-  refreshToken: string, 
+  refreshToken: string,
+  siteId: number,
   gracePeriodMs: number = 0
 ) {
   try {
@@ -73,9 +77,15 @@ export async function getSessionByRefreshToken(
       .from('sessions')
       .select('*')
       .eq('refresh_token', refreshToken)
+      .eq('site_id', siteId)
       .single()
     
     if (error || !data) {
+      logger.debug({ 
+        error: error?.message, 
+        siteId,
+        hasToken: !!refreshToken 
+      }, 'Session not found for site')
       return null
     }
     
@@ -85,7 +95,8 @@ export async function getSessionByRefreshToken(
     
     if (now > graceDeadline) {
       logger.info({ 
-        sessionId: data.id, 
+        sessionId: data.id,
+        siteId,
         expiresAt, 
         graceDeadline,
         expiredBy: now.getTime() - graceDeadline.getTime()
@@ -97,6 +108,7 @@ export async function getSessionByRefreshToken(
     if (now > expiresAt) {
       logger.info({ 
         sessionId: data.id,
+        siteId,
         expiredAgo: now.getTime() - expiresAt.getTime(),
         graceRemaining: graceDeadline.getTime() - now.getTime()
       }, 'Session in grace period - allowing refresh')
@@ -116,7 +128,7 @@ export async function getSessionByRefreshToken(
     
     return data
   } catch (error) {
-    logger.error({ error }, 'Error getting session')
+    logger.error({ error, siteId }, 'Error getting session')
     return null
   }
 }
@@ -141,40 +153,52 @@ export async function deleteSession(sessionId: string) {
   }
 }
 
-export async function deleteAllUserSessions(userId: string, exceptSessionId?: string) {
+export async function deleteAllUserSessions(
+  userId: string, 
+  siteId: number,
+  exceptSessionId?: string
+) {
   try {
     let query = supabaseAdmin
       .from('sessions')
       .delete()
       .eq('user_id', userId)
+      .eq('site_id', siteId)
     
     if (exceptSessionId) {
       query = query.neq('id', exceptSessionId)
     }
     
-    const { error } = await query
+    const { error, count } = await query
     
     if (error) {
-      logger.error({ error, userId }, 'Failed to delete user sessions')
+      logger.error({ error, userId, siteId }, 'Failed to delete user sessions')
       throw new Error('Failed to delete sessions')
     }
     
-    logger.info({ userId, exceptSessionId }, 'User sessions deleted')
+    logger.info({ userId, siteId, exceptSessionId, count }, 'User sessions deleted')
+    return count || 0
   } catch (error) {
-    logger.error({ error, userId }, 'Error deleting user sessions')
+    logger.error({ error, userId, siteId }, 'Error deleting user sessions')
     throw error
   }
 }
 
-export async function extendSession(sessionId: string, additionalDays: number = 7) {
+export async function extendSession(
+  sessionId: string, 
+  siteId: number,
+  additionalDays: number = 7
+) {
   try {
     const { data: session, error: fetchError } = await supabaseAdmin
       .from('sessions')
-      .select('expires_at')
+      .select('expires_at, site_id')
       .eq('id', sessionId)
+      .eq('site_id', siteId)
       .single()
     
     if (fetchError || !session) {
+      logger.warn({ sessionId, siteId }, 'Session not found for extension')
       return null
     }
     
@@ -192,40 +216,91 @@ export async function extendSession(sessionId: string, additionalDays: number = 
       .eq('id', sessionId)
     
     if (error) {
-      logger.error({ error, sessionId }, 'Failed to extend session')
+      logger.error({ error, sessionId, siteId }, 'Failed to extend session')
       return null
     }
     
-    logger.info({ sessionId, newExpiry }, 'Session extended')
+    logger.info({ sessionId, siteId, newExpiry }, 'Session extended')
     return newExpiry
   } catch (error) {
-    logger.error({ error, sessionId }, 'Error extending session')
+    logger.error({ error, sessionId, siteId }, 'Error extending session')
     return null
   }
 }
 
+// Get active sessions count for a user on a specific site
+export async function getUserSessionCount(userId: string, siteId: number): Promise<number> {
+  try {
+    const { count, error } = await supabaseAdmin
+      .from('sessions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('site_id', siteId)
+      .gt('expires_at', new Date().toISOString())
+    
+    if (error) {
+      logger.warn({ error, userId, siteId }, 'Failed to count user sessions')
+      return 0
+    }
+    
+    return count || 0
+  } catch (error) {
+    logger.error({ error, userId, siteId }, 'Error counting user sessions')
+    return 0
+  }
+}
+
 // Clean sessions that are REALLY old (more than 24 hours past expiry)
-export async function cleanExpiredSessions() {
+export async function cleanExpiredSessions(siteId?: number) {
   try {
     const cleanupDeadline = new Date(Date.now() - 24 * 60 * 60 * 1000)
     
-    const { error, count } = await supabaseAdmin
+    let query = supabaseAdmin
       .from('sessions')
       .delete()
       .lt('expires_at', cleanupDeadline.toISOString())
     
+    // Optionally scope to a specific site
+    if (siteId) {
+      query = query.eq('site_id', siteId)
+    }
+    
+    const { error, count } = await query
+    
     if (error) {
-      logger.error({ error }, 'Failed to clean expired sessions')
+      logger.error({ error, siteId }, 'Failed to clean expired sessions')
       throw error
     }
     
     if (count && count > 0) {
-      logger.info({ count }, 'Expired sessions cleaned')
+      logger.info({ count, siteId }, 'Expired sessions cleaned')
     }
     return count || 0
   } catch (error) {
-    logger.error({ error }, 'Error cleaning expired sessions')
+    logger.error({ error, siteId }, 'Error cleaning expired sessions')
     throw error
+  }
+}
+
+// Validate that a session belongs to the correct site
+export async function validateSessionSite(
+  sessionId: string, 
+  siteId: number
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('sessions')
+      .select('site_id')
+      .eq('id', sessionId)
+      .single()
+    
+    if (error || !data) {
+      return false
+    }
+    
+    return data.site_id === siteId
+  } catch {
+    return false
   }
 }
 

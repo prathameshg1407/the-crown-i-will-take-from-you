@@ -278,6 +278,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
+          site_id: number;  // ✅ ADDED
           refresh_token: string;
           access_token_jti: string | null;
           ip_address: string | null;
@@ -290,6 +291,7 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
+          site_id: number;  // ✅ ADDED
           refresh_token: string;
           access_token_jti?: string | null;
           ip_address?: string | null;
@@ -302,6 +304,7 @@ export interface Database {
         Update: {
           id?: string;
           user_id?: string;
+          site_id?: number;  // ✅ ADDED
           refresh_token?: string;
           access_token_jti?: string | null;
           ip_address?: string | null;
@@ -316,6 +319,12 @@ export interface Database {
             foreignKeyName: "sessions_user_id_fkey";
             columns: ["user_id"];
             referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessions_site_id_fkey";  // ✅ ADDED
+            columns: ["site_id"];
+            referencedRelation: "sites";
             referencedColumns: ["id"];
           },
         ];
@@ -425,3 +434,7 @@ export type SessionUpdate = TablesUpdate<"sessions">;
 export type AuditLog = Tables<"audit_logs">;
 export type AuditLogInsert = TablesInsert<"audit_logs">;
 export type AuditLogUpdate = TablesUpdate<"audit_logs">;
+
+export type Site = Tables<"sites">;
+export type SiteInsert = TablesInsert<"sites">;
+export type SiteUpdate = TablesUpdate<"sites">;

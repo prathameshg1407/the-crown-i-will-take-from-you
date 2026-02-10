@@ -11,12 +11,16 @@ import {
 } from '@/lib/api/response'
 import { logger } from '@/lib/logger'
 import { getClientIp, getUserAgent } from '@/lib/request'
+import { getSiteId } from '@/lib/site/config'
 
-// ✅ Grace period for expired sessions (5 minutes)
+// Grace period for expired sessions (5 minutes)
 const SESSION_GRACE_PERIOD_MS = 5 * 60 * 1000
 
 export async function POST(request: NextRequest) {
   try {
+    // Get site ID first
+    const siteId = await getSiteId()
+    
     let refreshToken = request.cookies.get('refresh_token')?.value
     
     // Fallback to body if cookie is missing
@@ -26,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
     
     if (!refreshToken) {
-      logger.warn('Refresh token missing')
+      logger.warn({ siteId }, 'Refresh token missing')
       return errorResponse('Refresh token required', 401, 'NO_REFRESH_TOKEN')
     }
     
@@ -34,37 +38,61 @@ export async function POST(request: NextRequest) {
     let refreshPayload
     try {
       refreshPayload = await verifyRefreshToken(refreshToken)
-      logger.info({ jti: refreshPayload.jti }, 'Refresh token verified')
+      logger.info({ jti: refreshPayload.jti, siteId }, 'Refresh token verified')
     } catch (error) {
       logger.error(
-        { error, refreshToken: refreshToken.slice(0, 20) + '...' },
+        { error, refreshToken: refreshToken.slice(0, 20) + '...', siteId },
         'Refresh token verification failed'
       )
       return errorResponse('Invalid refresh token', 401, 'INVALID_REFRESH_TOKEN')
     }
     
-    // ✅ Get session from database with grace period
-    const session = await getSessionByRefreshToken(refreshToken, SESSION_GRACE_PERIOD_MS)
+    // Get session from database with site isolation and grace period
+    const session = await getSessionByRefreshToken(
+      refreshToken, 
+      siteId,
+      SESSION_GRACE_PERIOD_MS
+    )
     
     if (!session) {
-      logger.warn({ userId: refreshPayload.sub }, 'Session not found or expired beyond grace period')
+      logger.warn({ 
+        userId: refreshPayload.sub, 
+        siteId,
+        jti: refreshPayload.jti 
+      }, 'Session not found or expired beyond grace period')
       return errorResponse('Session not found or expired', 401, 'SESSION_EXPIRED')
     }
     
-    // Get user data
+    // Verify session belongs to the correct site
+    if (session.site_id !== siteId) {
+      logger.error({ 
+        userId: refreshPayload.sub, 
+        sessionSiteId: session.site_id,
+        requestSiteId: siteId 
+      }, 'Session site mismatch')
+      return errorResponse('Invalid session', 401, 'SESSION_INVALID')
+    }
+    
+    // Get user data with site verification
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, email, tier, is_active, name')
+      .select('id, email, tier, is_active, name, site_id')
       .eq('id', session.user_id)
+      .eq('site_id', siteId)
       .single()
     
     if (userError || !user) {
-      logger.error({ error: userError, userId: session.user_id }, 'User not found')
+      logger.error({ 
+        error: userError, 
+        userId: session.user_id,
+        sessionSiteId: session.site_id,
+        requestSiteId: siteId 
+      }, 'User not found for this site')
       return errorResponse('User not found', 401, 'USER_NOT_FOUND')
     }
     
     if (!user.is_active) {
-      logger.warn({ userId: user.id }, 'Account deactivated')
+      logger.warn({ userId: user.id, siteId }, 'Account deactivated')
       return errorResponse('Account deactivated', 403, 'ACCOUNT_DEACTIVATED')
     }
     
@@ -76,7 +104,7 @@ export async function POST(request: NextRequest) {
       name: user.name ?? undefined,
     })
     
-    // ✅ Safer refresh token rotation with atomic operation
+    // Safer refresh token rotation with atomic operation
     let newRefreshToken = refreshToken
     let newSessionId = session.id
     
@@ -84,6 +112,7 @@ export async function POST(request: NextRequest) {
       // Create new session first (before deleting old one)
       const newSession = await createSession({
         userId: user.id,
+        siteId: siteId,
         ipAddress: getClientIp(request),
         userAgent: getUserAgent(request),
       })
@@ -98,14 +127,15 @@ export async function POST(request: NextRequest) {
       })
       
       logger.info({ 
-        userId: user.id, 
+        userId: user.id,
+        siteId,
         oldSessionId: session.id, 
         newSessionId: newSession.sessionId 
       }, 'Refresh token rotated')
       
     } catch (rotationError) {
-      // ✅ If rotation fails, keep using the old token
-      logger.error({ error: rotationError }, 'Token rotation failed, using existing token')
+      // If rotation fails, keep using the old token
+      logger.error({ error: rotationError, siteId }, 'Token rotation failed, using existing token')
       
       // Extend the existing session instead
       await supabaseAdmin
@@ -116,9 +146,10 @@ export async function POST(request: NextRequest) {
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         })
         .eq('id', session.id)
+        .eq('site_id', siteId)  // Extra safety
     }
     
-    logger.info({ userId: user.id }, 'Token refreshed successfully')
+    logger.info({ userId: user.id, siteId }, 'Token refreshed successfully')
     
     const response = successResponse({
       accessToken,

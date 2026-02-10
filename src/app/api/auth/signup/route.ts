@@ -27,16 +27,18 @@ export async function POST(request: NextRequest) {
     
     // Validate input
     const validatedData = signupSchema.parse(body)
+    const normalizedEmail = validatedData.email.toLowerCase().trim()
     
     // Check if user already exists ON THIS SITE
     const { data: existingUser } = await supabaseAdmin
       .from('users')
       .select('id')
-      .eq('email', validatedData.email)
-      .eq('site_id', siteId)  // ✅ Check only for this site
+      .eq('email', normalizedEmail)
+      .eq('site_id', siteId)
       .single()
       
     if (existingUser) {
+      logger.warn({ email: normalizedEmail, siteId }, 'Signup attempt - email already exists')
       return errorResponse('Email already registered', 409, 'EMAIL_EXISTS')
     }
     
@@ -47,29 +49,34 @@ export async function POST(request: NextRequest) {
     const { data: user, error: createError } = await supabaseAdmin
       .from('users')
       .insert({
-        email: validatedData.email,
+        email: normalizedEmail,
         password_hash: passwordHash,
-        name: validatedData.name,
-        site_id: siteId,  // ✅ Associate user with this site
-        // tier will default to 'free' from database
+        name: validatedData.name?.trim() || null,
+        site_id: siteId,
+        tier: 'free',
+        owned_chapters: [],
+        is_active: true,
       })
       .select('id, email, name, tier, created_at')
       .single()
     
     if (createError || !user) {
-      logger.error({ error: createError }, 'Failed to create user')
+      logger.error({ error: createError, siteId }, 'Failed to create user')
       return errorResponse('Failed to create account', 500, 'CREATE_USER_FAILED')
     }
     
-    // Generate tokens
+    // Generate access token
     const accessToken = await generateAccessToken({
       sub: user.id,
       email: user.email,
       tier: user.tier,
+      name: user.name ?? undefined,
     })
     
-    const { refreshToken } = await createSession({
+    // Create session with siteId
+    const { refreshToken, sessionId } = await createSession({
       userId: user.id,
+      siteId: siteId,
       ipAddress: clientIp,
       userAgent: userAgent,
     })
@@ -85,11 +92,17 @@ export async function POST(request: NextRequest) {
       metadata: {
         email: user.email,
         has_name: !!user.name,
-        site_id: siteId,  // ✅ Log site in audit
+        site_id: siteId,
+        session_id: sessionId,
       },
     })
     
-    logger.info({ userId: user.id, email: user.email, siteId }, 'User signed up')
+    logger.info({ 
+      userId: user.id, 
+      email: user.email, 
+      siteId,
+      sessionId 
+    }, 'User signed up')
     
     const response = successResponse(
       {
@@ -100,6 +113,7 @@ export async function POST(request: NextRequest) {
           tier: user.tier,
         },
         accessToken,
+        sessionId,
         message: 'Account created successfully.',
       },
       201
@@ -108,6 +122,7 @@ export async function POST(request: NextRequest) {
     return setAuthCookies(response, accessToken, refreshToken)
     
   } catch (error) {
+    logger.error({ error }, 'Signup error')
     return handleApiError(error)
   }
 }

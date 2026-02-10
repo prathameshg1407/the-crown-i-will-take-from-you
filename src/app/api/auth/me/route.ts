@@ -1,5 +1,4 @@
 // src/app/api/auth/me/route.ts
-
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyAccessToken } from '@/lib/auth/jwt'
@@ -44,7 +43,7 @@ export async function GET(_request: NextRequest) {
       .from('users')
       .select('*')
       .eq('id', userId)
-      .eq('site_id', siteId)  // ✅ Verify user belongs to this site
+      .eq('site_id', siteId)
       .single()
 
     if (userError) {
@@ -77,7 +76,7 @@ export async function GET(_request: NextRequest) {
       owned_chapters_count: user.owned_chapters?.length || 0,
     }, 'User data retrieved')
 
-    // Fetch user stats (non-blocking errors)
+    // Fetch user stats with site-scoped session count
     let stats = {
       activeSessions: 0,
       chaptersCompleted: 0,
@@ -85,10 +84,12 @@ export async function GET(_request: NextRequest) {
     }
 
     try {
+      // Get active sessions for this site only
       const { data: sessions } = await supabaseAdmin
         .from('sessions')
         .select('id')
         .eq('user_id', userId)
+        .eq('site_id', siteId)
         .gt('expires_at', new Date().toISOString())
 
       const { data: progress } = await supabaseAdmin
@@ -107,13 +108,14 @@ export async function GET(_request: NextRequest) {
       logger.warn({ error: statsError }, 'Failed to fetch user stats - continuing with defaults')
     }
 
-    // Update last login in background (fire and forget with proper async handling)
+    // Update last login in background
     void (async () => {
       try {
         await supabaseAdmin
           .from('users')
           .update({ last_login: new Date().toISOString() })
           .eq('id', userId)
+          .eq('site_id', siteId)
       } catch (err) {
         logger.warn({ error: err }, 'Failed to update last login')
       }
