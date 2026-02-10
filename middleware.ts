@@ -37,7 +37,10 @@ export async function middleware(request: NextRequest) {
   }
   
   // Redirect unauthenticated users from protected routes
-  if (protectedRoutes.some(route => pathname.startsWith(route)) && !isAuthenticated) {
+  // BUT: Allow if they have a refresh token (silent refresh will happen on client)
+  const hasRefreshToken = request.cookies.get('refresh_token')?.value
+  
+  if (protectedRoutes.some(route => pathname.startsWith(route)) && !isAuthenticated && !hasRefreshToken) {
     const url = new URL('/login', request.url)
     url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)

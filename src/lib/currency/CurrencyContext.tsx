@@ -207,7 +207,9 @@ export function useConvertedPrice(inrAmount: number | null) {
 
   useEffect(() => {
     if (inrAmount === null) {
-      setConvertedPrice(null)
+      if (convertedPrice !== null) {
+        setConvertedPrice(null)
+      }
       return
     }
 
