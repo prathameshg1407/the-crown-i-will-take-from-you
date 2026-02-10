@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface ReportModalProps {
 }
 
 export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
+  const { user } = useAuth();
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
@@ -25,7 +27,10 @@ export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
       const res = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ 
+          message,
+          userid: user?.id || null
+        }),
       });
 
       if (!res.ok) throw new Error('Failed');

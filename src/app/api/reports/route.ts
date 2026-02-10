@@ -8,7 +8,7 @@ const ADMIN_EMAIL = 'prathameshgaikwad964006@gmail.com';
 // Anyone can POST a report
 export async function POST(request: NextRequest) {
   try {
-    const { message } = await request.json();
+    const { message, userid } = await request.json();
 
     if (!message || typeof message !== 'string' || message.trim() === '') {
       return NextResponse.json(
@@ -20,7 +20,10 @@ export async function POST(request: NextRequest) {
     // Use admin client for inserts (no RLS issues)
     const { error } = await supabaseAdmin
       .from('reports')
-      .insert({ message: message.trim() });
+      .insert({ 
+        message: message.trim(),
+        userid: userid || null
+      });
 
     if (error) {
       console.error('Error creating report:', error);
