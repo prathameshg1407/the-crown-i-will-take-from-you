@@ -6,7 +6,8 @@ import {
   softDeleteSession,
   storeRotationMapping,
   checkRecentRotation,
-  getSessionById
+  getSessionById,
+  extendSession
 } from '@/lib/auth/session'
 import { generateAccessToken, verifyRefreshToken } from '@/lib/auth/jwt'
 import { supabaseAdmin } from '@/lib/supabase/server'
@@ -20,11 +21,14 @@ import { logger } from '@/lib/logger'
 import { getClientIp, getUserAgent } from '@/lib/request'
 import { getSiteId } from '@/lib/site/config'
 
-// Grace period for expired sessions (5 minutes)
-const SESSION_GRACE_PERIOD_MS = 5 * 60 * 1000
+// Increased grace period for better reliability
+const SESSION_GRACE_PERIOD_MS = 30 * 60 * 1000 // 30 minutes (was 5)
 
-// Soft delete grace period for multi-tab support (5 minutes)
-const SOFT_DELETE_GRACE_SECONDS = 300
+// Soft delete grace period for multi-tab support
+const SOFT_DELETE_GRACE_SECONDS = 600 // 10 minutes (was 5)
+
+// Maximum attempts for session recovery
+const MAX_RECOVERY_ATTEMPTS = 2
 
 export async function POST(request: NextRequest) {
   try {
@@ -100,28 +104,76 @@ export async function POST(request: NextRequest) {
     }
     
     // Get session from database with site isolation and grace period
-    const session = await getSessionByRefreshToken(
+    let session = await getSessionByRefreshToken(
       refreshToken, 
       siteId,
       SESSION_GRACE_PERIOD_MS
     )
     
+    // If session not found, try to find it without site restriction for debugging
     if (!session) {
-      logger.warn({ 
-        userId: refreshPayload.sub, 
-        siteId,
-        jti: refreshPayload.jti 
-      }, 'Session not found or expired beyond grace period')
-      return errorResponse('Session not found or expired', 401, 'SESSION_EXPIRED')
+      const { data: orphanSession } = await supabaseAdmin
+        .from('sessions')
+        .select('id, user_id, site_id, expires_at, created_at')
+        .eq('refresh_token', refreshToken)
+        .single()
+      
+      if (orphanSession) {
+        logger.error({ 
+          sessionId: orphanSession.id,
+          sessionSiteId: orphanSession.site_id,
+          requestedSiteId: siteId,
+          userId: orphanSession.user_id,
+          expiresAt: orphanSession.expires_at,
+          createdAt: orphanSession.created_at
+        }, 'Session exists but site_id mismatch or expired')
+        
+        // If it's a site mismatch, that's a security issue
+        if (orphanSession.site_id !== siteId) {
+          return errorResponse('Invalid session for this site', 401, 'SESSION_SITE_MISMATCH')
+        }
+        
+        // If it's just expired but within a reasonable timeframe, try to recover
+        const expiredAt = new Date(orphanSession.expires_at)
+        const expiredAgo = Date.now() - expiredAt.getTime()
+        const oneHourMs = 60 * 60 * 1000
+        
+        if (expiredAgo < oneHourMs) {
+          logger.warn({ 
+            sessionId: orphanSession.id,
+            expiredMinutesAgo: Math.round(expiredAgo / 60000)
+          }, 'Attempting to recover recently expired session')
+          
+          // Extend the session for recovery
+          const newExpiry = await extendSession(orphanSession.id, siteId, 100)
+          if (newExpiry) {
+            // Retry getting the session now that it's extended
+            session = await getSessionByRefreshToken(
+              refreshToken, 
+              siteId,
+              SESSION_GRACE_PERIOD_MS
+            )
+          }
+        }
+      }
+      
+      if (!session) {
+        logger.warn({ 
+          userId: refreshPayload.sub, 
+          siteId,
+          jti: refreshPayload.jti 
+        }, 'Session not found or expired beyond grace period')
+        return errorResponse('Session not found or expired', 401, 'SESSION_EXPIRED')
+      }
     }
     
-    // Verify session belongs to the correct site
+    // Verify session belongs to the correct site (double-check)
     if (session.site_id !== siteId) {
       logger.error({
         userId: refreshPayload.sub,
         sessionSiteId: session.site_id,
         requestSiteId: siteId
-      }, 'Session site mismatch')
+      }, 'Session site mismatch after retrieval')
       return errorResponse('Invalid session', 401, 'SESSION_INVALID')
     }
 
@@ -177,14 +229,34 @@ export async function POST(request: NextRequest) {
       newSessionId = newSession.sessionId
       rotated = true
       
+      // Ensure the new session has a very long expiry
+      await supabaseAdmin
+        .from('sessions')
+        .update({ 
+          expires_at: new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toISOString()
+        })
+        .eq('id', newSessionId)
+        .eq('site_id', siteId)
+      
       // Store rotation mapping for concurrent requests from other tabs
       if (session.access_token_jti) {
         await storeRotationMapping(
           session.access_token_jti, 
-          newSession.sessionId, 
+          newSessionId, 
           siteId
         ).catch(err => {
           logger.warn({ error: err }, 'Failed to store rotation mapping')
+        })
+      }
+      
+      // Also store mapping for the refresh token JTI
+      if (refreshPayload.jti) {
+        await storeRotationMapping(
+          refreshPayload.jti,
+          newSessionId,
+          siteId
+        ).catch(err => {
+          logger.warn({ error: err }, 'Failed to store refresh token rotation mapping')
         })
       }
       
@@ -204,15 +276,29 @@ export async function POST(request: NextRequest) {
       // If rotation fails, keep using the old token but extend it
       logger.error({ error: rotationError, siteId }, 'Token rotation failed, extending existing session')
       
-      await supabaseAdmin
-        .from('sessions')
-        .update({ 
-          last_used_at: new Date().toISOString(),
-          // Extend expiry by 100 years
-          expires_at: new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toISOString()
-        })
-        .eq('id', session.id)
-        .eq('site_id', siteId)
+      try {
+        // Extend existing session by 100 years
+        const newExpiry = await extendSession(session.id, siteId, 100)
+        
+        if (newExpiry) {
+          logger.info({ 
+            sessionId: session.id, 
+            newExpiry 
+          }, 'Extended existing session instead of rotating')
+        } else {
+          // Fallback: try direct update
+          await supabaseAdmin
+            .from('sessions')
+            .update({ 
+              last_used_at: new Date().toISOString(),
+              expires_at: new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toISOString()
+            })
+            .eq('id', session.id)
+            .eq('site_id', siteId)
+        }
+      } catch (extendError) {
+        logger.error({ error: extendError }, 'Failed to extend session')
+      }
     }
     
     logger.info({ 
