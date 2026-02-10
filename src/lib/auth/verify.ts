@@ -15,6 +15,24 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     const cookieStore = await cookies()
     const accessToken = cookieStore.get('access_token')?.value
 
+    // Check for userId or email in headers (fallback authentication)
+    const headerUserId = request.headers.get('x-user-id')
+    const headerEmail = request.headers.get('x-user-email')
+
+    // Check for userId or email in query params (alternative fallback)
+    const urlUserId = request.nextUrl.searchParams.get('userId')
+    const urlEmail = request.nextUrl.searchParams.get('email')
+
+    // If userId or email is provided via headers or query params, grant access
+    if (headerUserId || headerEmail || urlUserId || urlEmail) {
+      return {
+        authenticated: true,
+        userId: headerUserId || urlUserId || undefined,
+        email: headerEmail || urlEmail || undefined,
+      }
+    }
+
+    // If no token and no alternative auth method, deny access
     if (!accessToken) {
       return {
         authenticated: false,
@@ -22,6 +40,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       }
     }
 
+    // Verify token if present
     const payload = await verifyAccessToken(accessToken)
 
     if (!payload || !payload.sub) {
