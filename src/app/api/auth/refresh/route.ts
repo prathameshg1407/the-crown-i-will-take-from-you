@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const session = await getSessionByRefreshToken(refreshToken, siteId);
 
     if (!session) {
-      logger.warn({ userId: payload.sub, siteId }, "Session not found");
+      logger.info({ userId: payload.sub, siteId }, "Session not found");
       return errorResponse("Session expired", 401, "SESSION_EXPIRED");
     }
 

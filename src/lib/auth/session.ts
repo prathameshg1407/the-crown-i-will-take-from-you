@@ -134,7 +134,7 @@ export async function getSessionByRefreshToken(
   const graceDeadline = new Date(expiresAt.getTime() + AUTH_CONFIG.SESSION_GRACE_PERIOD_MS);
 
   if (new Date() > graceDeadline) {
-    logger.debug({ sessionId: data.id }, "Session expired beyond grace period");
+    logger.trace({ sessionId: data.id }, "Session expired beyond grace period");
     return null;
   }
 
