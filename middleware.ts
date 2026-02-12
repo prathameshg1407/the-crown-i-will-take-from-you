@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { verifyToken } from '@/lib/auth/jwt'
+import type { NextRequest } from 'next/server'      
+import { verifyAccessToken } from '@/lib/auth/jwt'
 
 // Routes that require authentication
 const protectedRoutes = ['/dashboard', '/profile', '/library']
@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
   
   if (accessToken) {
     try {
-      await verifyToken(accessToken)
+      await verifyAccessToken(accessToken)
       isAuthenticated = true
     } catch (error) {
       // Token invalid or expired

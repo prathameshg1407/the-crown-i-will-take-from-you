@@ -324,10 +324,11 @@ export default function RootLayout({
                 },
               }}
             />
+            <ReportButton />
+                    <SpeedInsights />
+
           </AuthProvider>
         </CurrencyProvider>
-        <ReportButton />
-        <SpeedInsights />
         <Analytics />
       </body>
     </html>

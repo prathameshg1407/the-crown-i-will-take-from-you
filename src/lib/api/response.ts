@@ -1,128 +1,91 @@
 // lib/api/response.ts
-import { NextResponse } from 'next/server'
-import { logger } from '@/lib/logger'
-import { ZodError, ZodIssue } from 'zod'
 
-export interface ApiResponse<T = unknown> {
-  success: boolean
-  data?: T
-  error?: {
-    message: string
-    code?: string
-    details?: unknown
-  }
+import { NextResponse } from "next/server";
+import { ZodError, ZodIssue } from "zod";
+import { AUTH_CONFIG } from "@/lib/auth/config";
+
+interface ApiError {
+  message: string;
+  code: string;
 }
 
-export function successResponse<T>(
-  data: T,
-  status: number = 200
-): NextResponse<ApiResponse<T>> {
-  return NextResponse.json(
-    {
-      success: true,
-      data,
-    },
-    { status }
-  )
+interface SuccessResponseData {
+  success: true;
+  data: unknown;
+}
+
+interface ErrorResponseData {
+  success: false;
+  error: ApiError;
+}
+
+export function successResponse(data: unknown, status = 200): NextResponse<SuccessResponseData> {
+  return NextResponse.json({ success: true, data }, { status });
 }
 
 export function errorResponse(
   message: string,
-  status: number = 400,
-  code?: string,
-  details?: unknown
-): NextResponse<ApiResponse> {
-  logger.error({ message, code, details, status }, 'API Error')
-  
+  status = 400,
+  code = "ERROR"
+): NextResponse<ErrorResponseData> {
   return NextResponse.json(
-    {
-      success: false,
-      error: {
-        message,
-        code,
-        details,
-      },
-    },
+    { success: false, error: { message, code } },
     { status }
-  )
+  );
 }
 
-export function validationErrorResponse(error: ZodError): NextResponse<ApiResponse> {
-  const details = error.issues.map((issue: ZodIssue) => ({
-    field: issue.path.join('.'),
-    message: issue.message,
-  }))
-  
-  return errorResponse(
-    'Validation failed',
-    400,
-    'VALIDATION_ERROR',
-    details
-  )
-}
-
-export function handleApiError(error: unknown): NextResponse<ApiResponse> {
+export function handleApiError(error: unknown): NextResponse<ErrorResponseData> {
   if (error instanceof ZodError) {
-    return validationErrorResponse(error)
+    const issues = error.issues as ZodIssue[];
+    const message = issues.map((e: ZodIssue) => e.message).join(", ");
+    return errorResponse(message, 400, "VALIDATION_ERROR");
   }
-  
+
   if (error instanceof Error) {
-    return errorResponse(error.message, 500, 'INTERNAL_ERROR')
+    // Don't expose internal errors in production
+    const message =
+      process.env.NODE_ENV === "development"
+        ? error.message
+        : "An unexpected error occurred";
+
+    return errorResponse(message, 500, "INTERNAL_ERROR");
   }
-  
-  return errorResponse('An unexpected error occurred', 500, 'UNKNOWN_ERROR')
+
+  return errorResponse("An unexpected error occurred", 500, "INTERNAL_ERROR");
 }
 
-/**
- * Set HTTP-only auth cookies
- */
 export function setAuthCookies(
   response: NextResponse,
   accessToken: string,
   refreshToken: string
 ): NextResponse {
-  const isProduction = process.env.NODE_ENV === 'production'
-  
-  response.cookies.set('access_token', accessToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
+  const { COOKIE_OPTIONS } = AUTH_CONFIG;
+
+  response.cookies.set("access_token", accessToken, {
+    ...COOKIE_OPTIONS,
     maxAge: 15 * 60, // 15 minutes
-    path: '/',
-  })
-  
-  response.cookies.set('refresh_token', refreshToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
+  });
+
+  response.cookies.set("refresh_token", refreshToken, {
+    ...COOKIE_OPTIONS,
     maxAge: 7 * 24 * 60 * 60, // 7 days
-    path: '/',
-  })
-  
-  return response
+  });
+
+  return response;
 }
 
-/**
- * Clear auth cookies
- */
 export function clearAuthCookies(response: NextResponse): NextResponse {
-  const isProduction = process.env.NODE_ENV === 'production'
+  const { COOKIE_OPTIONS } = AUTH_CONFIG;
 
-  response.cookies.set('access_token', '', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
+  response.cookies.set("access_token", "", {
+    ...COOKIE_OPTIONS,
     maxAge: 0,
-    path: '/',
-  })
-  
-  response.cookies.set('refresh_token', '', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
+  });
+
+  response.cookies.set("refresh_token", "", {
+    ...COOKIE_OPTIONS,
     maxAge: 0,
-    path: '/',
-  })
-  
-  return response
+  });
+
+  return response;
 }

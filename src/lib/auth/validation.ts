@@ -1,87 +1,41 @@
-import { z } from 'zod'
+// lib/auth/validation.ts
+
+import { z } from "zod";
+
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
 export const signupSchema = z.object({
-  email: z
-    .string()
-    .email('Invalid email address')
-    .toLowerCase()
-    .trim(),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+  email: z.string().email("Invalid email address").toLowerCase().trim(),
+  password: passwordSchema,
   name: z
     .string()
-    .min(2, 'Name must be at least 2 characters')
-    .max(100, 'Name must be less than 100 characters')
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be less than 100 characters")
     .trim()
     .optional(),
-})
+});
 
 export const loginSchema = z.object({
-  email: z
-    .string()
-    .email('Invalid email address')
-    .toLowerCase()
-    .trim(),
-  password: z
-    .string()
-    .min(1, 'Password is required'),
-})
-
-export const refreshTokenSchema = z.object({
-  refreshToken: z.string().min(1, 'Refresh token is required'),
-})
+  email: z.string().email("Invalid email address").toLowerCase().trim(),
+  password: z.string().min(1, "Password is required"),
+});
 
 export const resetPasswordRequestSchema = z.object({
-  email: z
-    .string()
-    .email('Invalid email address')
-    .toLowerCase()
-    .trim(),
-})
+  email: z.string().email("Invalid email address").toLowerCase().trim(),
+});
 
 export const resetPasswordSchema = z.object({
-  token: z.string().min(1, 'Reset token is required'),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-})
+  token: z.string().min(1, "Reset token is required"),
+  password: passwordSchema,
+});
 
-export const verifyEmailSchema = z.object({
-  token: z.string().min(1, 'Verification token is required'),
-})
-
-// User tier validation
-export const userTierSchema = z.enum(['free', 'complete'])
-
-// User database schema (for type reference)
-export const userDbSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
-  password_hash: z.string(),
-  name: z.string().nullable(),
-  tier: userTierSchema, // Note: DB column is 'tier', not 'current_tier'
-  owned_chapters: z.array(z.number().int().positive()),
-  avatar_url: z.string().nullable(),
-  is_active: z.boolean(),
-  last_login: z.date().nullable(),
-  created_at: z.date(),
-  updated_at: z.date(),
-})
-
-export type SignupInput = z.infer<typeof signupSchema>
-export type LoginInput = z.infer<typeof loginSchema>
-export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>
-export type ResetPasswordRequestInput = z.infer<typeof resetPasswordRequestSchema>
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
-export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>
-export type UserTier = z.infer<typeof userTierSchema>
-export type UserDb = z.infer<typeof userDbSchema>
+export type SignupInput = z.infer<typeof signupSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type ResetPasswordRequestInput = z.infer<typeof resetPasswordRequestSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

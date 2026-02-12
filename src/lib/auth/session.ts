@@ -1,135 +1,108 @@
 // lib/auth/session.ts
-import { supabaseAdmin } from '@/lib/supabase/server'
-import { generateRefreshToken, getExpirationSeconds, JWT_REFRESH_EXPIRES_IN } from './jwt'
-import { logger } from '@/lib/logger'
-import type { Json } from '@/lib/supabase/database.types'
+
+import { supabaseAdmin } from "@/lib/supabase/server";
+import { generateTokenPair, hashToken } from "./jwt";
+import { AUTH_CONFIG } from "./config";
+import { logger } from "@/lib/logger";
+import type { TierType, Json } from "@/lib/supabase/database.types";
 
 // =============================================================================
 // TYPES
 // =============================================================================
 
-interface CreateSessionParams {
-  userId: string
-  siteId: number
-  userEmail: string
-  userTier: string
-  userName?: string | null
-  ipAddress?: string
-  userAgent?: string
+export interface DeviceInfo {
+  raw: string;
+  browser?: string;
+  os?: string;
+  device?: string;
 }
 
-interface DeviceInfo {
-  raw: string
-  browser?: string
-  os?: string
-  device?: string
+export interface CreateSessionParams {
+  userId: string;
+  siteId: number;
+  userEmail: string;
+  userTier: TierType;
+  userName?: string | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
 }
 
-interface SessionData {
-  id: string
-  user_id: string
-  site_id: number
-  user_email: string | null
-  user_tier: string | null
-  user_name: string | null
-  refresh_token: string
-  access_token_jti: string | null
-  ip_address: string | null
-  user_agent: string | null
-  device_info: Json
-  expires_at: string
-  last_used_at: string | null
-  created_at: string
+export interface SessionResult {
+  sessionId: string;
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: Date;
 }
 
-// =============================================================================
-// DEBOUNCE CACHE
-// =============================================================================
-
-const sessionUpdateTimestamps = new Map<string, number>()
-const UPDATE_DEBOUNCE_MS = 60000 // 1 minute
-const MAX_CACHE_ENTRIES = 1000
-
-function cleanupDebounceCache(): void {
-  if (sessionUpdateTimestamps.size > MAX_CACHE_ENTRIES) {
-    const cutoff = Date.now() - UPDATE_DEBOUNCE_MS * 2
-    const toDelete: string[] = []
-    
-    for (const [key, timestamp] of sessionUpdateTimestamps.entries()) {
-      if (timestamp < cutoff) {
-        toDelete.push(key)
-      }
-    }
-    
-    toDelete.forEach(key => sessionUpdateTimestamps.delete(key))
-  }
+export interface SessionData {
+  id: string;
+  user_id: string;
+  site_id: number;
+  user_email: string | null;
+  user_tier: TierType | null;
+  user_name: string | null;
+  refresh_token_hash: string;
+  access_token_jti: string | null;
+  token_family: string;
+  token_version: number;
+  ip_address: string | null;
+  user_agent: string | null;
+  device_info: Json | null;
+  expires_at: string;
+  last_used_at: string;
+  created_at: string;
 }
 
 // =============================================================================
 // SESSION CREATION
 // =============================================================================
 
-export async function createSession({ 
-  userId,
-  siteId,
-  userEmail,
-  userTier,
-  userName,
-  ipAddress, 
-  userAgent 
-}: CreateSessionParams): Promise<{
-  refreshToken: string
-  expiresAt: Date
-  sessionId: string
-}> {
-  try {
-    const { token: refreshToken, jti } = await generateRefreshToken(userId)
-    
-    const expiresInSeconds = getExpirationSeconds(JWT_REFRESH_EXPIRES_IN)
-    const expiresAt = new Date(Date.now() + expiresInSeconds * 1000)
-    
-    const deviceInfo = parseUserAgent(userAgent)
-    
-    const { data, error } = await supabaseAdmin
-      .from('sessions')
-      .insert({
-        user_id: userId,
-        site_id: siteId,
-        user_email: userEmail,
-        user_tier: userTier,
-        user_name: userName || null,
-        refresh_token: refreshToken,
-        access_token_jti: jti,
-        ip_address: ipAddress || null,
-        user_agent: userAgent || null,
-        device_info: deviceInfo as Json,
-        expires_at: expiresAt.toISOString(),
-        last_used_at: new Date().toISOString(),
-      })
-      .select()
-      .single()
-    
-    if (error) {
-      logger.error({ error, userId, siteId }, 'Failed to create session')
-      throw new Error('Failed to create session: ' + error.message)
-    }
-    
-    logger.info({ 
-      userId, 
-      siteId, 
-      sessionId: data.id,
-      expiresAt 
-    }, 'Session created successfully')
-    
-    return {
-      refreshToken,
-      expiresAt,
-      sessionId: data.id
-    }
-  } catch (error) {
-    logger.error({ error, userId, siteId }, 'Error creating session')
-    throw error
+export async function createSession(params: CreateSessionParams): Promise<SessionResult> {
+  const { userId, siteId, userEmail, userTier, userName, ipAddress, userAgent } = params;
+
+  const tokenPair = await generateTokenPair({
+    id: userId,
+    email: userEmail,
+    tier: userTier,
+    name: userName,
+  });
+
+  const deviceInfo = parseUserAgent(userAgent ?? undefined);
+
+  const { data, error } = await supabaseAdmin
+    .from("sessions")
+    .insert({
+      user_id: userId,
+      site_id: siteId,
+      user_email: userEmail,
+      user_tier: userTier,
+      user_name: userName ?? null,
+      refresh_token_hash: tokenPair.refreshTokenHash,
+      access_token_jti: tokenPair.accessTokenJti,
+      token_family: tokenPair.tokenFamily,
+      token_version: tokenPair.tokenVersion,
+      ip_address: ipAddress ?? null,
+      user_agent: userAgent ?? null,
+      device_info: deviceInfo as Json | null,
+      expires_at: tokenPair.expiresAt.toISOString(),
+      last_used_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    logger.error({ error, userId, siteId }, "Failed to create session");
+    throw new Error("Failed to create session");
   }
+
+  logger.info({ userId, siteId, sessionId: data.id }, "Session created");
+
+  return {
+    sessionId: data.id,
+    accessToken: tokenPair.accessToken,
+    refreshToken: tokenPair.refreshToken,
+    expiresAt: tokenPair.expiresAt,
+  };
 }
 
 // =============================================================================
@@ -138,197 +111,181 @@ export async function createSession({
 
 export async function getSessionByRefreshToken(
   refreshToken: string,
-  siteId: number,
-  gracePeriodMs: number = 0
+  siteId: number
 ): Promise<SessionData | null> {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from('sessions')
-      .select('*')
-      .eq('refresh_token', refreshToken)
-      .eq('site_id', siteId)
-      .single()
-    
-    if (error) {
-      if (error.code === 'PGRST116') {
-        logger.debug({ siteId }, 'Session not found')
-      } else {
-        logger.error({ error, siteId }, 'Database error fetching session')
-      }
-      return null
+  const tokenHash = await hashToken(refreshToken);
+
+  const { data, error } = await supabaseAdmin
+    .from("sessions")
+    .select("*")
+    .eq("refresh_token_hash", tokenHash)
+    .eq("site_id", siteId)
+    .single();
+
+  if (error || !data) {
+    if (error?.code !== "PGRST116") {
+      logger.error({ error, siteId }, "Error fetching session");
     }
-    
-    if (!data) {
-      return null
-    }
-    
-    // Check expiration with grace period
-    const expiresAt = new Date(data.expires_at)
-    const now = new Date()
-    const graceDeadline = new Date(expiresAt.getTime() + gracePeriodMs)
-    
-    if (now > graceDeadline) {
-      logger.info({ 
-        sessionId: data.id,
-        siteId,
-        expiresAt: expiresAt.toISOString(), 
-        graceDeadline: graceDeadline.toISOString(),
-        expiredBy: Math.round((now.getTime() - graceDeadline.getTime()) / 1000) + 's'
-      }, 'Session expired beyond grace period')
-      
-      return null
-    }
-    
-    if (now > expiresAt && gracePeriodMs > 0) {
-      logger.info({ 
-        sessionId: data.id,
-        siteId,
-        expiredAgo: Math.round((now.getTime() - expiresAt.getTime()) / 1000) + 's',
-        graceRemaining: Math.round((graceDeadline.getTime() - now.getTime()) / 1000) + 's'
-      }, 'Session in grace period - allowing refresh')
-    }
-    
-    // Update last_used_at in background (debounced)
-    const lastUpdate = sessionUpdateTimestamps.get(data.id)
-    const shouldUpdate = !lastUpdate || (Date.now() - lastUpdate > UPDATE_DEBOUNCE_MS)
-    
-    if (shouldUpdate) {
-      sessionUpdateTimestamps.set(data.id, Date.now())
-      cleanupDebounceCache()
-      
-      // Fire and forget background update
-      void (async () => {
-        try {
-          await supabaseAdmin
-            .from('sessions')
-            .update({ last_used_at: new Date().toISOString() })
-            .eq('id', data.id)
-          logger.debug({ sessionId: data.id }, 'Session last_used_at updated')
-        } catch (err) {
-          logger.warn({ 
-            error: err instanceof Error ? err.message : String(err), 
-            sessionId: data.id 
-          }, 'Failed to update last_used_at')
-        }
-      })()
-    }
-    
-    return data as SessionData
-  } catch (error) {
-    logger.error({ error, siteId }, 'Error getting session by refresh token')
-    return null
+    return null;
   }
+
+  // Check expiration with grace period
+  const expiresAt = new Date(data.expires_at);
+  const graceDeadline = new Date(expiresAt.getTime() + AUTH_CONFIG.SESSION_GRACE_PERIOD_MS);
+
+  if (new Date() > graceDeadline) {
+    logger.debug({ sessionId: data.id }, "Session expired beyond grace period");
+    return null;
+  }
+
+  return data as SessionData;
+}
+
+export async function getSessionById(
+  sessionId: string,
+  siteId: number
+): Promise<SessionData | null> {
+  const { data, error } = await supabaseAdmin
+    .from("sessions")
+    .select("*")
+    .eq("id", sessionId)
+    .eq("site_id", siteId)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data as SessionData;
 }
 
 // =============================================================================
-// SESSION ROTATION TRACKING
+// SESSION ROTATION
 // =============================================================================
 
-export async function storeRotationMapping(
-  oldJti: string, 
-  newSessionId: string, 
-  siteId: number
-): Promise<boolean> {
-  try {
-    const { error } = await supabaseAdmin
-      .from('session_rotations')
-      .upsert({
-        old_jti: oldJti,
-        new_session_id: newSessionId,
-        site_id: siteId,
-        created_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 minutes
-      }, {
-        onConflict: 'old_jti,site_id'
-      })
-    
-    if (error) {
-      logger.warn({ 
-        error: error.message, 
-        oldJti, 
-        newSessionId,
-        siteId 
-      }, 'Failed to store rotation mapping')
-      return false
-    }
-    
-    logger.debug({ oldJti, newSessionId, siteId }, 'Rotation mapping stored')
-    return true
-  } catch (error) {
-    logger.warn({ error }, 'Error storing rotation mapping')
-    return false
+export async function rotateSession(
+  session: SessionData,
+  user: { id: string; email: string; tier: TierType; name: string | null },
+  ipAddress?: string | null,
+  userAgent?: string | null
+): Promise<SessionResult> {
+  // Generate new token pair with incremented version
+  const tokenPair = await generateTokenPair(
+    user,
+    session.token_family,
+    session.token_version
+  );
+
+  // Store rotation record for grace period handling
+  await storeRotationRecord({
+    oldJti: session.access_token_jti || "",
+    oldRefreshTokenHash: session.refresh_token_hash,
+    newSessionId: session.id,
+    siteId: session.site_id,
+    userId: session.user_id,
+    tokenFamily: session.token_family,
+  });
+
+  const deviceInfo = userAgent 
+    ? parseUserAgent(userAgent) 
+    : (session.device_info as DeviceInfo | null);
+
+  // Update session with new tokens
+  const { error } = await supabaseAdmin
+    .from("sessions")
+    .update({
+      refresh_token_hash: tokenPair.refreshTokenHash,
+      access_token_jti: tokenPair.accessTokenJti,
+      token_version: tokenPair.tokenVersion,
+      ip_address: ipAddress ?? session.ip_address,
+      user_agent: userAgent ?? session.user_agent,
+      device_info: deviceInfo as Json | null,
+      expires_at: tokenPair.expiresAt.toISOString(),
+      last_used_at: new Date().toISOString(),
+    })
+    .eq("id", session.id);
+
+  if (error) {
+    logger.error({ error, sessionId: session.id }, "Failed to rotate session");
+    throw new Error("Failed to rotate session");
+  }
+
+  logger.info(
+    { sessionId: session.id, version: tokenPair.tokenVersion },
+    "Session rotated"
+  );
+
+  return {
+    sessionId: session.id,
+    accessToken: tokenPair.accessToken,
+    refreshToken: tokenPair.refreshToken,
+    expiresAt: tokenPair.expiresAt,
+  };
+}
+
+// =============================================================================
+// ROTATION RECORDS (For Multi-Tab Support)
+// =============================================================================
+
+interface RotationRecordParams {
+  oldJti: string;
+  oldRefreshTokenHash: string;
+  newSessionId: string;
+  siteId: number;
+  userId: string;
+  tokenFamily: string;
+}
+
+async function storeRotationRecord(params: RotationRecordParams): Promise<void> {
+  const expiresAt = new Date(Date.now() + AUTH_CONFIG.ROTATION_RECORD_TTL_MS);
+
+  const { error } = await supabaseAdmin.from("session_rotations").insert({
+    old_jti: params.oldJti,
+    old_refresh_token_hash: params.oldRefreshTokenHash,
+    new_session_id: params.newSessionId,
+    site_id: params.siteId,
+    user_id: params.userId,
+    token_family: params.tokenFamily,
+    expires_at: expiresAt.toISOString(),
+  });
+
+  if (error) {
+    logger.warn({ error }, "Failed to store rotation record");
   }
 }
 
-export async function checkRecentRotation(
-  oldJti: string, 
+export async function checkRotationRecord(
+  refreshTokenHash: string,
   siteId: number
 ): Promise<SessionData | null> {
-  try {
-    // Check if this JTI was recently rotated
-    const { data: rotation, error: rotationError } = await supabaseAdmin
-      .from('session_rotations')
-      .select('new_session_id')
-      .eq('old_jti', oldJti)
-      .eq('site_id', siteId)
-      .gt('expires_at', new Date().toISOString())
-      .single()
-    
-    if (rotationError || !rotation) {
-      return null
-    }
-    
-    // Get the new session details
-    const { data: session, error: sessionError } = await supabaseAdmin
-      .from('sessions')
-      .select('*')
-      .eq('id', rotation.new_session_id)
-      .eq('site_id', siteId)
-      .gt('expires_at', new Date().toISOString())
-      .single()
-    
-    if (sessionError || !session) {
-      logger.warn({ 
-        error: sessionError, 
-        newSessionId: rotation.new_session_id 
-      }, 'New session not found for rotation')
-      return null
-    }
-    
-    logger.info({ 
-      oldJti, 
-      newSessionId: session.id,
-      siteId 
-    }, 'Found recent rotation - reusing')
-    
-    return session as SessionData
-  } catch (error) {
-    logger.debug({ error, oldJti }, 'Error checking recent rotation')
-    return null
-  }
-}
+  // Check if this token was recently rotated
+  const { data: rotation, error: rotationError } = await supabaseAdmin
+    .from("session_rotations")
+    .select("new_session_id, used")
+    .eq("old_refresh_token_hash", refreshTokenHash)
+    .eq("site_id", siteId)
+    .gt("expires_at", new Date().toISOString())
+    .single();
 
-export async function cleanupRotationMappings(): Promise<number> {
-  try {
-    const { error, count } = await supabaseAdmin
-      .from('session_rotations')
-      .delete()
-      .lt('expires_at', new Date().toISOString())
-    
-    if (error) {
-      logger.warn({ error }, 'Failed to cleanup rotation mappings')
-      return 0
-    }
-    
-    if (count && count > 0) {
-      logger.debug({ count }, 'Cleaned up expired rotation mappings')
-    }
-    
-    return count || 0
-  } catch (error) {
-    logger.warn({ error }, 'Error cleaning up rotation mappings')
-    return 0
+  if (rotationError || !rotation) {
+    return null;
   }
+
+  // If already used, this might be a token reuse attack
+  if (rotation.used) {
+    logger.warn({ refreshTokenHash, siteId }, "Potential token reuse detected");
+    return null;
+  }
+
+  // Mark as used
+  await supabaseAdmin
+    .from("session_rotations")
+    .update({ used: true, used_at: new Date().toISOString() })
+    .eq("old_refresh_token_hash", refreshTokenHash)
+    .eq("site_id", siteId);
+
+  // Return the new session
+  return getSessionById(rotation.new_session_id, siteId);
 }
 
 // =============================================================================
@@ -336,312 +293,116 @@ export async function cleanupRotationMappings(): Promise<number> {
 // =============================================================================
 
 export async function deleteSession(sessionId: string): Promise<boolean> {
-  try {
-    const { error } = await supabaseAdmin
-      .from('sessions')
-      .delete()
-      .eq('id', sessionId)
-    
-    if (error) {
-      logger.warn({ error, sessionId }, 'Failed to delete session')
-      return false
-    }
-    
-    // Clean up from debounce cache
-    sessionUpdateTimestamps.delete(sessionId)
-    
-    logger.debug({ sessionId }, 'Session deleted')
-    return true
-  } catch (error) {
-    logger.warn({ error, sessionId }, 'Error deleting session')
-    return false
-  }
-}
+  const { error } = await supabaseAdmin
+    .from("sessions")
+    .delete()
+    .eq("id", sessionId);
 
-export async function softDeleteSession(
-  sessionId: string, 
-  graceSeconds: number = 120 // 2 minutes default for multi-tab support
-): Promise<boolean> {
-  try {
-    const expiresAt = new Date(Date.now() + graceSeconds * 1000).toISOString()
-    
-    const { error } = await supabaseAdmin
-      .from('sessions')
-      .update({ expires_at: expiresAt })
-      .eq('id', sessionId)
-    
-    if (error) {
-      logger.warn({ error, sessionId }, 'Failed to soft delete session')
-      return false
-    }
-    
-    logger.debug({ 
-      sessionId, 
-      expiresAt, 
-      graceSeconds 
-    }, 'Session soft deleted with grace period')
-    
-    return true
-  } catch (error) {
-    logger.warn({ error, sessionId }, 'Error soft deleting session')
-    return false
+  if (error) {
+    logger.warn({ error, sessionId }, "Failed to delete session");
+    return false;
   }
+
+  return true;
 }
 
 export async function deleteAllUserSessions(
-  userId: string, 
+  userId: string,
   siteId: number,
   exceptSessionId?: string
 ): Promise<number> {
-  try {
-    let query = supabaseAdmin
-      .from('sessions')
-      .delete()
-      .eq('user_id', userId)
-      .eq('site_id', siteId)
-    
-    if (exceptSessionId) {
-      query = query.neq('id', exceptSessionId)
-    }
-    
-    const { error, count } = await query
-    
-    if (error) {
-      logger.error({ error, userId, siteId }, 'Failed to delete user sessions')
-      throw new Error('Failed to delete sessions')
-    }
-    
-    logger.info({ 
-      userId, 
-      siteId, 
-      exceptSessionId, 
-      count 
-    }, 'User sessions deleted')
-    
-    return count || 0
-  } catch (error) {
-    logger.error({ error, userId, siteId }, 'Error deleting user sessions')
-    throw error
+  let query = supabaseAdmin
+    .from("sessions")
+    .delete()
+    .eq("user_id", userId)
+    .eq("site_id", siteId);
+
+  if (exceptSessionId) {
+    query = query.neq("id", exceptSessionId);
   }
+
+  const { error, count } = await query;
+
+  if (error) {
+    logger.error({ error, userId, siteId }, "Failed to delete user sessions");
+    throw new Error("Failed to delete sessions");
+  }
+
+  logger.info({ userId, siteId, count }, "User sessions deleted");
+  return count || 0;
 }
 
 // =============================================================================
-// SESSION EXTENSION
+// SESSION CLEANUP
 // =============================================================================
 
-export async function extendSession(
-  sessionId: string, 
-  siteId: number,
-  additionalYears: number = 100
-): Promise<Date | null> {
-  try {
-    // First verify session exists and belongs to site
-    const { data: session, error: fetchError } = await supabaseAdmin
-      .from('sessions')
-      .select('expires_at, site_id')
-      .eq('id', sessionId)
-      .eq('site_id', siteId)
-      .single()
-    
-    if (fetchError || !session) {
-      logger.warn({ sessionId, siteId, error: fetchError }, 'Session not found for extension')
-      return null
-    }
-    
-    // Calculate new expiry
-    const currentExpiry = new Date(session.expires_at)
-    const now = new Date()
-    const baseDate = currentExpiry > now ? currentExpiry : now
-    const newExpiry = new Date(baseDate.getTime() + additionalYears * 365 * 24 * 60 * 60 * 1000)
-    
-    // Update session
-    const { error } = await supabaseAdmin
-      .from('sessions')
-      .update({ 
-        expires_at: newExpiry.toISOString(),
-        last_used_at: now.toISOString()
-      })
-      .eq('id', sessionId)
-      .eq('site_id', siteId)
-    
-    if (error) {
-      logger.error({ error, sessionId, siteId }, 'Failed to extend session')
-      return null
-    }
-    
-    logger.info({ 
-      sessionId, 
-      siteId, 
-      oldExpiry: currentExpiry.toISOString(),
-      newExpiry: newExpiry.toISOString() 
-    }, 'Session extended successfully')
-    
-    return newExpiry
-  } catch (error) {
-    logger.error({ error, sessionId, siteId }, 'Error extending session')
-    return null
+export async function cleanExpiredSessions(): Promise<number> {
+  const { error, count } = await supabaseAdmin
+    .from("sessions")
+    .delete()
+    .lt("expires_at", new Date().toISOString());
+
+  if (error) {
+    logger.error({ error }, "Failed to clean expired sessions");
+    return 0;
   }
+
+  // Also clean rotation records
+  await supabaseAdmin
+    .from("session_rotations")
+    .delete()
+    .lt("expires_at", new Date().toISOString());
+
+  if (count && count > 0) {
+    logger.info({ count }, "Cleaned expired sessions");
+  }
+
+  return count || 0;
 }
 
 // =============================================================================
-// SESSION UTILITIES
-// =============================================================================
-
-export async function getUserSessionCount(userId: string, siteId: number): Promise<number> {
-  try {
-    const { count, error } = await supabaseAdmin
-      .from('sessions')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('site_id', siteId)
-      .gt('expires_at', new Date().toISOString())
-    
-    if (error) {
-      logger.warn({ error, userId, siteId }, 'Failed to count user sessions')
-      return 0
-    }
-    
-    return count || 0
-  } catch (error) {
-    logger.error({ error, userId, siteId }, 'Error counting user sessions')
-    return 0
-  }
-}
-
-export async function cleanExpiredSessions(siteId?: number): Promise<number> {
-  try {
-    // Clean sessions expired more than 24 hours ago
-    const cleanupDeadline = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    
-    let query = supabaseAdmin
-      .from('sessions')
-      .delete()
-      .lt('expires_at', cleanupDeadline.toISOString())
-    
-    if (siteId) {
-      query = query.eq('site_id', siteId)
-    }
-    
-    const { error, count } = await query
-    
-    if (error) {
-      logger.error({ error, siteId }, 'Failed to clean expired sessions')
-      throw error
-    }
-    
-    // Also clean up rotation mappings
-    const rotationCount = await cleanupRotationMappings()
-    
-    if ((count && count > 0) || rotationCount > 0) {
-      logger.info({ 
-        sessionsDeleted: count || 0, 
-        rotationsDeleted: rotationCount,
-        siteId 
-      }, 'Expired sessions and rotations cleaned')
-    }
-    
-    return count || 0
-  } catch (error) {
-    logger.error({ error, siteId }, 'Error cleaning expired sessions')
-    throw error
-  }
-}
-
-export async function validateSessionSite(
-  sessionId: string, 
-  siteId: number
-): Promise<boolean> {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from('sessions')
-      .select('site_id')
-      .eq('id', sessionId)
-      .single()
-    
-    if (error || !data) {
-      return false
-    }
-    
-    return data.site_id === siteId
-  } catch {
-    return false
-  }
-}
-
-export async function getSessionById(
-  sessionId: string,
-  siteId: number
-): Promise<SessionData | null> {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from('sessions')
-      .select('*')
-      .eq('id', sessionId)
-      .eq('site_id', siteId)
-      .gt('expires_at', new Date().toISOString())
-      .single()
-    
-    if (error || !data) {
-      return null
-    }
-    
-    return data as SessionData
-  } catch {
-    return null
-  }
-}
-
-// =============================================================================
-// HELPERS
+// UTILITIES
 // =============================================================================
 
 function parseUserAgent(userAgent?: string): DeviceInfo | null {
-  if (!userAgent) return null
-  
+  if (!userAgent) return null;
+
   const info: DeviceInfo = {
-    raw: userAgent.substring(0, 500), // Limit length
-  }
-  
+    raw: userAgent.substring(0, 500),
+  };
+
   // Browser detection
-  if (userAgent.includes('Chrome') && !userAgent.includes('Edge')) {
-    info.browser = 'Chrome'
-  } else if (userAgent.includes('Firefox')) {
-    info.browser = 'Firefox'
-  } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
-    info.browser = 'Safari'
-  } else if (userAgent.includes('Edge')) {
-    info.browser = 'Edge'
-  } else if (userAgent.includes('Opera') || userAgent.includes('OPR')) {
-    info.browser = 'Opera'
+  if (userAgent.includes("Chrome") && !userAgent.includes("Edge")) {
+    info.browser = "Chrome";
+  } else if (userAgent.includes("Firefox")) {
+    info.browser = "Firefox";
+  } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
+    info.browser = "Safari";
+  } else if (userAgent.includes("Edge")) {
+    info.browser = "Edge";
   }
-  
+
   // OS detection
-  if (userAgent.includes('Windows')) {
-    info.os = 'Windows'
-  } else if (userAgent.includes('Mac OS') || userAgent.includes('Macintosh')) {
-    info.os = 'MacOS'
-  } else if (userAgent.includes('Linux') && !userAgent.includes('Android')) {
-    info.os = 'Linux'
-  } else if (userAgent.includes('Android')) {
-    info.os = 'Android'
-  } else if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) {
-    info.os = 'iOS'
+  if (userAgent.includes("Windows")) {
+    info.os = "Windows";
+  } else if (userAgent.includes("Mac OS")) {
+    info.os = "MacOS";
+  } else if (userAgent.includes("Linux") && !userAgent.includes("Android")) {
+    info.os = "Linux";
+  } else if (userAgent.includes("Android")) {
+    info.os = "Android";
+  } else if (userAgent.includes("iPhone") || userAgent.includes("iPad")) {
+    info.os = "iOS";
   }
-  
+
   // Device detection
-  if (userAgent.includes('Mobile') || userAgent.includes('iPhone')) {
-    info.device = 'Mobile'
-  } else if (userAgent.includes('Tablet') || userAgent.includes('iPad')) {
-    info.device = 'Tablet'
+  if (userAgent.includes("Mobile") || userAgent.includes("iPhone")) {
+    info.device = "Mobile";
+  } else if (userAgent.includes("iPad") || userAgent.includes("Tablet")) {
+    info.device = "Tablet";
   } else {
-    info.device = 'Desktop'
+    info.device = "Desktop";
   }
-  
-  return info
+
+  return info;
 }
-
-// =============================================================================
-// EXPORTS
-// =============================================================================
-
-export type { SessionData, CreateSessionParams }

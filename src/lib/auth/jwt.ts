@@ -1,159 +1,197 @@
 // lib/auth/jwt.ts
-import { SignJWT, jwtVerify, JWTPayload as JoseJWTPayload } from 'jose'
-import { nanoid } from 'nanoid'
+
+import { SignJWT, jwtVerify } from "jose";
+import { nanoid } from "nanoid";
+import { AUTH_CONFIG, getExpirationSeconds } from "./config";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-secret-key-at-least-32-characters-long-for-security'
-)
+  process.env.JWT_SECRET || "your-secret-key-at-least-32-characters-long"
+);
 
-// Token expiration times
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30m'
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '100y'
+// =============================================================================
+// TYPES
+// =============================================================================
 
-export interface JWTPayload {
-  sub: string
-  email: string
-  tier: string
-  name?: string
-  type?: 'access' | 'refresh'
-  jti?: string
-  iat?: number
-  exp?: number
+export interface AccessTokenPayload {
+  sub: string;
+  email: string;
+  tier: string;
+  name?: string;
+  jti: string;
+  type: "access";
+  iat?: number;
+  exp?: number;
 }
 
 export interface RefreshTokenPayload {
-  sub: string
-  type: 'refresh'
-  jti: string
-  iat?: number
-  exp?: number
+  sub: string;
+  jti: string;
+  family: string;
+  version: number;
+  type: "refresh";
+  iat?: number;
+  exp?: number;
 }
 
-export async function generateAccessToken(
-  payload: Omit<JWTPayload, 'jti' | 'iat' | 'exp' | 'type'>
-): Promise<string> {
-  const jti = nanoid()
-  
-  return await new SignJWT({ 
+export interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+  accessTokenJti: string;
+  refreshTokenJti: string;
+  tokenFamily: string;
+  tokenVersion: number;
+  refreshTokenHash: string;
+  expiresAt: Date;
+}
+
+// =============================================================================
+// UTILITIES (Edge-compatible)
+// =============================================================================
+
+/**
+ * Hash a token using Web Crypto API (works in Edge Runtime)
+ */
+export async function hashToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Verify a token against its hash
+ */
+export async function verifyTokenHash(token: string, hash: string): Promise<boolean> {
+  const computedHash = await hashToken(token);
+  return computedHash === hash;
+}
+
+// =============================================================================
+// TOKEN GENERATION
+// =============================================================================
+
+export async function generateAccessToken(payload: {
+  sub: string;
+  email: string;
+  tier: string;
+  name?: string;
+}): Promise<{ token: string; jti: string }> {
+  const jti = nanoid();
+
+  const token = await new SignJWT({
     ...payload,
     jti,
-    type: 'access'
+    type: "access",
   })
-    .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuedAt()
-    .setExpirationTime(JWT_EXPIRES_IN)
-    .setJti(jti)
-    .sign(JWT_SECRET)
+    .setExpirationTime(AUTH_CONFIG.ACCESS_TOKEN_EXPIRES)
+    .sign(JWT_SECRET);
+
+  return { token, jti };
 }
 
-export async function generateRefreshToken(userId: string): Promise<{ token: string; jti: string }> {
-  const jti = nanoid()
-  
-  const token = await new SignJWT({ 
+export async function generateRefreshToken(
+  userId: string,
+  family?: string,
+  version: number = 1
+): Promise<{
+  token: string;
+  jti: string;
+  family: string;
+  version: number;
+  hash: string;
+  expiresAt: Date;
+}> {
+  const jti = nanoid();
+  const tokenFamily = family || nanoid();
+  const expiresInSeconds = getExpirationSeconds(AUTH_CONFIG.REFRESH_TOKEN_EXPIRES);
+  const expiresAt = new Date(Date.now() + expiresInSeconds * 1000);
+
+  const token = await new SignJWT({
     sub: userId,
-    type: 'refresh',
-    jti
+    jti,
+    family: tokenFamily,
+    version,
+    type: "refresh",
   })
-    .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuedAt()
-    .setExpirationTime(JWT_REFRESH_EXPIRES_IN)
-    .setJti(jti)
-    .sign(JWT_SECRET)
-  
-  return { token, jti }
+    .setExpirationTime(AUTH_CONFIG.REFRESH_TOKEN_EXPIRES)
+    .sign(JWT_SECRET);
+
+  const hash = await hashToken(token);
+
+  return { token, jti, family: tokenFamily, version, hash, expiresAt };
 }
 
-export async function verifyAccessToken(token: string): Promise<JWTPayload> {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET)
-    
-    // Validate required fields
-    if (!payload.sub || !payload.email || !payload.tier) {
-      throw new Error('Invalid token payload - missing required fields')
-    }
-    
-    // Validate token type
-    if (payload.type !== 'access') {
-      throw new Error('Invalid token type - expected access token')
-    }
-    
-    return {
-      sub: payload.sub as string,
-      email: payload.email as string,
-      tier: payload.tier as string,
-      name: payload.name as string | undefined,
-      type: payload.type as 'access',
-      jti: payload.jti,
-      iat: payload.iat,
-      exp: payload.exp,
-    }
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes('expired')) {
-        throw new Error('Token expired')
-      }
-      throw error
-    }
-    throw new Error('Invalid or expired token')
+export async function generateTokenPair(
+  user: { id: string; email: string; tier: string; name?: string | null },
+  existingFamily?: string,
+  existingVersion?: number
+): Promise<TokenPair> {
+  const version = existingVersion ? existingVersion + 1 : 1;
+
+  const [accessResult, refreshResult] = await Promise.all([
+    generateAccessToken({
+      sub: user.id,
+      email: user.email,
+      tier: user.tier,
+      name: user.name ?? undefined,
+    }),
+    generateRefreshToken(user.id, existingFamily, version),
+  ]);
+
+  return {
+    accessToken: accessResult.token,
+    refreshToken: refreshResult.token,
+    accessTokenJti: accessResult.jti,
+    refreshTokenJti: refreshResult.jti,
+    tokenFamily: refreshResult.family,
+    tokenVersion: refreshResult.version,
+    refreshTokenHash: refreshResult.hash,
+    expiresAt: refreshResult.expiresAt,
+  };
+}
+
+// =============================================================================
+// TOKEN VERIFICATION
+// =============================================================================
+
+export async function verifyAccessToken(token: string): Promise<AccessTokenPayload> {
+  const { payload } = await jwtVerify(token, JWT_SECRET);
+
+  if (!payload.sub || !payload.email || !payload.tier || payload.type !== "access") {
+    throw new Error("Invalid access token payload");
   }
+
+  return {
+    sub: payload.sub as string,
+    email: payload.email as string,
+    tier: payload.tier as string,
+    name: payload.name as string | undefined,
+    jti: payload.jti as string,
+    type: "access",
+    iat: payload.iat,
+    exp: payload.exp,
+  };
 }
 
 export async function verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET)
-    
-    // Validate required fields
-    if (!payload.sub || payload.type !== 'refresh' || !payload.jti) {
-      throw new Error('Invalid refresh token - missing required fields')
-    }
-    
-    return {
-      sub: payload.sub as string,
-      type: 'refresh',
-      jti: payload.jti as string,
-      iat: payload.iat,
-      exp: payload.exp,
-    }
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes('expired')) {
-        throw new Error('Refresh token expired')
-      }
-      throw error
-    }
-    throw new Error('Invalid or expired refresh token')
-  }
-}
+  const { payload } = await jwtVerify(token, JWT_SECRET);
 
-export async function verifyToken(token: string): Promise<JoseJWTPayload> {
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET)
-    return payload
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('expired')) {
-      throw new Error('Token expired')
-    }
-    throw new Error('Invalid or expired token')
+  if (!payload.sub || !payload.jti || !payload.family || payload.type !== "refresh") {
+    throw new Error("Invalid refresh token payload");
   }
-}
 
-export function getExpirationSeconds(timeString: string): number {
-  const unit = timeString.slice(-1)
-  const value = parseInt(timeString.slice(0, -1))
-  
-  if (isNaN(value)) {
-    return 1800 // Default to 30 minutes
-  }
-  
-  switch (unit) {
-    case 's': return value
-    case 'm': return value * 60
-    case 'h': return value * 60 * 60
-    case 'd': return value * 24 * 60 * 60
-    case 'y': return value * 365 * 24 * 60 * 60
-    default: return 1800 // Default to 30 minutes
-  }
+  return {
+    sub: payload.sub as string,
+    jti: payload.jti as string,
+    family: payload.family as string,
+    version: (payload.version as number) || 1,
+    type: "refresh",
+    iat: payload.iat,
+    exp: payload.exp,
+  };
 }
-
-// Export for use in other modules
-export { JWT_REFRESH_EXPIRES_IN }

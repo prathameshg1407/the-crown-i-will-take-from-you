@@ -1,25 +1,27 @@
 // lib/request.ts
-import { NextRequest } from 'next/server'
 
-/**
- * Get client IP address from request headers
- */
-export function getClientIp(request: NextRequest): string | undefined {
-  const forwardedFor = request.headers.get('x-forwarded-for')
+import { NextRequest } from "next/server";
+
+export function getClientIp(request: NextRequest): string | null {
+  // Check common headers for proxied requests
+  const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) {
-    return forwardedFor.split(',')[0].trim()
+    return forwardedFor.split(",")[0].trim();
   }
-  
-  return (
-    request.headers.get('x-real-ip') ||
-    request.headers.get('cf-connecting-ip') ||
-    undefined
-  )
+
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp;
+  }
+
+  const cfConnectingIp = request.headers.get("cf-connecting-ip");
+  if (cfConnectingIp) {
+    return cfConnectingIp;
+  }
+
+  return null;
 }
 
-/**
- * Get user agent from request
- */
-export function getUserAgent(request: NextRequest): string | undefined {
-  return request.headers.get('user-agent') || undefined
+export function getUserAgent(request: NextRequest): string | null {
+  return request.headers.get("user-agent");
 }
