@@ -7,7 +7,7 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
 import { getSiteId } from "@/lib/site/config";
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get("access_token")?.value;
@@ -30,6 +30,22 @@ export async function GET(_request: NextRequest) {
     }
 
     const siteId = await getSiteId();
+
+    // Verify session exists in DB (for secure logout/revocation)
+    const { data: session, error: sessionError } = await supabaseAdmin
+      .from("sessions")
+      .select("id")
+      .eq("user_id", payload.sub)
+      .eq("access_token_jti", payload.jti)
+      .gt("expires_at", new Date().toISOString())
+      .single();
+
+    if (sessionError || !session) {
+      return NextResponse.json(
+        { success: false, error: { message: "Session revoked or expired", code: "SESSION_REVOKED" } },
+        { status: 401 }
+      );
+    }
 
     const { data: user, error: userError } = await supabaseAdmin
       .from("users")
