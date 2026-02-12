@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
     const refreshToken = request.cookies.get("refresh_token")?.value;
 
     if (!refreshToken) {
+      logger.debug({ siteId }, "Refresh token missing from request");
       return errorResponse("Refresh token required", 401, "NO_REFRESH_TOKEN");
     }
 
